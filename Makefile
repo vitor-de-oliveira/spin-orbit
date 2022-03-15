@@ -4,7 +4,7 @@ VPATH = ./src
 
 CC = gcc
 
-TARGETS = 3BP
+TARGETS = SPIN
 
 DEPENDENCIES = main.c main_functions.c auxiliar_functions.c auxiliar_functions_gsl.c auxiliar_functions_vmo.c dynamical_system.c
 

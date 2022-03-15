@@ -68,7 +68,7 @@ int set_integrator(const gsl_odeiv2_step_type *T, char *integrator)
 	}
 	else
 	{
-		printf("Warning: invalid GSL integrator integrator\n");
+		printf("Warning: invalid GSL integrator\n");
 		exit(2);
 	}
 	return 0;
@@ -78,33 +78,11 @@ int set_system(gsl_odeiv2_system *sys, void *par, char *system)
 {
 	double mu = *(double *)par;
 
-	if (strcmp(system, "rotational") == 0 || 
-		strcmp(system, "regularized") == 0)
+	if (strcmp(system, "rigid") == 0)
 	{
-		(*sys).function = field_rotational;
-		(*sys).jacobian = jacobian_rotational;
-		(*sys).dimension = 4;
-		(*sys).params = &mu;
-	}
-	else if (strcmp(system, "extended") == 0)
-	{
-		(*sys).function = field_extended;
-		(*sys).jacobian = NULL;
-		(*sys).dimension = 20;
-		(*sys).params = &mu;
-	}
-	else if (strcmp(system, "hamiltonian") == 0)
-	{
-		(*sys).function = field_hamiltonian;
-		(*sys).jacobian = NULL;
-		(*sys).dimension = 4;
-		(*sys).params = &mu;
-	}
-	else if (strcmp(system, "inertial") == 0)
-	{
-		(*sys).function = field_inertial;
-		(*sys).jacobian = NULL;
-		(*sys).dimension = 4;
+		(*sys).function = field_rigid;
+		(*sys).jacobian = jacobian_rigid;
+		(*sys).dimension = 2;
 		(*sys).params = &mu;
 	}
 	else

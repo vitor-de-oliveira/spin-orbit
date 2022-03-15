@@ -24,23 +24,10 @@
 // calculates and writes an orbit with given initial 
 // condition in the rotational system
 // also calculates and writes orbit on poincare map
-int trace_orbit(double *y, void *params, double tf);
+int trace_orbit_map(double *ic, void *params, double cycle_period, int number_of_cycles);
 
 // calculates and writes the phase space  
 // for a given jacobi constant value
-int draw_phase_space(double motion_constant, void *params, double tf, double coordinate_min, double coordinate_max, double velocity_min, double velocity_max, int nc, int nv);
-
-// writes the Lyapunov orbit for given energy
-int trace_Lyapunov_orbit(void *params, double J, int n);
-
-// writes family of Lyapunov orbits for 
-// n-th Lagrangian point
-int trace_Lyapunov_orbit_family(void *params, int number_of_orbits, double delta_J, int n);
-
-// traces and writes zero-velocity curve
-int trace_zvc(double J, void *params);
-
-// traces and writes the manifolds of a Lyapunov orbit 
-int trace_manifolds_Lyapunov_orbit(void *params, double J, double time_left, double time_right, int man_ic_number, int n);
+int draw_phase_space(void *params, double cycle_period, int number_of_cycles, double coordinate_min, double coordinate_max, double velocity_min, double velocity_max, int nc, int nv);
 
 #endif
