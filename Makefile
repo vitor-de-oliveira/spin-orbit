@@ -1,5 +1,5 @@
 INCLUDE_DIR = ./include
-CFLAGS = -std=c11 -I$(INCLUDE_DIR) #-Wall
+CFLAGS = -std=c11 -I$(INCLUDE_DIR) -D_XOPEN_SOURCE #-Wall
 VPATH = ./src
 
 CC = gcc
@@ -25,5 +25,5 @@ $(TARGET_TEST): main_test.c $(DEPENDENCIES) -lgsl -lgslcblas -lm
 
 .PHONY: clean
 clean:
-	-rm -f $(TARGETS)
+	-rm -f $(TARGET)
 	-rm -f $(TARGET_TEST)

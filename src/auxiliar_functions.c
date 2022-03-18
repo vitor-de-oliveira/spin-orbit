@@ -1,10 +1,11 @@
 #include "auxiliar_functions.h"
 
-int evolve_cycle(double *y, void *params, double cycle_period, double *t)
+int evolve_cycle(double *y, void *params, 
+				double cycle_period, double *t)
 {
 	// declare variables
 	int status, system_dimension;
-	double mu = *(double *)params, t0, h;
+	double e = *(double *)params, t0, h;
 
 	// initialiaze control variables
 	h = 1e-3 * sign(cycle_period);
@@ -13,14 +14,16 @@ int evolve_cycle(double *y, void *params, double cycle_period, double *t)
 
 	// set driver
 	gsl_odeiv2_system sys = 
-	{field_rigid, jacobian_rigid, system_dimension, &mu};
+	{field_rigid, jacobian_rigid, system_dimension, &e};
 	gsl_odeiv2_driver *d = 
-	gsl_odeiv2_driver_alloc_standard_new(&sys, gsl_odeiv2_step_rk8pd, h, 1e-14, 0.0, 0.0, 0.0);
+	gsl_odeiv2_driver_alloc_standard_new(&sys, 
+		gsl_odeiv2_step_rk8pd, h, 1e-14, 0.0, 0.0, 0.0);
 	gsl_odeiv2_driver_set_hmax(d, 1e-3);
 	gsl_odeiv2_driver_set_hmin(d, 1e-11);
 
 	// cycle evolution
-	status = gsl_odeiv2_driver_apply (d, t, t0 + cycle_period * sign(cycle_period), y);
+	status = gsl_odeiv2_driver_apply (d, t, 
+		t0 + cycle_period * sign(cycle_period), y);
 
 	// check if integration was successfull
 	if (status != GSL_SUCCESS)
@@ -35,7 +38,9 @@ int evolve_cycle(double *y, void *params, double cycle_period, double *t)
 	return 0;
 }
 
-int evolve_orbit(void *params, double *ic, double cycle_period, int number_of_cycles, double ***orbit)
+int evolve_orbit(void *params, double *ic, 
+				double cycle_period, int number_of_cycles, 
+				double ***orbit)
 {
 	int system_dimension = 2;
 
@@ -47,7 +52,8 @@ int evolve_orbit(void *params, double *ic, double cycle_period, int number_of_cy
 	// allocate memory and initializes exit data
 	if (orbit != NULL)
 	{
-		alloc_2d_double(orbit, number_of_cycles, system_dimension);
+		alloc_2d_double(orbit, number_of_cycles, 
+			system_dimension);
 		copy((*orbit)[0], ic, system_dimension);
 	}
 	else

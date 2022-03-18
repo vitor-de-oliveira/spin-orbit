@@ -1,6 +1,7 @@
 #include "main_functions.h"
 
-int trace_orbit_map(double *ic, void *params, double cycle_period, int number_of_cycles)
+int trace_orbit_map(double *ic, void *params, 
+		double cycle_period, int number_of_cycles)
 {
 	// declare and open exit files
 	FILE *orb = fopen("output/orbit.dat", "w");
@@ -9,12 +10,14 @@ int trace_orbit_map(double *ic, void *params, double cycle_period, int number_of
 	double **orbit;
 
 	// evolve system
-	evolve_orbit(params, ic, cycle_period, number_of_cycles, &orbit);
+	evolve_orbit(params, ic, cycle_period, number_of_cycles, 
+				&orbit);
 
 	// write orbit and constant error to file
 	for (int i = 0; i < number_of_cycles; i++)
 	{
-		fprintf(orb, "%1.15e %1.15e\n", orbit[i][0], orbit[i][1]);
+		fprintf(orb, "%1.15e %1.15e\n", orbit[i][0], 
+				orbit[i][1]);
 	}
 
 	// free memory
@@ -28,11 +31,16 @@ int trace_orbit_map(double *ic, void *params, double cycle_period, int number_of
 	return 0;
 }
 
-int draw_phase_space(void *params, double cycle_period, int number_of_cycles, double coordinate_min, double coordinate_max, double velocity_min, double velocity_max, int nc, int nv)
+int draw_phase_space(void *params, double cycle_period, 
+		int number_of_cycles, double coordinate_min, 
+		double coordinate_max, double velocity_min, 
+		double velocity_max, int nc, int nv)
 {
 	// declare and open exit files
 	FILE *psp = fopen("output/phase_space.dat", "w");
-	FILE *inc = fopen("output/phase_space_initial_conditions.dat", "w");
+	FILE *inc 
+		= fopen("output/phase_space_initial_conditions.dat", 
+				"w");
 
 	int system_dimension = 2;
 
@@ -59,34 +67,40 @@ int draw_phase_space(void *params, double cycle_period, int number_of_cycles, do
 			y[1] = velocity;
 
 			// write initial condition to file
-			fprintf(inc, "%1.15e %1.15e\n", coordinate, velocity);
+			fprintf(inc, "%1.15e %1.15e\n", coordinate, 
+					velocity);
 
 			// keep IC for backward integration
 			copy(y0, y, system_dimension);
 
 			// calculate forward integration
-			evolve_orbit(params, y, cycle_period, number_of_cycles, &orbit_fw);
+			evolve_orbit(params, y, cycle_period, 
+				number_of_cycles, &orbit_fw);
 
 			// write orbit and constant error to file
 			for (int i = 0; i < number_of_cycles; i++)
 			{
-				fprintf(psp, "%1.15e %1.15e\n", orbit_fw[i][0], orbit_fw[i][1]);
+				fprintf(psp, "%1.15e %1.15e\n", 
+					angle_mod(orbit_fw[i][0]), 
+					orbit_fw[i][1]);
 			}
 
 			// free memory
 			dealloc_2d_double(&orbit_fw, number_of_cycles);
 
-			// calculate backward integration
-			evolve_orbit(params, y, -1.0 * cycle_period, number_of_cycles, &orbit_bw);
+			// // calculate backward integration
+			// evolve_orbit(params, y, -1.0 * cycle_period, 
+			// 	number_of_cycles, &orbit_bw);
 
-			// write orbit and constant error to file
-			for (int i = 0; i < number_of_cycles; i++)
-			{
-				fprintf(psp, "%1.15e %1.15e\n", orbit_bw[i][0], orbit_bw[i][1]);
-			}
+			// // write orbit and constant error to file
+			// for (int i = 0; i < number_of_cycles; i++)
+			// {
+			// 	fprintf(psp, "%1.15e %1.15e\n", 
+			// 		orbit_bw[i][0], orbit_bw[i][1]);
+			// }
 
-			// free memory
-			dealloc_2d_double(&orbit_bw, number_of_cycles);
+			// // free memory
+			// dealloc_2d_double(&orbit_bw, number_of_cycles);
 
 			// create new line on exit file
 			fprintf(psp, "\n");
@@ -94,14 +108,16 @@ int draw_phase_space(void *params, double cycle_period, int number_of_cycles, do
 			// update valocity
 			if (nv > 1)
 			{
-				velocity += fabs(velocity_max - velocity_min) / (double)(nv - 1);
+				velocity += fabs(velocity_max - 
+					velocity_min) / (double)(nv - 1);
 			}
 		}
 
 		// update coordinate
 		if (nc > 1)
 		{
-			coordinate += fabs(coordinate_max - coordinate_min) / (double)(nc - 1);
+			coordinate += fabs(coordinate_max - 
+				coordinate_min) / (double)(nc - 1);
 		}
 		
 		// new line on terminal

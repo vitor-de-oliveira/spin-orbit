@@ -82,6 +82,17 @@ int switch_array_element(double *x, int i, int j)
 	return 0;
 }
 
+double angle_mod(double x)
+{
+	double result;
+	result = fmod (x , 2.0 * M_PI);
+	if (result < 0.0)
+	{
+		result += 2.0 * M_PI;
+	}
+	return result;
+}
+
 double array_norm(double *x, int dim)
 {
 	double norm_sq = 0;
