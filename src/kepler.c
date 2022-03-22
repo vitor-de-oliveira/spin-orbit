@@ -53,7 +53,7 @@ double kepler_equation(double e, double t)
         gsl_root_fdfsolver_iterate(s);
         u0 = u;
         u = gsl_root_fdfsolver_root(s);
-        status = gsl_root_test_delta(u, u0, 1e-15, 0);
+        status = gsl_root_test_delta(u, u0, 1e-10, 0);
         if (iter == max_iter)
         {
             printf("Warning: maximum iterate number reached\n");

@@ -16,8 +16,8 @@ int trace_orbit_map(double *ic, void *params,
 	// write orbit and constant error to file
 	for (int i = 0; i < number_of_cycles; i++)
 	{
-		fprintf(orb, "%1.15e %1.15e\n", orbit[i][0], 
-				orbit[i][1]);
+		fprintf(orb, "%1.15e %1.15e\n", 
+				angle_mod(orbit[i][0]), orbit[i][1]);
 	}
 
 	// free memory

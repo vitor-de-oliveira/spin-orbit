@@ -18,6 +18,7 @@ int main(int argc, char **argv)
 
 	int nc, nv;
 	int number_of_cycles;
+	double ic[2];
 	double cycle_period;
 	double coordinate_min;
 	double coordinate_max;
@@ -30,19 +31,24 @@ int main(int argc, char **argv)
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-    e = 0.1;
-	nc = 10, nv = 10;
-	number_of_cycles = 1e2;
+	e = 0.1;
+
+	number_of_cycles = 1e3;
 	cycle_period = 2.0 * M_PI;
+    ic[0] = 0.1, ic[1] = 0.1;
+	
+	nc = 10, nv = 10;
 	coordinate_min = 0.0;
 	coordinate_max = 2.0 * M_PI;
 	velocity_min = -0.1;
 	velocity_max = 0.1;
 
-	draw_phase_space(&e, cycle_period, 
-		number_of_cycles, coordinate_min, 
-		coordinate_max, velocity_min, 
-		velocity_max, nc, nv);
+	trace_orbit_map(ic, &e, cycle_period, number_of_cycles);
+
+	// draw_phase_space(&e, cycle_period, 
+	// 	number_of_cycles, coordinate_min, 
+	// 	coordinate_max, velocity_min, 
+	// 	velocity_max, nc, nv);
 
 	/******************** Stop clock ***********************/
 
