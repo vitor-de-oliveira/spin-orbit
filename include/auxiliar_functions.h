@@ -18,14 +18,18 @@
 
 #include "dynamical_system.h"
 #include "auxiliar_functions_vmo.h"
+#include "auxiliar_functions_gsl.h"
 
-/****************** high-level functions *************************/
+/****************** high-level functions ********************/
 
 // calculates an orbit with given initial condition in the rotational system
 // using gsl with rk8pd as the integrator of choice
 // defines passed arrays with the complete orbit evenly spaced in time
-int evolve_cycle(double *y, void *params, double cycle_period, double *t);
+int evolve_cycle(double *y, void *params, double cycle_period, 
+                 double *t, char *system);
 
-int evolve_orbit(void *params, double *ic, double cycle_period, int number_of_cycles, double ***orbit);
+int evolve_orbit(void *params, double *ic, double cycle_period, 
+                 int number_of_cycles, double ***orbit, 
+                 int *orbit_size, char *system);
 
 #endif

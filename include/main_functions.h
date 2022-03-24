@@ -24,10 +24,20 @@
 // calculates and writes an orbit with given initial 
 // condition in the rotational system
 // also calculates and writes orbit on poincare map
-int trace_orbit_map(double *ic, void *params, double cycle_period, int number_of_cycles);
+int trace_orbit_map(double *ic, void *params, 
+                    double cycle_period, 
+                    int number_of_cycles, 
+                    char *system);
 
 // calculates and writes the phase space  
 // for a given jacobi constant value
-int draw_phase_space(void *params, double cycle_period, int number_of_cycles, double coordinate_min, double coordinate_max, double velocity_min, double velocity_max, int nc, int nv);
+int draw_phase_space(void *params, double cycle_period, 
+                     int number_of_cycles, 
+                     double coordinate_min, 
+                     double coordinate_max, 
+                     double velocity_min, 
+                     double velocity_max, 
+                     int nc, int nv, 
+                     char *system);
 
 #endif

@@ -1,20 +1,22 @@
 #include "main_functions.h"
 
 int trace_orbit_map(double *ic, void *params, 
-		double cycle_period, int number_of_cycles)
+		double cycle_period, int number_of_cycles, 
+		char *system)
 {
 	// declare and open exit files
 	FILE *orb = fopen("output/orbit.dat", "w");
 
 	// declare variables
+	int orbit_size;
 	double **orbit;
 
 	// evolve system
 	evolve_orbit(params, ic, cycle_period, number_of_cycles, 
-				&orbit);
+				&orbit, &orbit_size, system);
 
 	// write orbit and constant error to file
-	for (int i = 0; i < number_of_cycles; i++)
+	for (int i = 0; i < orbit_size; i++)
 	{
 		fprintf(orb, "%1.15e %1.15e\n", 
 				angle_mod(orbit[i][0]), orbit[i][1]);
@@ -34,7 +36,7 @@ int trace_orbit_map(double *ic, void *params,
 int draw_phase_space(void *params, double cycle_period, 
 		int number_of_cycles, double coordinate_min, 
 		double coordinate_max, double velocity_min, 
-		double velocity_max, int nc, int nv)
+		double velocity_max, int nc, int nv, char *system)
 {
 	// declare and open exit files
 	FILE *psp = fopen("output/phase_space.dat", "w");
@@ -42,11 +44,14 @@ int draw_phase_space(void *params, double cycle_period,
 		= fopen("output/phase_space_initial_conditions.dat", 
 				"w");
 
+
+	// CHECK THIS!!!  
 	int system_dimension = 2;
 
 	// declare variables
 	double y[system_dimension], y0[system_dimension];
 	double coordinate, velocity;
+	int orbit_size;
 	double **orbit_fw, **orbit_bw;
 
 	// loop over coordinate values
@@ -75,10 +80,11 @@ int draw_phase_space(void *params, double cycle_period,
 
 			// calculate forward integration
 			evolve_orbit(params, y, cycle_period, 
-				number_of_cycles, &orbit_fw);
+				number_of_cycles, &orbit_fw, &orbit_size, 
+				system);
 
 			// write orbit and constant error to file
-			for (int i = 0; i < number_of_cycles; i++)
+			for (int i = 0; i < orbit_size; i++)
 			{
 				fprintf(psp, "%1.15e %1.15e\n", 
 					angle_mod(orbit_fw[i][0]), 

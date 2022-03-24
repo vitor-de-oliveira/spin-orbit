@@ -1,20 +1,19 @@
 #include "auxiliar_functions.h"
 
 int evolve_cycle(double *y, void *params, 
-				double cycle_period, double *t)
+				double cycle_period, double *t, char *system)
 {
 	// declare variables
-	int status, system_dimension;
-	double e = *(double *)params, t0, h;
+	int status;
+	double h;
 
 	// initialiaze control variables
 	h = 1e-3 * sign(cycle_period);
-	system_dimension = 2;
-	t0 = *t;
 
 	// set driver
-	gsl_odeiv2_system sys = 
-	{field_rigid, jacobian_rigid, system_dimension, &e};
+	gsl_odeiv2_system sys;
+	set_system(&sys, params, system);
+
 	gsl_odeiv2_driver *d = 
 	gsl_odeiv2_driver_alloc_standard_new(&sys, 
 		gsl_odeiv2_step_rk8pd, h, 1e-14, 0.0, 0.0, 0.0);
@@ -23,7 +22,7 @@ int evolve_cycle(double *y, void *params,
 
 	// cycle evolution
 	status = gsl_odeiv2_driver_apply (d, t, 
-		t0 + cycle_period * sign(cycle_period), y);
+		*t + cycle_period * sign(cycle_period), y);
 
 	// check if integration was successfull
 	if (status != GSL_SUCCESS)
@@ -40,13 +39,32 @@ int evolve_cycle(double *y, void *params,
 
 int evolve_orbit(void *params, double *ic, 
 				double cycle_period, int number_of_cycles, 
-				double ***orbit)
+				double ***orbit, int *orbit_size,
+				char *system)
 {
-	int system_dimension = 2;
+	int system_dimension;
+
+	if (strcmp(system, "rigid") == 0)
+	{
+		system_dimension = 6;
+	}
+	else if (strcmp(system, "rigid_kepler") == 0)
+	{
+		system_dimension = 2;
+	}
+	else if (strcmp(system, "two_body") == 0)
+	{
+		system_dimension = 4;
+	}
+	else
+	{
+		printf("Warning: undefined system\n");
+		exit(2);
+	}
 
 	// declare variables
 	double y[system_dimension];
-	double box = 1e3;
+	double box = 1e5;
 	double t = 0.0;
 
 	// allocate memory and initializes exit data
@@ -61,23 +79,34 @@ int evolve_orbit(void *params, double *ic,
 		printf("Error: NULL orbit.");
 		exit(2);
 	}
+	
+	int counter = 0;
 
 	// orbit evolution
 	copy(y, ic, system_dimension);
 	for (int i = 1; i < number_of_cycles; i++)
 	{
-		evolve_cycle(y, params, cycle_period, &t);
+		evolve_cycle(y, params, cycle_period, &t, system);
 	
 		// check if orbit diverges
-		if (fabs(y[0]) > box || fabs(y[1]) > box)
+		for (int j = 0; j < system_dimension; j++)
 		{
-			printf("Warning: box limit reached\n");
-			break;
+			if (fabs(y[j]) > box)
+			{
+				printf("Warning: box limit reached\n");
+				goto out;
+			}
 		}
+
+		counter++;
 
 		// write orbit element
 		copy((*orbit)[i], y, system_dimension);
 	}
+
+	out:;
+
+	*orbit_size = counter;
 
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "main_functions.h"
 #include "auxiliar_functions.h"
 #include "kepler.h"
 
@@ -18,22 +19,39 @@ int main(int argc, char **argv)
     double t;           // time
 
 	/*******************************************************/
-	
+
 	/////////////////////////////////////////////////////////
 	/*				   	Auxiliar functions    			  */
 	/////////////////////////////////////////////////////////
 
 	int number_of_cycles;
-	double y[2], cycle_period;
+	int system_dimension;
+	int orbit_size;
+	double cycle_period;
 	double **orbit;
+	char *system;
 
-    e = 0.1;
-	y[0] = 0.1;
-	y[1] = 0.05;
+    e = 0.0549; //Moon
 	cycle_period = 2.0 * M_PI;
+	// cycle_period = M_PI / 1000.0;
  	t = 0.0;
 	number_of_cycles = 1e3;
-	
+	system_dimension = 6;
+	system = "rigid";
+
+	double perigee_over_semimajor_axis = 0.9451; //Moon
+	double G = 1.0;
+	double mass = 1.0;
+
+	double y[system_dimension];
+	y[0] = 0.1;
+	y[1] = 0.1;
+	y[2] = perigee_over_semimajor_axis;
+	y[3] = 0.0;
+	y[4] = 0.0;
+	y[5] = sqrt(G * mass * (1.0 + e) / 
+				perigee_over_semimajor_axis);
+
 	// evolve_cycle(y, &e, cycle_period, &t);
 	// printf("%1.10e %1.10e\n", y[0] , y[1]);
 
@@ -41,12 +59,14 @@ int main(int argc, char **argv)
 			= fopen("output/test_evolve_orbit.dat", "w");
 
 	evolve_orbit(&e, y, cycle_period, number_of_cycles, 
-				&orbit);
+				&orbit, &orbit_size, system);
 
-	for (int i = 0; i < number_of_cycles; i++)
+	for (int i = 0; i < orbit_size; i++)
 	{
+		// fprintf(tst_ev_orbit, "%1.15e %1.15e\n", 
+		// 	fmod(orbit[i][0], 2.0*M_PI), orbit[i][1]);
 		fprintf(tst_ev_orbit, "%1.15e %1.15e\n", 
-			fmod(orbit[i][0], 2.0*M_PI), orbit[i][1]);
+			angle_mod(orbit[i][0]), orbit[i][1]);
 	}
 
 	dealloc_2d_double(&orbit, number_of_cycles);
@@ -62,8 +82,8 @@ int main(int argc, char **argv)
     // FILE *tst_kep_time 
 	// 		= fopen("output/test_kepler_time.dat", "w");
 
-    // e = 0.99;
-    // for (t = 0.0; t < 10.0 * M_PI; t += M_PI / 1000.0)
+    // e = 0.0549; //Moon
+    // for (t = 0.0; t < 1.0 * M_PI; t += M_PI / 1000.0)
     // {
     //     double u = kepler_equation(e,t);
     //     double r = 1 - e * cos(u);

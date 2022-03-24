@@ -76,14 +76,28 @@ int set_integrator(const gsl_odeiv2_step_type *T, char *integrator)
 
 int set_system(gsl_odeiv2_system *sys, void *par, char *system)
 {
-	double mu = *(double *)par;
+	double parameter = *(double *)par;
 
 	if (strcmp(system, "rigid") == 0)
 	{
 		(*sys).function = field_rigid;
-		(*sys).jacobian = jacobian_rigid;
+		(*sys).jacobian = NULL;
+		(*sys).dimension = 6;
+		(*sys).params = &parameter;
+	}
+	else if (strcmp(system, "rigid_kepler") == 0)
+	{
+		(*sys).function = field_rigid_kepler;
+		(*sys).jacobian = jacobian_rigid_kepler;
 		(*sys).dimension = 2;
-		(*sys).params = &mu;
+		(*sys).params = &parameter;
+	}
+	else if (strcmp(system, "two_body") == 0)
+	{
+		(*sys).function = field_two_body;
+		(*sys).jacobian = jacobian_two_body;
+		(*sys).dimension = 4;
+		(*sys).params = &parameter;
 	}
 	else
 	{

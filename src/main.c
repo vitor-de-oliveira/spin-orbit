@@ -24,6 +24,7 @@ int main(int argc, char **argv)
 	double coordinate_max;
 	double velocity_min;
 	double velocity_max;
+	char *system;
 
 	/*******************************************************/
 	
@@ -31,19 +32,21 @@ int main(int argc, char **argv)
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-	e = 0.1;
+	e = 0.0549; //Moon
 
 	number_of_cycles = 1e3;
 	cycle_period = 2.0 * M_PI;
     ic[0] = 0.1, ic[1] = 0.1;
-	
+	system = "rigid_kepler";
+
 	nc = 10, nv = 10;
 	coordinate_min = 0.0;
 	coordinate_max = 2.0 * M_PI;
 	velocity_min = -0.1;
 	velocity_max = 0.1;
 
-	trace_orbit_map(ic, &e, cycle_period, number_of_cycles);
+	trace_orbit_map(ic, &e, cycle_period, number_of_cycles, 
+					system);
 
 	// draw_phase_space(&e, cycle_period, 
 	// 	number_of_cycles, coordinate_min, 

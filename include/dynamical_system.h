@@ -11,9 +11,28 @@
 #include <kepler.h>
 
 // field for rotational frame
-int field_rigid(double t, const double y[], double f[], void *params);
+int field_two_body(double t, const double y[], double f[], 
+                   void *params);
 
 // jacobian for rotational frame
-int jacobian_rigid(double t, const double y[], double *dfdy, double dfdt[], void *params);
+int jacobian_two_body(double t, const double y[], 
+            double *dfdy, double dfdt[], void *params);
+
+// field for rotational frame
+int field_rigid(double t, const double y[], double f[], 
+            void *params);
+
+// jacobian for rotational frame
+int jacobian_rigid(double t, const double y[], double *dfdy, 
+            double dfdt[], void *params);
+
+// field for rotational frame
+int field_rigid_kepler(double t, const double y[], 
+            double f[], void *params);
+
+// jacobian for rotational frame
+int jacobian_rigid_kepler(double t, const double y[], 
+            double *dfdy, double dfdt[], void *params);
+
 
 #endif
