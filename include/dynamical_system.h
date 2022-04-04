@@ -34,5 +34,9 @@ int field_rigid_kepler(double t, const double y[],
 int jacobian_rigid_kepler(double t, const double y[], 
             double *dfdy, double dfdt[], void *params);
 
+// field for rotational frame
+double angular_momentum_two_body(double y[4]);
+
+double vis_viva_two_body(double y[4], double T, double a);
 
 #endif

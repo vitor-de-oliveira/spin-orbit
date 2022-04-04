@@ -88,8 +88,8 @@ int field_rigid(double t, const double y[], double f[],
 	double e = *(double *)params;
     double r = sqrt((y[2] * y[2]) + (y[3] * y[3]));
 	double r_cube = r * r * r;
-    double f_e = atan2(y[3], y[2]) + M_PI;
-	double aux = (-3.0/2.0) * gamma * G * m;
+    double f_e = atan2(y[3], y[2]);
+	double aux = (-3.0/2.0) * gamma * G * m_primary;
 
 	// y[0] = theta
 	// y[1] = theta_dot
@@ -123,8 +123,8 @@ int jacobian_rigid(double t, const double y[], double *dfdy,
 	double e = *(double *)params;
     double r = sqrt((y[2] * y[2]) + (y[3] * y[3]));
 	double r_cube = r * r * r;
-    double f_e = atan2(y[3], y[2]) + M_PI;
-	double aux = (-3.0/2.0) * gamma * G * m;
+    double f_e = atan2(y[3], y[2]);
+	double aux = (-3.0/2.0) * gamma * G * m_primary;
 
 	double r_fifth = r * r * r * r * r;
 	double alpha_1 = G * total_mass * 
@@ -135,9 +135,18 @@ int jacobian_rigid(double t, const double y[], double *dfdy,
 	double alpha_4 = G * total_mass *  
 			(2.0 * y[3] * y[3] - y[2] * y[2]) / r_fifth;
 
+	double mixed_1 = (aux / r_fifth) * 
+			(3.0*y[2]*sin(2.0*(y[0]-f_e)) - 
+			 2.0*y[3]*cos(2.0*(y[0]-f_e)));
+
+	double mixed_2 = (aux / r_fifth) * 
+			(3.0*y[3]*sin(2.0*(y[0]-f_e)) + 
+			 2.0*y[2]*cos(2.0*(y[0]-f_e)));
+
 	gsl_matrix_view dfdy_mat 
 		= gsl_matrix_view_array(dfdy, 2, 2);
 	gsl_matrix *mat = &dfdy_mat.matrix;
+
 	gsl_matrix_set(mat, 0, 0, 0.0);
 	gsl_matrix_set(mat, 0, 1, 1.0);
 	gsl_matrix_set(mat, 1, 0, -2.0 * aux 
@@ -161,13 +170,12 @@ int jacobian_rigid(double t, const double y[], double *dfdy,
 	gsl_matrix_set(mat, 5, 4, 1.0);
 	gsl_matrix_set(mat, 5, 5, 0.0);
 
-	// THINK ABOUT THIS! I AM NOT SURE
 	gsl_matrix_set(mat, 0, 2, 0.0);
 	gsl_matrix_set(mat, 0, 3, 0.0);
 	gsl_matrix_set(mat, 0, 4, 0.0);
 	gsl_matrix_set(mat, 0, 5, 0.0);
-	gsl_matrix_set(mat, 1, 2, 0.0);
-	gsl_matrix_set(mat, 1, 3, 0.0);
+	gsl_matrix_set(mat, 1, 2, mixed_1);
+	gsl_matrix_set(mat, 1, 3, mixed_2);
 	gsl_matrix_set(mat, 1, 4, 0.0);
 	gsl_matrix_set(mat, 1, 5, 0.0);
 	gsl_matrix_set(mat, 2, 0, 0.0);
@@ -193,18 +201,20 @@ int field_rigid_kepler(double t, const double y[],
 							double f[], void *params)
 {
 	double G = 1.0;
-	double m = 1.0;
+	double m_secondary = 1.215e-2; //Moon
+	double m_primary = 1.0 - m_secondary;
 	double gamma = 0.01;
 
 	double e = *(double *)params;
 	double u = kepler_equation(e,t);
     double r = 1.0 - e * cos(u);
+	double r_cube = r * r * r;
     double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
 			* tan(0.5 * u));
-	double aux = (-3.0/2.0) * gamma * G * m / (r * r * r);
+	double aux = (-3.0/2.0) * gamma * G * m_primary;
 
 	f[0] = y[1];
-	f[1] = aux * sin(2.0 * (f_e - y[0]));
+	f[1] = aux * sin(2.0 * (f_e - y[0])) / r_cube;
 
 	return GSL_SUCCESS;
 }
@@ -213,7 +223,8 @@ int jacobian_rigid_kepler(double t, const double y[],
 				double *dfdy, double dfdt[], void *params)
 {
 	double G = 1.0;
-	double m = 1.0;
+	double m_secondary = 1.215e-2; //Moon
+	double m_primary = 1.0 - m_secondary;
 	double gamma = 0.01;
 
 	double e = *(double *)params;
@@ -221,7 +232,8 @@ int jacobian_rigid_kepler(double t, const double y[],
     double r = 1.0 - e * cos(u);
     double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
 			* tan(0.5 * u));
-	double aux = (-3.0/2.0) * gamma * G * m / (r * r * r);
+	double aux = (-3.0/2.0) * gamma * G * m_primary / 
+				(r * r * r);
 
 	gsl_matrix_view dfdy_mat 
 		= gsl_matrix_view_array(dfdy, 2, 2);
@@ -236,4 +248,30 @@ int jacobian_rigid_kepler(double t, const double y[],
 	dfdt[1] = 0.0;
 
 	return GSL_SUCCESS;
+}
+
+double angular_momentum_two_body(double y[4])
+{
+	double h;
+
+	h = y[0] * y[3] - y[1] * y[2];
+
+	return h;
+}
+
+double vis_viva_two_body(double y[4], double T, double a)
+{
+	double n, mu, r, v, C;
+
+	n = 2.0 * M_PI / T;
+
+	mu = n * n * a * a * a;
+
+	r = sqrt(y[0] * y[0] + y[1] * y[1]);
+
+	v = sqrt(y[2] * y[2] + y[3] * y[3]);
+
+	C = 0.5 * v * v - mu / r;
+
+	return C;
 }

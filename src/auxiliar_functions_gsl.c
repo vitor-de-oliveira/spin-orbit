@@ -81,7 +81,7 @@ int set_system(gsl_odeiv2_system *sys, void *par, char *system)
 	if (strcmp(system, "rigid") == 0)
 	{
 		(*sys).function = field_rigid;
-		(*sys).jacobian = NULL;
+		(*sys).jacobian = jacobian_rigid;
 		(*sys).dimension = 6;
 		(*sys).params = &parameter;
 	}

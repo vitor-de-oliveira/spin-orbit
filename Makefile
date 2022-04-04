@@ -1,5 +1,5 @@
 INCLUDE_DIR = ./include
-CFLAGS = -std=c11 -I$(INCLUDE_DIR) -D_XOPEN_SOURCE #-Wall
+CFLAGS = -std=c11 -I$(INCLUDE_DIR) -D_XOPEN_SOURCE #-fopenmp #-Wall
 VPATH = ./src
 
 CC = gcc

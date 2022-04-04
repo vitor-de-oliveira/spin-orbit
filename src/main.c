@@ -29,29 +29,38 @@ int main(int argc, char **argv)
 	/*******************************************************/
 	
 	/////////////////////////////////////////////////////////
+	/*				   		   Orbit		   	           */
+	/////////////////////////////////////////////////////////
+
+	// e = 0.0549; //Moon
+
+	// number_of_cycles = 6e3; //1e3
+	// cycle_period = 2.0 * M_PI;
+    // ic[0] = 0.1, ic[1] = 0.1;
+	// system = "rigid_kepler";
+
+	// trace_orbit_map(ic, &e, cycle_period, number_of_cycles, 
+	// 				system);
+
+	/////////////////////////////////////////////////////////
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
 	e = 0.0549; //Moon
-
-	number_of_cycles = 1e3;
+	number_of_cycles = 2e3; //1e3
 	cycle_period = 2.0 * M_PI;
-    ic[0] = 0.1, ic[1] = 0.1;
-	system = "rigid_kepler";
+	system = "rigid";
 
-	nc = 10, nv = 10;
+	nc = 5, nv = 30;
 	coordinate_min = 0.0;
-	coordinate_max = 2.0 * M_PI;
-	velocity_min = -0.1;
-	velocity_max = 0.1;
+	coordinate_max = M_PI; // 2.0* M_PI
+	velocity_min = 0.6;
+	velocity_max = 1.6;
 
-	trace_orbit_map(ic, &e, cycle_period, number_of_cycles, 
-					system);
-
-	// draw_phase_space(&e, cycle_period, 
-	// 	number_of_cycles, coordinate_min, 
-	// 	coordinate_max, velocity_min, 
-	// 	velocity_max, nc, nv);
+	draw_phase_space(&e, cycle_period, 
+		number_of_cycles, coordinate_min, 
+		coordinate_max, velocity_min, 
+		velocity_max, nc, nv, system);
 
 	/******************** Stop clock ***********************/
 

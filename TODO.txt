@@ -1,6 +1,8 @@
-- implement calculation of orbit through numerical integration
-instead of root finding
+- understand the differences between the spin-orbit trajectories
+using rigid and rigid_kepler as systems. The orbital part is
+almost identical. use theta = theta_dot = 0.1
 - stabilish the right values for G and m
+- pass I as a parameter in the void param
 - correct badckward integration on phase space function
 - check if check_period is necessary according to the 
     equations
@@ -24,3 +26,6 @@ into global or something like this
 - maybe write a run into makefile
 - think about using C++ and objects. In particular, put the evolve
 functions inside the classes.
+- verify which mass to use in field_rigid spin orbit equation
+- if we implement classes and objects, associate functions like
+constant of motion to these classes
