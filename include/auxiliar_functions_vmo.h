@@ -48,6 +48,8 @@ int switch_array_element(double *x, int i, int j);
 
 double angle_mod(double x);
 
+double angular_dist(double x1, double x2);
+
 // return the norm of an real array x of dimension dim
 double array_norm(double *x, int dim);
 

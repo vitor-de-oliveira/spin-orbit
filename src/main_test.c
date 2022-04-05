@@ -31,18 +31,21 @@ int main(int argc, char **argv)
 	double **orbit;
 	char *system;
 
+	// e = 0.0;
     e = 0.0549; //Moon
  	t = 0.0;
 	// number_of_cycles = 2e3 + 1;
 	// number_of_cycles = 2.5e4;
-	number_of_cycles = 6e3;
+	// number_of_cycles = 6e3;
 	// number_of_cycles = 1e3;
+	number_of_cycles = 6e3;
 
 	cycle_period = 2.0 * M_PI;
 	system_dimension = 6;
 	system = "rigid";
 
-	// cycle_period = M_PI / 100.0;
+	// cycle_period = 2.0 * M_PI;
+	// // cycle_period = M_PI / 100.0;
 	// system_dimension = 4;
 	// system = "two_body";
 
@@ -53,11 +56,23 @@ int main(int argc, char **argv)
 	double y[system_dimension];
 	y[0] = 0.1;
 	y[1] = 0.1;
-	y[2] = perigee_over_semimajor_axis;
+	// y[2] = perigee_over_semimajor_axis;
 	y[3] = 0.0;
 	y[4] = 0.0;
-	y[5] = sqrt(G * mass * (1.0 + e) / 
-				perigee_over_semimajor_axis);
+	// y[5] = sqrt(G * mass * (1.0 + e) / 
+	// 			perigee_over_semimajor_axis);
+
+	double a = 1.0;
+	y[2] = a * (1.0 - e * e) / (1.0 + e);
+	
+
+	double f_e = atan2(y[3], y[2]);
+	// double y_dot = (e + cos(f_e))/sqrt(1.0-e*e);
+	double y_dot = (e + 1.0/sqrt(y[3]*y[3]/(y[2]*y[2])+1.0)) 
+					/sqrt(1.0-e*e);
+	// printf("y[5]  = %1.15e\ny_dot = %1.15e\n", y[5], y_dot);
+
+	y[5] = y_dot;
 
 	// y[0] = perigee_over_semimajor_axis;
 	// y[1] = 0.0;
@@ -84,6 +99,8 @@ int main(int argc, char **argv)
 				&orbit, &orbit_size, system);
 
 	double orbital_motion[4], orbital_motion_ini[4];
+
+	// printf("%d\n", orbit_size);
 
 	for (int i = 0; i < orbit_size; i++)
 	{
@@ -120,6 +137,10 @@ int main(int argc, char **argv)
 		fprintf(tst_orbit_radius, "%1.15e %1.15e\n", 
 				(double)i * cycle_period, r);
 	}
+
+	printf("w_test = %1.10e\n", 
+		angular_dist(orbit[orbit_size-1][0], orbit[0][0])
+		/ (double)number_of_cycles);
 
 	dealloc_2d_double(&orbit, number_of_cycles);
 

@@ -16,9 +16,9 @@ int evolve_cycle(double *y, void *params,
 
 	gsl_odeiv2_driver *d = 
 	gsl_odeiv2_driver_alloc_standard_new(&sys, 
-		gsl_odeiv2_step_rkck, h, 1e-14, 0.0, 0.0, 0.0);
-	gsl_odeiv2_driver_set_hmax(d, 1e-3);
-	gsl_odeiv2_driver_set_hmin(d, 1e-11);
+		gsl_odeiv2_step_rk8pd, h, 1e-14, 0.0, 0.0, 0.0);
+	// gsl_odeiv2_driver_set_hmax(d, 1e-3);
+	// gsl_odeiv2_driver_set_hmin(d, 1e-11);
 
 	// cycle evolution
 	status = gsl_odeiv2_driver_apply (d, t, 
@@ -70,7 +70,8 @@ int evolve_orbit(void *params, double *ic,
 	// allocate memory and initializes exit data
 	if (orbit != NULL)
 	{
-		alloc_2d_double(orbit, number_of_cycles, 
+		// takes into consideration initial condition
+		alloc_2d_double(orbit, number_of_cycles + 1, 
 			system_dimension);
 		copy((*orbit)[0], ic, system_dimension);
 	}
@@ -80,11 +81,12 @@ int evolve_orbit(void *params, double *ic,
 		exit(2);
 	}
 	
-	int counter = 0;
+	// takes into consideration initial condition
+	int counter = 1;
 
 	// orbit evolution
 	copy(y, ic, system_dimension);
-	for (int i = 1; i < number_of_cycles; i++)
+	for (int i = 0; i < number_of_cycles; i++)
 	{
 		evolve_cycle(y, params, cycle_period, &t, system);
 	
@@ -101,7 +103,7 @@ int evolve_orbit(void *params, double *ic,
 		counter++;
 
 		// write orbit element
-		copy((*orbit)[i], y, system_dimension);
+		copy((*orbit)[i + 1], y, system_dimension);
 	}
 
 	out:;

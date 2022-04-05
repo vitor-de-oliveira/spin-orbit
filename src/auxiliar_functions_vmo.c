@@ -93,6 +93,23 @@ double angle_mod(double x)
 	return result;
 }
 
+double angular_dist(double x1, double x2)
+{
+	double result;
+	double dif, dif_2pi;
+	dif = angle_mod(x1 - x2);
+	dif_2pi = fabs(2.0*M_PI - dif);
+	if (dif < dif_2pi)
+	{
+		result = dif;
+	}
+	else
+	{
+		result = dif_2pi;
+	}
+	return result;
+}
+
 double array_norm(double *x, int dim)
 {
 	double norm_sq = 0;

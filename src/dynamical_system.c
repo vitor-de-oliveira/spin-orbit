@@ -99,8 +99,7 @@ int field_rigid(double t, const double y[], double f[],
 	// y[5] = y_dot
 
 	f[0] = y[1];
-	f[1] = aux * sin(2.0 * (f_e - y[0])) / r_cube;
-
+	f[1] = aux * sin(2.0 * (y[0] - f_e)) / r_cube;
 	f[2] = y[4];
 	f[3] = y[5];
 	f[4] = -1.0 * G * total_mass * y[2] / r_cube;
@@ -136,12 +135,12 @@ int jacobian_rigid(double t, const double y[], double *dfdy,
 			(2.0 * y[3] * y[3] - y[2] * y[2]) / r_fifth;
 
 	double mixed_1 = (aux / r_fifth) * 
-			(3.0*y[2]*sin(2.0*(y[0]-f_e)) - 
-			 2.0*y[3]*cos(2.0*(y[0]-f_e)));
+			(2.0*y[3]*cos(2.0*(y[0]-f_e)) - 
+			 3.0*y[2]*sin(2.0*(y[0]-f_e)));
 
 	double mixed_2 = (aux / r_fifth) * 
-			(3.0*y[3]*sin(2.0*(y[0]-f_e)) + 
-			 2.0*y[2]*cos(2.0*(y[0]-f_e)));
+			(-3.0*y[3]*sin(2.0*(y[0]-f_e)) 
+			 -2.0*y[2]*cos(2.0*(y[0]-f_e)));
 
 	gsl_matrix_view dfdy_mat 
 		= gsl_matrix_view_array(dfdy, 2, 2);
@@ -149,8 +148,8 @@ int jacobian_rigid(double t, const double y[], double *dfdy,
 
 	gsl_matrix_set(mat, 0, 0, 0.0);
 	gsl_matrix_set(mat, 0, 1, 1.0);
-	gsl_matrix_set(mat, 1, 0, -2.0 * aux 
-					*cos(2.0 * (f_e - y[0])) );
+	gsl_matrix_set(mat, 1, 0, 2.0 * aux 
+					*cos(2.0 * (y[0] - f_e)) / r_cube );
 	gsl_matrix_set(mat, 1, 1, 0.0);
 
 	gsl_matrix_set(mat, 2, 2, 0.0);
@@ -214,7 +213,7 @@ int field_rigid_kepler(double t, const double y[],
 	double aux = (-3.0/2.0) * gamma * G * m_primary;
 
 	f[0] = y[1];
-	f[1] = aux * sin(2.0 * (f_e - y[0])) / r_cube;
+	f[1] = aux * sin(2.0 * (y[0] - f_e)) / r_cube;
 
 	return GSL_SUCCESS;
 }
@@ -230,18 +229,18 @@ int jacobian_rigid_kepler(double t, const double y[],
 	double e = *(double *)params;
 	double u = kepler_equation(e,t);
     double r = 1.0 - e * cos(u);
+	double r_cube = r * r * r;
     double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
 			* tan(0.5 * u));
-	double aux = (-3.0/2.0) * gamma * G * m_primary / 
-				(r * r * r);
+	double aux = (-3.0/2.0) * gamma * G * m_primary;
 
 	gsl_matrix_view dfdy_mat 
 		= gsl_matrix_view_array(dfdy, 2, 2);
 	gsl_matrix *mat = &dfdy_mat.matrix;
 	gsl_matrix_set(mat, 0, 0, 0.0);
 	gsl_matrix_set(mat, 0, 1, 1.0);
-	gsl_matrix_set(mat, 1, 0, -2.0 * aux 
-					*cos(2.0 * (f_e - y[0])) );
+	gsl_matrix_set(mat, 1, 0, 2.0 * aux 
+					*cos(2.0 * (y[0] - f_e)) / r_cube );
 	gsl_matrix_set(mat, 1, 1, 0.0);
 
 	dfdt[0] = 0.0;

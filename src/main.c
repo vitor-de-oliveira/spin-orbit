@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 
 	// e = 0.0549; //Moon
 
-	// number_of_cycles = 6e3; //1e3
+	// number_of_cycles = 6e3; //1e3 6e3
 	// cycle_period = 2.0 * M_PI;
     // ic[0] = 0.1, ic[1] = 0.1;
 	// system = "rigid_kepler";
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
 	cycle_period = 2.0 * M_PI;
 	system = "rigid";
 
-	nc = 5, nv = 30;
+	nc = 11, nv = 30; //nc = 5, nv = 30;
 	coordinate_min = 0.0;
-	coordinate_max = M_PI; // 2.0* M_PI
+	coordinate_max = 2.0 * M_PI; // M_PI 2.0* M_PI
 	velocity_min = 0.6;
 	velocity_max = 1.6;
 

@@ -24,6 +24,10 @@ int trace_orbit_map(double *ic, void *params,
 			fmod(orbit[i][0], 2.0*M_PI), orbit[i][1]);
 	}
 
+	printf("w = %1.10e\n", 
+		angular_dist(orbit[orbit_size-1][0], orbit[0][0])
+		/ (double)number_of_cycles);
+
 	// free memory
 	dealloc_2d_double(&orbit, number_of_cycles);
 
@@ -46,9 +50,25 @@ int draw_phase_space(void *params, double cycle_period,
 		= fopen("output/phase_space_initial_conditions.dat", 
 				"w");
 
-	// CHECK THIS!!!  
-	// int system_dimension = 2;
-	int system_dimension = 6;
+	int system_dimension;
+
+	if (strcmp(system, "rigid") == 0)
+	{
+		system_dimension = 6;
+	}
+	else if (strcmp(system, "rigid_kepler") == 0)
+	{
+		system_dimension = 2;
+	}
+	else if (strcmp(system, "two_body") == 0)
+	{
+		system_dimension = 4;
+	}
+	else
+	{
+		printf("Warning: undefined system\n");
+		exit(2);
+	}
 
 	// declare variables
 	double y[system_dimension], y0[system_dimension];

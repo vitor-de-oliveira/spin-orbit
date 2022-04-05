@@ -2,7 +2,7 @@
 using rigid and rigid_kepler as systems. The orbital part is
 almost identical. use theta = theta_dot = 0.1
 - stabilish the right values for G and m
-- pass I as a parameter in the void param
+- pass I as a parameter in the void param (Olhar no dir temp)
 - correct badckward integration on phase space function
 - check if check_period is necessary according to the 
     equations
