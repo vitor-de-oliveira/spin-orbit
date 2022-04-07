@@ -1,3 +1,4 @@
+- automatically create output dir. test if it is not overwritable
 - understand how the specific values to the moon (or any other)
 satellite comes into play in the initial conditions. There are
 also the masses

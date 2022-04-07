@@ -154,22 +154,19 @@ int draw_phase_space(void *params, double cycle_period,
 						fprintf(inc, "%1.15e %1.15e\n", coordinate, 
 								velocity);
 						// write orbit and constant error to file
-						for (int i = 0; i < orbit_fw_size; i++)
+						for (int k = 0; k < orbit_fw_size; k++)
 						{
 							fprintf(psp, "%1.15e %1.15e\n", 
-								angle_mod(orbit_fw[i][0]), 
-								orbit_fw[i][1]);
+								angle_mod(orbit_fw[k][0]), 
+								orbit_fw[k][1]);
 						}
-						for (int i = 0; i < orbit_bw_size; i++)
+						for (int k = 0; k < orbit_bw_size; k++)
 						{
 							fprintf(psp, "%1.15e %1.15e\n", 
-								angle_mod(orbit_bw[i][0]), 
-								orbit_bw[i][1]);
+								angle_mod(orbit_bw[k][0]), 
+								orbit_bw[k][1]);
 						}
 					// } // end pragma omp critical
-
-					// write orbit and constant error to file
-
 
 					// free memory
 					dealloc_2d_double(&orbit_fw, number_of_cycles);
