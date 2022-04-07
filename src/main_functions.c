@@ -73,9 +73,10 @@ int draw_phase_space(void *params, double cycle_period,
 	// declare variables
 	double y[system_dimension], y0[system_dimension];
 	double coordinate, velocity;
-	int orbit_size;
+	int orbit_fw_size, orbit_bw_size;
 	double **orbit_fw, **orbit_bw;
-	double e = *(double *)params;
+	double *par = (double *)params;
+	double e = par[1];
 
 		// loop over coordinate values
 		for (int i = 0; i < nc; i++)
@@ -139,8 +140,13 @@ int draw_phase_space(void *params, double cycle_period,
 
 					// calculate forward integration
 					evolve_orbit(params, y, cycle_period, 
-						number_of_cycles, &orbit_fw, &orbit_size, 
-						system);
+						number_of_cycles, &orbit_fw, 
+						&orbit_fw_size, system);
+
+					// calculate backward integration
+					evolve_orbit(params, y, -1.0 * cycle_period, 
+						number_of_cycles, &orbit_bw, 
+						&orbit_bw_size, system);
 
 					// #pragma omp critical
 					// {
@@ -148,50 +154,33 @@ int draw_phase_space(void *params, double cycle_period,
 						fprintf(inc, "%1.15e %1.15e\n", coordinate, 
 								velocity);
 						// write orbit and constant error to file
-						for (int i = 0; i < orbit_size; i++)
+						for (int i = 0; i < orbit_fw_size; i++)
 						{
 							fprintf(psp, "%1.15e %1.15e\n", 
 								angle_mod(orbit_fw[i][0]), 
 								orbit_fw[i][1]);
 						}
+						for (int i = 0; i < orbit_bw_size; i++)
+						{
+							fprintf(psp, "%1.15e %1.15e\n", 
+								angle_mod(orbit_bw[i][0]), 
+								orbit_bw[i][1]);
+						}
 					// } // end pragma omp critical
+
+					// write orbit and constant error to file
+
 
 					// free memory
 					dealloc_2d_double(&orbit_fw, number_of_cycles);
-
-					// // calculate backward integration
-					// evolve_orbit(params, y, -1.0 * cycle_period, 
-					// 	number_of_cycles, &orbit_bw);
-
-					// // write orbit and constant error to file
-					// for (int i = 0; i < number_of_cycles; i++)
-					// {
-					// 	fprintf(psp, "%1.15e %1.15e\n", 
-					// 		orbit_bw[i][0], orbit_bw[i][1]);
-					// }
-
-					// // free memory
-					// dealloc_2d_double(&orbit_bw, number_of_cycles);
+					dealloc_2d_double(&orbit_bw, number_of_cycles);
 
 					// create new line on exit file
 					fprintf(psp, "\n");
 				
-					// update valocity
-					// if (nv > 1)
-					// {
-					// 	velocity += fabs(velocity_max - 
-					// 		velocity_min) / (double)(nv - 1);
-					// }
 				}
 			// } // end pragma
 
-			// update coordinate
-			// if (nc > 1)
-			// {
-			// 	coordinate += fabs(coordinate_max - 
-			// 		coordinate_min) / (double)(nc - 1);
-			// }
-			
 			// new line on terminal
 			printf("\n");
 		}

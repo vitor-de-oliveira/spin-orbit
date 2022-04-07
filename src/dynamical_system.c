@@ -3,13 +3,17 @@
 int field_two_body(double t, const double y[], double f[], 
 				void *params)
 {
-	double G = 1.0;
-	double m_secondary = 1.215e-2; //Moon
-	double m_primary = 1.0 - m_secondary;
+	(void)t;
+
+	double *par = (double *)params;
+
+	double e 			= par[1];
+	double m_primary 	= par[2]; 
+	double m_secondary 	= par[3];
+	double G 			= par[4];
+
 	double total_mass = m_primary + m_secondary;
 
-	(void)t;
-	double e = *(double *)params;
     double r = sqrt((y[0] * y[0]) + (y[1] * y[1]));
 	double r_cube = r * r * r;
 
@@ -24,13 +28,17 @@ int field_two_body(double t, const double y[], double f[],
 int jacobian_two_body(double t, const double y[], double *dfdy, 
 					double dfdt[], void *params)
 {
-	double G = 1.0;
-	double m_secondary = 1.215e-2; //Moon
-	double m_primary = 1.0 - m_secondary;
+	(void)t;
+
+	double *par = (double *)params;
+
+	double e 			= par[1];
+	double m_primary 	= par[2]; 
+	double m_secondary 	= par[3];
+	double G 			= par[4];
+
 	double total_mass = m_primary + m_secondary;
 
-	(void)t;
-	double e = *(double *)params;
     double r = sqrt((y[0] * y[0]) + (y[1] * y[1]));
 	double r_fifth = r * r * r * r * r;
 
@@ -76,20 +84,23 @@ int jacobian_two_body(double t, const double y[], double *dfdy,
 int field_rigid(double t, const double y[], double f[], 
 				void *params)
 {
-	double G = 1.0;
-	double m = 1.0;
-	double gamma = 0.01;
+	(void)t;
 
-	double m_secondary = 1.215e-2; //Moon
-	double m_primary = 1.0 - m_secondary;
+	double *par = (double *)params;
+
+	double gamma 		= par[0];
+	double e 			= par[1];
+	double m_primary 	= par[2]; 
+	double m_secondary 	= par[3];
+	double G 			= par[4];
+
 	double total_mass = m_primary + m_secondary;
 
-	(void)t;
-	double e = *(double *)params;
     double r = sqrt((y[2] * y[2]) + (y[3] * y[3]));
-	double r_cube = r * r * r;
     double f_e = atan2(y[3], y[2]);
+
 	double aux = (-3.0/2.0) * gamma * G * m_primary;
+	double r_cube = r * r * r;
 
 	// y[0] = theta
 	// y[1] = theta_dot
@@ -111,19 +122,23 @@ int field_rigid(double t, const double y[], double f[],
 int jacobian_rigid(double t, const double y[], double *dfdy, 
 					double dfdt[], void *params)
 {
-	double G = 1.0;
-	double m = 1.0;
-	double gamma = 0.01;
+	(void)t;
 
-	double m_secondary = 1.215e-2; //Moon
-	double m_primary = 1.0 - m_secondary;
+	double *par = (double *)params;
+
+	double gamma 		= par[0];
+	double e 			= par[1];
+	double m_primary 	= par[2]; 
+	double m_secondary 	= par[3];
+	double G 			= par[4];
+
 	double total_mass = m_primary + m_secondary;
 
-	double e = *(double *)params;
     double r = sqrt((y[2] * y[2]) + (y[3] * y[3]));
-	double r_cube = r * r * r;
     double f_e = atan2(y[3], y[2]);
+
 	double aux = (-3.0/2.0) * gamma * G * m_primary;
+	double r_cube = r * r * r;
 
 	double r_fifth = r * r * r * r * r;
 	double alpha_1 = G * total_mass * 
@@ -199,19 +214,23 @@ int jacobian_rigid(double t, const double y[], double *dfdy,
 int field_rigid_kepler(double t, const double y[], 
 							double f[], void *params)
 {
-	double G = 1.0;
-	double m_secondary = 1.215e-2; //Moon
-	double m_primary = 1.0 - m_secondary;
-	double gamma = 0.01;
 
-	double e = *(double *)params;
+	double *par = (double *)params;
+
+	double gamma 		= par[0];
+	double e 			= par[1];
+	double m_primary 	= par[2]; 
+	double m_secondary 	= par[3];
+	double G 			= par[4];
+
 	double u = kepler_equation(e,t);
     double r = 1.0 - e * cos(u);
-	double r_cube = r * r * r;
     double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
 			* tan(0.5 * u));
-	double aux = (-3.0/2.0) * gamma * G * m_primary;
 
+	double aux = (-3.0/2.0) * gamma * G * m_primary;
+	double r_cube = r * r * r;
+	
 	f[0] = y[1];
 	f[1] = aux * sin(2.0 * (y[0] - f_e)) / r_cube;
 
@@ -221,18 +240,21 @@ int field_rigid_kepler(double t, const double y[],
 int jacobian_rigid_kepler(double t, const double y[], 
 				double *dfdy, double dfdt[], void *params)
 {
-	double G = 1.0;
-	double m_secondary = 1.215e-2; //Moon
-	double m_primary = 1.0 - m_secondary;
-	double gamma = 0.01;
+	double *par = (double *)params;
 
-	double e = *(double *)params;
+	double gamma 		= par[0];
+	double e 			= par[1];
+	double m_primary 	= par[2]; 
+	double m_secondary 	= par[3];
+	double G 			= par[4];
+
 	double u = kepler_equation(e,t);
     double r = 1.0 - e * cos(u);
-	double r_cube = r * r * r;
     double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
 			* tan(0.5 * u));
+
 	double aux = (-3.0/2.0) * gamma * G * m_primary;
+	double r_cube = r * r * r;
 
 	gsl_matrix_view dfdy_mat 
 		= gsl_matrix_view_array(dfdy, 2, 2);

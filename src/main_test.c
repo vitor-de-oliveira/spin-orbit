@@ -15,32 +15,51 @@ int main(int argc, char **argv)
 
 	/***************** Declared variables ******************/
 
-    double e;           // eccentricity
-    double t;           // time
+    double gamma;			// equatorial flattening
+    double e;				// eccentricity
+	double m_primary;		// mass of primary
+	double m_secondary;		// mass of secondary
+	double G;				// gravitational constant
+
+	double *params[5] 
+		= {&gamma, &e, &m_primary, &m_secondary, &G};
+
+	char *system;
+	int nc, nv;
+	int number_of_cycles;
+	double ic[2];
+	double cycle_period;
+	double coordinate_min;
+	double coordinate_max;
+	double velocity_min;
+	double velocity_max;
 
 	/*******************************************************/
 
 	/////////////////////////////////////////////////////////
-	/*				   	Auxiliar functions    			  */
+	/*		  System and orbital motion analysis    	   */
 	/////////////////////////////////////////////////////////
 
-	int number_of_cycles;
 	int system_dimension;
 	int orbit_size;
-	double cycle_period;
 	double **orbit;
-	char *system;
+	double t;
 
-	// e = 0.0;
-    e = 0.0549; //Moon
- 	t = 0.0;
+	gamma = 0.01;
+	e = 0.0549; 					//Moon
+	m_secondary = 1.215e-2; 		//Moon
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+
+	t = 0.0;
+
 	// number_of_cycles = 2e3 + 1;
 	// number_of_cycles = 2.5e4;
 	// number_of_cycles = 6e3;
 	// number_of_cycles = 1e3;
 	number_of_cycles = 6e3;
 
-	cycle_period = 2.0 * M_PI;
+	cycle_period = -2.0 * M_PI;
 	system_dimension = 6;
 	system = "rigid";
 
@@ -50,8 +69,6 @@ int main(int argc, char **argv)
 	// system = "two_body";
 
 	double perigee_over_semimajor_axis = 0.9451; //Moon
-	double G = 1.0;
-	double mass = 1.0;
 
 	double y[system_dimension];
 	y[0] = 0.1;
@@ -65,6 +82,7 @@ int main(int argc, char **argv)
 	double a = 1.0;
 	y[2] = a * (1.0 - e * e) / (1.0 + e);
 	
+	// printf("y[2]  = %1.15e\n", y[2]);
 
 	double f_e = atan2(y[3], y[2]);
 	// double y_dot = (e + cos(f_e))/sqrt(1.0-e*e);
@@ -95,7 +113,7 @@ int main(int argc, char **argv)
 	FILE *tst_orbit_radius
 			= fopen("output/test_orbit_radius.dat", "w");
 
-	evolve_orbit(&e, y, cycle_period, number_of_cycles, 
+	evolve_orbit(*params, y, cycle_period, number_of_cycles, 
 				&orbit, &orbit_size, system);
 
 	double orbital_motion[4], orbital_motion_ini[4];
@@ -104,10 +122,10 @@ int main(int argc, char **argv)
 
 	for (int i = 0; i < orbit_size; i++)
 	{
-		fprintf(tst_ev_orbit, "%1.15e %1.15e\n", 
-			fmod(orbit[i][0], 2.0*M_PI), orbit[i][1]);
 		// fprintf(tst_ev_orbit, "%1.15e %1.15e\n", 
-		// 	angle_mod(orbit[i][0]), orbit[i][1]);
+		// 	fmod(orbit[i][0], 2.0*M_PI), orbit[i][1]);
+		fprintf(tst_ev_orbit, "%1.15e %1.15e\n", 
+			angle_mod(orbit[i][0]), orbit[i][1]);
 		for (int j = 0; j < 4; j++)
 		{
 			orbital_motion[j] = orbit[i][j+2];

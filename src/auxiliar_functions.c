@@ -22,7 +22,7 @@ int evolve_cycle(double *y, void *params,
 
 	// cycle evolution
 	status = gsl_odeiv2_driver_apply (d, t, 
-		*t + cycle_period * sign(cycle_period), y);
+		*t + cycle_period, y);
 
 	// check if integration was successfull
 	if (status != GSL_SUCCESS)
