@@ -84,6 +84,10 @@ int draw_phase_space(void *params, double cycle_period,
 			// print progress on coordinate
 			printf("Calculating set %d of %d\n", i + 1, nc);
 
+			#pragma omp parallel private(y, y0, coordinate, velocity, \
+					orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw)
+			{
+
 			if (nc == 1)
 			{
 				coordinate = coordinate_min;
@@ -95,15 +99,7 @@ int draw_phase_space(void *params, double cycle_period,
 						coordinate_min) / (double)(nc - 1);
 			}
 
-			// #pragma omp parallel default(none) private(params, 
-			// 		cycle_period, number_of_cycles, 
-			// 		coordinate_min, coordinate_max, 
-			// 		velocity_min, velocity_max, nc, nv, system,
-			// 		system_dimension, y, y0, 
-			// 		coordinate, velocity, orbit_size, 
-			// 		orbit_fw, orbit_bw, e) shared(psp, inc)
-			// {
-			// #pragma omp for
+			#pragma omp for
 				// loop over velocity values
 				for (int j = 0; j < nv; j++)
 				{
@@ -148,8 +144,8 @@ int draw_phase_space(void *params, double cycle_period,
 						number_of_cycles, &orbit_bw, 
 						&orbit_bw_size, system);
 
-					// #pragma omp critical
-					// {
+					#pragma omp critical
+					{
 						// write initial condition to file
 						fprintf(inc, "%1.15e %1.15e\n", coordinate, 
 								velocity);
@@ -166,17 +162,17 @@ int draw_phase_space(void *params, double cycle_period,
 								angle_mod(orbit_bw[k][0]), 
 								orbit_bw[k][1]);
 						}
-					// } // end pragma omp critical
+						// create new line on exit file
+						fprintf(psp, "\n");
+
+					} // end pragma omp critical
 
 					// free memory
 					dealloc_2d_double(&orbit_fw, number_of_cycles);
 					dealloc_2d_double(&orbit_bw, number_of_cycles);
-
-					// create new line on exit file
-					fprintf(psp, "\n");
 				
 				}
-			// } // end pragma
+			} // end pragma
 
 			// new line on terminal
 			printf("\n");

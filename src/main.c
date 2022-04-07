@@ -9,7 +9,10 @@ int main(int argc, char **argv)
 {
 	/******************** Start clock **********************/
 
-	clock_t begin = clock(), end;
+	clock_t begin_time = clock(), end_time;
+	#ifdef _OMP_H
+		double begin_time_omp = omp_get_wtime(), end_time_omp;
+	#endif
 
 	/***************** Declared variables ******************/
 
@@ -79,9 +82,9 @@ int main(int argc, char **argv)
 
 	/******************** Stop clock ***********************/
 
-	end = clock();
+	end_time = clock();
 	double time_spent 
-		= (double)(end - begin) / CLOCKS_PER_SEC;
+		= (double)(end_time - begin_time) / CLOCKS_PER_SEC;
 	if (time_spent < 60.0)
 	{
 		printf("time spent = %1.2e seconds\n", 
@@ -97,7 +100,27 @@ int main(int argc, char **argv)
 		printf("time spent = %1.2e hours\n", 
 				time_spent/3600.0);
 	}
-	
+
+	#ifdef _OMP_H
+		end_time_omp = omp_get_wtime();
+		double time_spent_omp
+			= (double)(end_time_omp - begin_time_omp);
+		if (time_spent_omp < 60.0)
+		{
+			printf("time_spent_omp = %1.2e seconds\n", 
+					time_spent_omp);
+		}
+		else if (time_spent_omp < 3600.0)
+		{
+			printf("time_spent_omp = %1.2e minutes\n", 
+					time_spent_omp/60.0);
+		}
+		else
+		{
+			printf("time_spent_omp = %1.2e hours\n", 
+					time_spent_omp/3600.0);
+		}
+	#endif
 
 	/*******************************************************/
 
