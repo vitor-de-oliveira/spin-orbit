@@ -68,7 +68,7 @@ int set_integrator(const gsl_odeiv2_step_type *T, char *integrator)
 	}
 	else
 	{
-		printf("Warning: invalid GSL integrator integrator\n");
+		printf("Warning: invalid GSL integrator\n");
 		exit(2);
 	}
 	return 0;
@@ -76,41 +76,34 @@ int set_integrator(const gsl_odeiv2_step_type *T, char *integrator)
 
 int set_system(gsl_odeiv2_system *sys, void *par, char *system)
 {
-	double mu = *(double *)par;
-
-	if (strcmp(system, "rotational") == 0 || 
-		strcmp(system, "regularized") == 0)
+	if (strcmp(system, "rigid") == 0)
 	{
-		(*sys).function = field_rotational;
-		(*sys).jacobian = jacobian_rotational;
-		(*sys).dimension = 4;
-		(*sys).params = &mu;
+		(*sys).function = field_rigid;
+		(*sys).jacobian = jacobian_rigid;
+		(*sys).dimension = 6;
+		(*sys).params = par;
 	}
-	else if (strcmp(system, "extended") == 0)
+	else if (strcmp(system, "rigid_kepler") == 0)
 	{
-		(*sys).function = field_extended;
-		(*sys).jacobian = NULL;
-		(*sys).dimension = 20;
-		(*sys).params = &mu;
+		(*sys).function = field_rigid_kepler;
+		(*sys).jacobian = jacobian_rigid_kepler;
+		(*sys).dimension = 2;
+		(*sys).params = par;
 	}
-	else if (strcmp(system, "hamiltonian") == 0)
+	else if (strcmp(system, "two_body") == 0)
 	{
-		(*sys).function = field_hamiltonian;
-		(*sys).jacobian = NULL;
+		(*sys).function = field_two_body;
+		(*sys).jacobian = jacobian_two_body;
 		(*sys).dimension = 4;
-		(*sys).params = &mu;
-	}
-	else if (strcmp(system, "inertial") == 0)
-	{
-		(*sys).function = field_inertial;
-		(*sys).jacobian = NULL;
-		(*sys).dimension = 4;
-		(*sys).params = &mu;
+		(*sys).params = par;
 	}
 	else
 	{
 		printf("Warning: undefined system\n");
 		exit(2);
 	}
+
+	// printf("e = %1.5e\n",*(double *)(*sys).params);
+
 	return 0;
 }

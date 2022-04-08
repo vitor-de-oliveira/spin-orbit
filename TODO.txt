@@ -1,0 +1,37 @@
+- automatically create output dir. test if it is not overwritable
+- understand how the specific values to the moon (or any other)
+satellite comes into play in the initial conditions. There are
+also the masses
+- stabilish the right values for G and m. Como adimensionalizar
+as massas, tendo em mente que existe a parte orbital e a parte
+do spin e um usa a soma das massas e o outro a massa do primario
+- pass I as a parameter in the void param (Olhar no dir temp)
+- melhorar flexibilidade da função phase space
+- correct badckward integration on phase space function
+- check if check_period is necessary according to the 
+    equations
+- adicionar alguma verificação de erro. Pode ser a parte orbital,
+mas seria melhor se envolvesse a parte rotacional também
+- define a structure called phase space and pass it to draw PS
+- verify if dfdt should be zero in the jacobian_rigid
+- autogenerate output folder (write a create dir function)
+- write a create file function
+- see what to do with system dimension and what variables transform
+into global or something like this
+- check where and how I am using auxiliar_functions_gsl 
+    and if they are useful, for example, in auxiliar_functions.
+     Maybe write a structure to set all relevant information to 
+     the integrator. Maybe write a structure for the system, 
+     with system dimension, parameters and cycle period, 
+     for example, and use this structure inside the integrator 
+     structure
+- update all commentaries on header files
+- review includes in header files
+- write functions for orbital motion using GSL's 
+    Newton method and test them separately
+- maybe write a run into makefile
+- think about using C++ and objects. In particular, put the evolve
+functions inside the classes.
+- verify which mass to use in field_rigid spin orbit equation
+- if we implement classes and objects, associate functions like
+constant of motion to these classes

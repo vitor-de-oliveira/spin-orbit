@@ -7,154 +7,122 @@
 
 int main(int argc, char **argv)
 {
-	/********************** Start clock ************************/
+	/******************** Start clock **********************/
 
-	clock_t begin = clock(), end;
+	clock_t begin_time = clock(), end_time;
+	#ifdef _OMP_H
+		double begin_time_omp = omp_get_wtime(), end_time_omp;
+	#endif
 
-	/********************* Mass parameter **********************/
+	/***************** Declared variables ******************/
 
-	double mu = 1.215e-2; // Earth-Moon system
+    double gamma;			// equatorial flattening
+    double e;				// eccentricity
+	double m_primary;		// mass of primary
+	double m_secondary;		// mass of secondary
+	double G;				// gravitational constant
 
-	/******************* Declared variables ********************/
+	double *params[5] 
+		= {&gamma, &e, &m_primary, &m_secondary, &G};
 
-	double J;			// Jacobi constant value
-	double time;		// integration time
-	double ic[4];		// initial condition ic=(x,y,xdot,ydot)
-	double x_min;		// minimum x value
-	double x_max;		// maximum x value
-	double xdot_min;	// minimum xdot value
-	double xdot_max;	// maximum xdot value
-	int nx;				// number of initial conditions
-						// in x range
-	int nxdot;			// number of initial conditions
-						// in xdot range
-	int i; 				// index of Lagrangian point
-	int number_orbits;	// number of Lyapunov orbits
-	double delta_J;		// difference of the Jacobi constant
-						// between the family elements
-	int number_points; 	// number of points taken on the
-						// Lyapunov orbit
-	double time_left;	// integration time for the
-						// left branch of the manifolds
-	double time_right;  // integration time for the
-						// right branch of the manifolds
+	char *system;
+	int nc, nv;
+	int number_of_cycles;
+	double ic[2];
+	double cycle_period;
+	double coordinate_min;
+	double coordinate_max;
+	double velocity_min;
+	double velocity_max;
 
-	/***********************************************************/
+	/*******************************************************/
 	
-	////////////////////////////////////////////////////////////
-	/*				     	 Useful info					  */
-	////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////
+	/*				   		   Orbit		   	           */
+	/////////////////////////////////////////////////////////
 
-	// show_lagrangian_points_jacobi_constant (&mu);
+	// gamma = 0.01;
+	// e = 0.0549; 					//Moon
+	// m_secondary = 1.215e-2; 		//Moon
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
 
-	////////////////////////////////////////////////////////////
-	/*	    Location of Lagrangian points and primaries	      */
-	////////////////////////////////////////////////////////////
+	// number_of_cycles = 6e3; //1e3 6e3
+	// cycle_period = 2.0 * M_PI;
+	// system = "rigid_kepler";
+    // ic[0] = 0.1, ic[1] = 0.1;
 
-	// write_lagrangian_points_position (&mu);
+	// trace_orbit_map(ic, *params, cycle_period, number_of_cycles, 
+	// 				system);
 
-	// write_masses_position (&mu);
+	/////////////////////////////////////////////////////////
+	/*				   		Phase space		   	           */
+	/////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////
-	/*					   		Orbit						  */
-	////////////////////////////////////////////////////////////
+	gamma = 0.01;
+	e = 0.0549; 					//Moon
+	m_secondary = 1.215e-2; 		//Moon
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
 
-	// J = 3.172;
-	// time = 100.0;
-	// ic[0] = 1.1;
-	// ic[1] = 0.0;
-	// ic[2] = 0.0;
-	// ic[3] = ydot(ic, &mu, J);	// calculates ydot based on
-	// 							// the Jacobi constant value
+	number_of_cycles = 2e3; //1e3
+	cycle_period = 2.0 * M_PI;
+	system = "rigid";
 
-	// trace_orbit(ic, &mu, time);
+	nc = 11, nv = 30; //nc = 5, nv = 30;
+	coordinate_min = 0.0;
+	coordinate_max = 2.0 * M_PI; // M_PI 2.0* M_PI
+	velocity_min = 0.6;
+	velocity_max = 1.6;
 
-	////////////////////////////////////////////////////////////
-	/*				     Zero-velocity curve				  */
-	////////////////////////////////////////////////////////////
+	draw_phase_space(*params, cycle_period, 
+		number_of_cycles, coordinate_min, 
+		coordinate_max, velocity_min, 
+		velocity_max, nc, nv, system);
 
-	// J = 3.172;
-	// trace_zvc(J, &mu);
+	/******************** Stop clock ***********************/
 
-	////////////////////////////////////////////////////////////
-	/*				  		 Phase Space 					  */
-	////////////////////////////////////////////////////////////
-
-	// J = 3.172;
-	// time = 2000.0;
-	// x_min = -0.5;
-	// x_max = 1.11375;
-	// xdot_min = -3.0;
-	// xdot_max = 3.0;
-	// nx = 15;
-	// nxdot = 15;
-
-	// draw_phase_space(J, &mu, time, x_min, x_max,
-	// 					xdot_min, xdot_max, nx, nxdot); 
-
-	////////////////////////////////////////////////////////////
-	/*					  Lyapunov orbit					  */
-	////////////////////////////////////////////////////////////
-
-	// J = 3.172;
-	// i = 1; 
-	// trace_Lyapunov_orbit(&mu, J, i);
-
-	// J = 3.172;
-	// i = 2;
-	// trace_Lyapunov_orbit(&mu, J, i);
-
-	// i = 1;
-	// number_orbits = 10; 
-	// delta_J = 0.02;
-	// trace_Lyapunov_orbit_family(&mu, number_orbits,
-	// 							delta_J, i);
-
-	// i = 2;
-	// number_orbits = 9; 
-	// delta_J = 0.02;
-	// trace_Lyapunov_orbit_family(&mu, number_orbits,
-	// 							delta_J, i);
-	
-	////////////////////////////////////////////////////////////
-	/*					 Manifolds tracing					  */
-	////////////////////////////////////////////////////////////
-
-	// J = 3.172;
-	// i = 1;
-	// number_points = 100;
-	// time_left = 12.0;
-	// time_right = 5.0;
-	// trace_manifolds_Lyapunov_orbit(&mu, J,
-	// 				time_left, time_right, number_points, i);
-
-	// J = 3.172;
-	// i = 2; 
-	// number_points = 100;
-	// time_left = 8.0;
-	// time_right = 8.0;
-	// trace_manifolds_Lyapunov_orbit(&mu, J,
-	// 				time_left, time_right, number_points, i);
-
-	/********************** Stop clock *************************/
-
-	end = clock();
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	end_time = clock();
+	double time_spent 
+		= (double)(end_time - begin_time) / CLOCKS_PER_SEC;
 	if (time_spent < 60.0)
 	{
-		printf("time spent = %1.2e seconds\n", time_spent);
+		printf("time spent = %1.2e seconds\n", 
+				time_spent);
 	}
 	else if (time_spent < 3600.0)
 	{
-		printf("time spent = %1.2e minutes\n", time_spent/60.0);
+		printf("time spent = %1.2e minutes\n", 
+				time_spent/60.0);
 	}
 	else
 	{
-		printf("time spent = %1.2e hours\n", time_spent/3600.0);
+		printf("time spent = %1.2e hours\n", 
+				time_spent/3600.0);
 	}
-	
 
-	/***********************************************************/
+	#ifdef _OMP_H
+		end_time_omp = omp_get_wtime();
+		double time_spent_omp
+			= (double)(end_time_omp - begin_time_omp);
+		if (time_spent_omp < 60.0)
+		{
+			printf("time_spent_omp = %1.2e seconds\n", 
+					time_spent_omp);
+		}
+		else if (time_spent_omp < 3600.0)
+		{
+			printf("time_spent_omp = %1.2e minutes\n", 
+					time_spent_omp/60.0);
+		}
+		else
+		{
+			printf("time_spent_omp = %1.2e hours\n", 
+					time_spent_omp/3600.0);
+		}
+	#endif
+
+	/*******************************************************/
 
 	return 0;
 }

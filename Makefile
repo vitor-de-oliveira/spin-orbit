@@ -1,18 +1,29 @@
 INCLUDE_DIR = ./include
-CFLAGS = -std=c11 -I$(INCLUDE_DIR) #-Wall
+CFLAGS = -std=c11 -I$(INCLUDE_DIR) -D_XOPEN_SOURCE -fopenmp #-Wall
 VPATH = ./src
 
 CC = gcc
 
-TARGETS = 3BP
+TARGET = SPIN
 
-DEPENDENCIES = main.c main_functions.c auxiliar_functions.c auxiliar_functions_gsl.c auxiliar_functions_vmo.c dynamical_system.c
+TARGET_TEST = TEST
 
-build: $(TARGETS)
+DEPENDENCIES = main_functions.c auxiliar_functions.c \
+			   auxiliar_functions_gsl.c auxiliar_functions_vmo.c \
+			   dynamical_system.c kepler.c
 
-$(TARGETS): $(DEPENDENCIES) -lgsl -lgslcblas -lm  
-			$(CC) $(CFLAGS) -o $(TARGETS) $^
+build: $(TARGET)
+
+$(TARGET): main.c $(DEPENDENCIES) -lgsl -lgslcblas -lm  
+		   $(CC) $(CFLAGS) -o $(TARGET) $^
+
+test: $(TARGET_TEST)
+
+$(TARGET_TEST): main_test.c $(DEPENDENCIES) -lgsl -lgslcblas -lm  
+				$(CC) $(CFLAGS) -o $(TARGET_TEST) $^
+
 
 .PHONY: clean
 clean:
-	-rm -f $(TARGETS)
+	-rm -f $(TARGET)
+	-rm -f $(TARGET_TEST)
