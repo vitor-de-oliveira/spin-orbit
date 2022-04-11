@@ -17,8 +17,8 @@ int evolve_cycle(double *y, void *params,
 	gsl_odeiv2_driver *d = 
 	gsl_odeiv2_driver_alloc_standard_new(&sys, 
 		gsl_odeiv2_step_rk8pd, h, 1e-14, 0.0, 0.0, 0.0);
-	// gsl_odeiv2_driver_set_hmax(d, 1e-3);
-	// gsl_odeiv2_driver_set_hmin(d, 1e-11);
+	gsl_odeiv2_driver_set_hmax(d, 1e-1);
+	gsl_odeiv2_driver_set_hmin(d, 1e-11);
 
 	// cycle evolution
 	status = gsl_odeiv2_driver_apply (d, t, 
