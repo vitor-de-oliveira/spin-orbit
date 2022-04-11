@@ -15,12 +15,19 @@
 **/
 
 // sets driver for chosen error and control
-int set_driver(gsl_odeiv2_driver *d, gsl_odeiv2_system *sys, gsl_odeiv2_step_type *T, char *error, char *control);
+int set_driver(gsl_odeiv2_driver **d, 
+               gsl_odeiv2_system *sys, 
+			   const gsl_odeiv2_step_type *T, 
+			   double h, double h_max, double h_min,
+			   double error_abs, double error_rel,
+			   char *control);
 
 // sets the chosen integrator
-int set_integrator(const gsl_odeiv2_step_type *T, char *integrator);
+int set_integrator(const gsl_odeiv2_step_type **T, 
+                   char *integrator);
 
 // sets the chosen system
-int set_system(gsl_odeiv2_system *sys, void *par, char *system);
+int set_system(gsl_odeiv2_system *sys, void *par, 
+               char *system);
 
 #endif

@@ -1,27 +1,22 @@
-- write a create file function
-- automatically create output dir. test if it is not overwritable
+- melhorar flexibilidade da função phase space
+- adicionar alguma verificação de erro. Pode ser a parte 
+orbital, mas seria melhor se envolvesse a parte rotacional 
+também
+
 - understand how the specific values to the moon (or any other)
 satellite comes into play in the initial conditions. There are
 also the masses
 - stabilish the right values for G and m. Como adimensionalizar
 as massas, tendo em mente que existe a parte orbital e a parte
 do spin e um usa a soma das massas e o outro a massa do primario
-- melhorar flexibilidade da função phase space
-- check if check_period is necessary according to the 
-    equations
-- adicionar alguma verificação de erro. Pode ser a parte orbital,
-mas seria melhor se envolvesse a parte rotacional também
-- define a structure called phase space and pass it to draw PS
-- check where and how I am using auxiliar_functions_gsl 
-    and if they are useful, for example, in auxiliar_functions.
-     Maybe write a structure to set all relevant information to 
-     the integrator. Maybe write a structure for the system, 
-     with system dimension, parameters and cycle period, 
-     for example, and use this structure inside the integrator 
-     structure
+
+- write a create file function and use it to automatically 
+create the output dir. test if it is does not already exist
+
 - update all commentaries on header files
 - review includes in header files
-- think about using C++ and objects. In particular, put the evolve
-functions inside the classes.
-- if we implement classes and objects, associate functions like
-constant of motion to these classes
+
+- think about using C++ and objects. In particular, put the 
+evolve functions inside the classes.
+- if we implement classes and objects, associate functions 
+like constant of motion to these classes

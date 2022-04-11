@@ -1,24 +1,34 @@
 #include "auxiliar_functions.h"
 
 int evolve_cycle(double *y, void *params, 
-				double cycle_period, double *t, char *system)
+				double cycle_period, double *t, 
+				char *system)
 {
 	// declare variables
 	int status;
-	double h;
+	double h, h_max, h_min;
+	double error_abs, error_rel;
+	char *method, *control;
 
 	// initialiaze control variables
 	h = 1e-3 * sign(cycle_period);
+	error_abs = 1e-14;
+	error_rel = 0.0;
+	h_max = 1e-1;
+	h_min = 1e-11;
+	method = "rk8pd";
+	control = "adaptive";
 
-	// set driver
+	// set system, integrator and driver
 	gsl_odeiv2_system sys;
 	set_system(&sys, params, system);
 
-	gsl_odeiv2_driver *d = 
-	gsl_odeiv2_driver_alloc_standard_new(&sys, 
-		gsl_odeiv2_step_rk8pd, h, 1e-14, 0.0, 0.0, 0.0);
-	gsl_odeiv2_driver_set_hmax(d, 1e-1);
-	gsl_odeiv2_driver_set_hmin(d, 1e-11);
+	const gsl_odeiv2_step_type *T;
+	set_integrator(&T, method);
+
+	gsl_odeiv2_driver *d;
+	set_driver(&d, &sys, T, h, h_max, h_min,
+			   error_abs, error_rel, control);
 
 	// cycle evolution
 	status = gsl_odeiv2_driver_apply (d, t, 
