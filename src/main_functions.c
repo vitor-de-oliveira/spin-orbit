@@ -4,6 +4,12 @@ int trace_orbit_map(double *ic, void *params,
 		double cycle_period, int number_of_cycles, 
 		char *system)
 {
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output", &st) == -1) {
+		mkdir("output", 0700);
+	}
+
 	// declare and open exit files
 	FILE *orb = fopen("output/orbit.dat", "w");
 
@@ -34,7 +40,7 @@ int trace_orbit_map(double *ic, void *params,
 	// close files
 	fclose(orb);
 
-	printf("Data written in folder output\n");
+	printf("Data written in output folder\n");
 
 	return 0;
 }
@@ -44,6 +50,12 @@ int draw_phase_space(void *params, double cycle_period,
 		double coordinate_max, double velocity_min, 
 		double velocity_max, int nc, int nv, char *system)
 {
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output", &st) == -1) {
+		mkdir("output", 0700);
+	}
+
 	// declare and open exit files
 	FILE *psp = fopen("output/phase_space.dat", "w");
 	FILE *inc 
@@ -182,7 +194,7 @@ int draw_phase_space(void *params, double cycle_period,
 	fclose(psp);
 	fclose(inc);
 
-	printf("Data written in folder output\n");
+	printf("Data written in output folder\n");
 
 	return 0;
 }

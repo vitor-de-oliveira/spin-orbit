@@ -10,9 +10,6 @@ also the masses
 as massas, tendo em mente que existe a parte orbital e a parte
 do spin e um usa a soma das massas e o outro a massa do primario
 
-- write a create file function and use it to automatically 
-create the output dir. test if it is does not already exist
-
 - update all commentaries on header files
 - review includes in header files
 

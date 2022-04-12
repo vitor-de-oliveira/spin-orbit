@@ -10,7 +10,7 @@ int evolve_cycle(double *y, void *params,
 	double error_abs, error_rel;
 	char *method, *control;
 
-	// initialiaze control variables
+	// initialize control variables
 	h = 1e-3 * sign(cycle_period);
 	error_abs = 1e-14;
 	error_rel = 0.0;
