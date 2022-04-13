@@ -32,7 +32,7 @@
 int trace_orbit_map(double *ic, void *params, 
                     double cycle_period, 
                     int number_of_cycles, 
-                    char *system);
+                    dynsys system);
 
 // calculates and writes the phase space  
 // for a given jacobi constant value
@@ -43,6 +43,6 @@ int draw_phase_space(void *params, double cycle_period,
                      double velocity_min, 
                      double velocity_max, 
                      int nc, int nv, 
-                     char *system);
+                     dynsys system);
 
 #endif

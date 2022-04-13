@@ -41,4 +41,12 @@ double vis_viva_two_body(double y[4], double T, double a);
 
 int init_orbital(double y[4], double e);
 
+typedef struct DynSys{
+    char *name;
+    int dim;
+    // double y[];
+} dynsys;
+
+dynsys init_rigid();
+
 #endif

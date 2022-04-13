@@ -319,3 +319,11 @@ int init_orbital(double orb[4], double e)
 
 	return 0;
 }
+
+dynsys init_rigid()
+{
+	dynsys rigid;
+    rigid.name = "rigid";
+    rigid.dim = 6;
+    return rigid;
+}

@@ -35,6 +35,8 @@ int main(int argc, char **argv)
 	double velocity_min;
 	double velocity_max;
 
+	dynsys system_rigid = init_rigid();
+
 	/*******************************************************/
 	
 	/////////////////////////////////////////////////////////
@@ -55,8 +57,7 @@ int main(int argc, char **argv)
 	init_orbital(orb, e);
 	for (int i = 0; i < 4; i++) ic[i+2] = orb[i];
 
-	trace_orbit_map(ic, *params, cycle_period, number_of_cycles, 
-					system);
+	trace_orbit_map(ic, *params, cycle_period, number_of_cycles, system_rigid);
 
 	/////////////////////////////////////////////////////////
 	/*				   		Phase space		   	           */
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
 	// cycle_period = 2.0 * M_PI;
 	// system = "rigid";
 
-	// nc = 11, nv = 30; //nc = 5, nv = 30;
+	// nc = 5, nv = 15; //nc = 11, nv = 30;
 	// coordinate_min = 0.0;
 	// coordinate_max = 2.0 * M_PI; // M_PI 2.0* M_PI
 	// velocity_min = 0.6;
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
 	// draw_phase_space(*params, cycle_period, 
 	// 	number_of_cycles, coordinate_min, 
 	// 	coordinate_max, velocity_min, 
-	// 	velocity_max, nc, nv, system);
+	// 	velocity_max, nc, nv, system_rigid);
 
 	/******************** Stop clock ***********************/
 

@@ -2,7 +2,7 @@
 
 int trace_orbit_map(double *ic, void *params, 
 		double cycle_period, int number_of_cycles, 
-		char *system)
+		dynsys system)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -19,7 +19,7 @@ int trace_orbit_map(double *ic, void *params,
 
 	// evolve system
 	evolve_orbit(params, ic, cycle_period, number_of_cycles, 
-				&orbit, &orbit_size, system);
+				&orbit, &orbit_size, system.name);
 
 	// write orbit and constant error to file
 	for (int i = 0; i < orbit_size; i++)
@@ -48,7 +48,7 @@ int trace_orbit_map(double *ic, void *params,
 int draw_phase_space(void *params, double cycle_period, 
 		int number_of_cycles, double coordinate_min, 
 		double coordinate_max, double velocity_min, 
-		double velocity_max, int nc, int nv, char *system)
+		double velocity_max, int nc, int nv, dynsys system)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -62,30 +62,15 @@ int draw_phase_space(void *params, double cycle_period,
 		= fopen("output/phase_space_initial_conditions.dat", 
 				"w");
 
-	int system_dimension;
-
-	if (strcmp(system, "rigid") == 0)
-	{
-		system_dimension = 6;
-	}
-	else if (strcmp(system, "rigid_kepler") == 0)
-	{
-		system_dimension = 2;
-	}
-	else if (strcmp(system, "two_body") == 0)
+	if (strcmp(system.name, "two_body") == 0)
 	{
 		printf("Warning: cant draw phase space\n");
 		printf("for two-body system\n");
 		exit(2);
 	}
-	else
-	{
-		printf("Warning: undefined system\n");
-		exit(2);
-	}
 
 	// declare variables
-	double y[system_dimension], y0[system_dimension];
+	double y[system.dim], y0[system.dim];
 	double coordinate, velocity;
 	int orbit_fw_size, orbit_bw_size;
 	double **orbit_fw, **orbit_bw;
@@ -138,7 +123,7 @@ int draw_phase_space(void *params, double cycle_period,
 					y[0] = coordinate;
 					y[1] = velocity;
 
-					if (strcmp(system, "rigid") == 0)
+					if (strcmp(system.name, "rigid") == 0)
 					{
 						for (int k = 0; k < 4; k++)
 						{
@@ -147,17 +132,17 @@ int draw_phase_space(void *params, double cycle_period,
 					}
 
 					// keep IC for backward integration
-					copy(y0, y, system_dimension);
+					copy(y0, y, system.dim);
 
 					// calculate forward integration
 					evolve_orbit(params, y, cycle_period, 
 						number_of_cycles, &orbit_fw, 
-						&orbit_fw_size, system);
+						&orbit_fw_size, system.name);
 
 					// calculate backward integration
 					evolve_orbit(params, y, -1.0 * cycle_period, 
 						number_of_cycles, &orbit_bw, 
-						&orbit_bw_size, system);
+						&orbit_bw_size, system.name);
 
 					#pragma omp critical
 					{
