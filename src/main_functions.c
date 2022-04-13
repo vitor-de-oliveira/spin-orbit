@@ -74,7 +74,9 @@ int draw_phase_space(void *params, double cycle_period,
 	}
 	else if (strcmp(system, "two_body") == 0)
 	{
-		system_dimension = 4;
+		printf("Warning: cant draw phase space\n");
+		printf("for two-body system\n");
+		exit(2);
 	}
 	else
 	{
@@ -89,6 +91,8 @@ int draw_phase_space(void *params, double cycle_period,
 	double **orbit_fw, **orbit_bw;
 	double *par = (double *)params;
 	double e = par[1];
+	double orb[4];
+	init_orbital(orb, e);
 
 		// loop over coordinate values
 		for (int i = 0; i < nc; i++)
@@ -136,11 +140,10 @@ int draw_phase_space(void *params, double cycle_period,
 
 					if (strcmp(system, "rigid") == 0)
 					{
-						y[2] = 0.9451; // Moon
-						y[3] = 0.0;
-						y[4] = 0.0;
-						y[5] = sqrt((1.0 + e) / 
-						0.9451);
+						for (int k = 0; k < 4; k++)
+						{
+							y[k+2] = orb[k];
+						}
 					}
 
 					// keep IC for backward integration

@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include "main_functions.h"
+#include "dynamical_system.h"
 
 int main(int argc, char **argv)
 {
@@ -28,7 +29,6 @@ int main(int argc, char **argv)
 	char *system;
 	int nc, nv;
 	int number_of_cycles;
-	double ic[2];
 	double cycle_period;
 	double coordinate_min;
 	double coordinate_max;
@@ -49,8 +49,11 @@ int main(int argc, char **argv)
 
 	number_of_cycles = 1e3; //1e3 6e3
 	cycle_period = 2.0 * M_PI;
-	system = "rigid_kepler";
-    ic[0] = 0.1, ic[1] = 0.1;
+	system = "rigid";
+	double ic[6], orb[4];
+	ic[0] = 0.1, ic[1] = 0.1;
+	init_orbital(orb, e);
+	for (int i = 0; i < 4; i++) ic[i+2] = orb[i];
 
 	trace_orbit_map(ic, *params, cycle_period, number_of_cycles, 
 					system);

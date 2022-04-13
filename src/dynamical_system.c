@@ -296,3 +296,26 @@ double vis_viva_two_body(double y[4], double T, double a)
 
 	return C;
 }
+
+int init_orbital(double orb[4], double e)
+{
+	double a = 1.0;
+	
+	double x = a * (1.0 - e * e) / (1.0 + e);
+	double y = 0.0;
+
+	double f_e = atan2(y, x);
+	
+	double x_dot = 0.0;
+	double y_dot = (e + cos(f_e))/sqrt(1.0-e*e);
+	// double y_dot = (e + 1.0 / 
+	// 	sqrt(y[3]*y[3]/(y[2]*y[2])+1.0)) /
+	// 	sqrt(1.0-e*e);
+
+	orb[0] = x;
+	orb[1] = y;
+	orb[2] = x_dot;
+	orb[3] = y_dot;	
+
+	return 0;
+}

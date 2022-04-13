@@ -5,7 +5,8 @@ também
 
 - understand how the specific values to the moon (or any other)
 satellite comes into play in the initial conditions. There are
-also the masses
+also the masses. Alterar a funcao init_orbital em dynamical_systems
+de acordo
 - stabilish the right values for G and m. Como adimensionalizar
 as massas, tendo em mente que existe a parte orbital e a parte
 do spin e um usa a soma das massas e o outro a massa do primario
