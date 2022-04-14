@@ -19,7 +19,7 @@ int trace_orbit_map(double *ic, void *params,
 
 	// evolve system
 	evolve_orbit(params, ic, cycle_period, number_of_cycles, 
-				&orbit, &orbit_size, system.name);
+				&orbit, &orbit_size, system);
 
 	// write orbit and constant error to file
 	for (int i = 0; i < orbit_size; i++)
@@ -105,7 +105,6 @@ int draw_phase_space(void *params, double cycle_period,
 				for (int j = 0; j < nv; j++)
 				{
 					// print progress on velocity
-					// print_prog((double)(j + 1) / (double)nv);
 					printf("Calculating subset %d of %d\n", 
 								j + 1, nv);
 
@@ -137,12 +136,12 @@ int draw_phase_space(void *params, double cycle_period,
 					// calculate forward integration
 					evolve_orbit(params, y, cycle_period, 
 						number_of_cycles, &orbit_fw, 
-						&orbit_fw_size, system.name);
+						&orbit_fw_size, system);
 
 					// calculate backward integration
 					evolve_orbit(params, y, -1.0 * cycle_period, 
 						number_of_cycles, &orbit_bw, 
-						&orbit_bw_size, system.name);
+						&orbit_bw_size, system);
 
 					#pragma omp critical
 					{

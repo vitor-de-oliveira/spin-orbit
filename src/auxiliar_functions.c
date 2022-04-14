@@ -2,7 +2,7 @@
 
 int evolve_cycle(double *y, void *params, 
 				double cycle_period, double *t, 
-				char *system)
+				dynsys system)
 {
 	// declare variables
 	int status;
@@ -50,30 +50,10 @@ int evolve_cycle(double *y, void *params,
 int evolve_orbit(void *params, double *ic, 
 				double cycle_period, int number_of_cycles, 
 				double ***orbit, int *orbit_size,
-				char *system)
+				dynsys system)
 {
-	int system_dimension;
-
-	if (strcmp(system, "rigid") == 0)
-	{
-		system_dimension = 6;
-	}
-	else if (strcmp(system, "rigid_kepler") == 0)
-	{
-		system_dimension = 2;
-	}
-	else if (strcmp(system, "two_body") == 0)
-	{
-		system_dimension = 4;
-	}
-	else
-	{
-		printf("Warning: undefined system\n");
-		exit(2);
-	}
-
 	// declare variables
-	double y[system_dimension];
+	double y[system.dim];
 	double box = 1e5;
 	double t = 0.0;
 
@@ -82,8 +62,8 @@ int evolve_orbit(void *params, double *ic,
 	{
 		// takes into consideration initial condition
 		alloc_2d_double(orbit, number_of_cycles + 1, 
-			system_dimension);
-		copy((*orbit)[0], ic, system_dimension);
+			system.dim);
+		copy((*orbit)[0], ic, system.dim);
 	}
 	else
 	{
@@ -95,13 +75,13 @@ int evolve_orbit(void *params, double *ic,
 	int counter = 1;
 
 	// orbit evolution
-	copy(y, ic, system_dimension);
+	copy(y, ic, system.dim);
 	for (int i = 0; i < number_of_cycles; i++)
 	{
 		evolve_cycle(y, params, cycle_period, &t, system);
 	
 		// check if orbit diverges
-		for (int j = 0; j < system_dimension; j++)
+		for (int j = 0; j < system.dim; j++)
 		{
 			if (fabs(y[j]) > box)
 			{
@@ -113,7 +93,7 @@ int evolve_orbit(void *params, double *ic,
 		counter++;
 
 		// write orbit element
-		copy((*orbit)[i + 1], y, system_dimension);
+		copy((*orbit)[i + 1], y, system.dim);
 	}
 
 	out:;

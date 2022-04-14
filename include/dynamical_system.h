@@ -44,9 +44,15 @@ int init_orbital(double y[4], double e);
 typedef struct DynSys{
     char *name;
     int dim;
-    // double y[];
+    int (*field) (double t, const double y[], double dydt[], void *params);
+    int (*jac) (double t, const double y[], double *dfdy, double dfdt[],
+                   void *params);
 } dynsys;
 
 dynsys init_rigid();
+
+dynsys init_rigid_kepler();
+
+dynsys init_two_body();
 
 #endif
