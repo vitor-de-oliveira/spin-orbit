@@ -26,10 +26,10 @@
 // using gsl with rk8pd as the integrator of choice
 // defines passed arrays with the complete orbit evenly spaced in time
 int evolve_cycle(double *y, void *params, double cycle_period, 
-                 double *t, char *system);
+                 double *t, dynsys system);
 
 int evolve_orbit(void *params, double *ic, double cycle_period, 
                  int number_of_cycles, double ***orbit, 
-                 int *orbit_size, char *system);
+                 int *orbit_size, dynsys system);
 
 #endif
