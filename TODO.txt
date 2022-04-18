@@ -1,4 +1,3 @@
-- melhorar flexibilidade da função phase space
 - adicionar alguma verificação de erro. Pode ser a parte 
 orbital, mas seria melhor se envolvesse a parte rotacional 
 também
@@ -6,15 +5,20 @@ também
 - understand how the specific values to the moon (or any other)
 satellite comes into play in the initial conditions. There are
 also the masses. Alterar a funcao init_orbital em dynamical_systems
-de acordo
+de acordo. Olhar Murray chap 2
 - stabilish the right values for G and m. Como adimensionalizar
 as massas, tendo em mente que existe a parte orbital e a parte
 do spin e um usa a soma das massas e o outro a massa do primario
 
+- implement automan. Maybe put everything regarding automan in
+the same place and call it. Look at the UPO calculator in the
+Vitor-David folder in Dropbox. maybe upo_calc.h and manifolds.h
+and write somewhere that these are forks from automan.h
+
 - update all commentaries on header files
 - review includes in header files
 
-- think about using C++ and objects. In particular, put the 
-evolve functions inside the classes.
-- if we implement classes and objects, associate functions 
-like constant of motion to these classes
+- put parameters inside dynsys struct?
+- create an analysis struct with arguments for trace orbit and
+phase space functions? maybe put these functions inside analysis
+struct
