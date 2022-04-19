@@ -27,7 +27,7 @@ int set_integrator(const gsl_odeiv2_step_type **T,
                    char *integrator);
 
 // sets the chosen system
-int set_system(gsl_odeiv2_system *sys, void *par, 
+int set_system(gsl_odeiv2_system *sys, 
                dynsys system);
 
 #endif

@@ -70,12 +70,12 @@ int set_integrator(const gsl_odeiv2_step_type **T,
 	return 0;
 }
 
-int set_system(gsl_odeiv2_system *sys, void *par, 
+int set_system(gsl_odeiv2_system *sys, 
 			   dynsys system)
 {
 	sys->function = system.field;
 	sys->jacobian = system.jac;
 	sys->dimension = system.dim;
-	sys->params = par;
+	sys->params = system.params;
 	return 0;
 }

@@ -41,6 +41,7 @@ double vis_viva_two_body(double y[4], double T, double a);
 
 int init_orbital(double y[4], double e);
 
+// Dynamical System
 typedef struct DynSys{
     char *name;
     int (*field) (double t, const double y[], double dydt[], void *params);
@@ -50,10 +51,21 @@ typedef struct DynSys{
     void *params;
 } dynsys;
 
-dynsys init_rigid();
+dynsys init_rigid(void *params);
 
-dynsys init_rigid_kepler();
+dynsys init_rigid_kepler(void *params);
 
-dynsys init_two_body();
+dynsys init_two_body(void *params);
+
+// System analysis
+typedef struct AnlSis{
+    size_t nc, nv;
+	int number_of_cycles;
+	double cycle_period;
+	double coordinate_min;
+	double coordinate_max;
+	double velocity_min;
+	double velocity_max;
+} anlsis;
 
 #endif

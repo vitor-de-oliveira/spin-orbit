@@ -1,6 +1,6 @@
 - adicionar alguma verificação de erro. Pode ser a parte 
 orbital, mas seria melhor se envolvesse a parte rotacional 
-também
+também. Ver se momento angular nao preserva mesmo
 
 - understand how the specific values to the moon (or any other)
 satellite comes into play in the initial conditions. There are
@@ -15,13 +15,14 @@ the same place and call it. Look at the UPO calculator in the
 Vitor-David folder in Dropbox. maybe upo_calc.h and manifolds.h
 and write somewhere that these are forks from automan.h
 
+- talvez mover as main functions para dentro da struct anlsys.
+Com isso, montar uma lib nova de analys, a qual recebe dyn system
+talvez de para colcoar a cond inicial nessa arquitetura.
+Talvez até mover as aux function para essa lib. Seria algo como
+funções privadas
+
 - make modules for the program. Maybe using switch, maybe
 using the makefile itself
 
 - update all commentaries on header files
 - review includes in header files
-
-- put parameters inside dynsys struct?
-- create an analysis struct with arguments for trace orbit and
-phase space functions? maybe put these functions inside analysis
-struct
