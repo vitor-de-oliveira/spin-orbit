@@ -15,6 +15,9 @@ the same place and call it. Look at the UPO calculator in the
 Vitor-David folder in Dropbox. maybe upo_calc.h and manifolds.h
 and write somewhere that these are forks from automan.h
 
+- make modules for the program. Maybe using switch, maybe
+using the makefile itself
+
 - update all commentaries on header files
 - review includes in header files
 
