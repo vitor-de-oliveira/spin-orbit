@@ -1,8 +1,7 @@
 #include "auxiliar_functions.h"
 
-int evolve_cycle(double *y, void *params, 
-				double cycle_period, double *t, 
-				dynsys system)
+int evolve_cycle(double *y,	double cycle_period, 
+				 double *t, dynsys system)
 {
 	// declare variables
 	int status;
@@ -21,7 +20,7 @@ int evolve_cycle(double *y, void *params,
 
 	// set system, integrator and driver
 	gsl_odeiv2_system sys;
-	set_system(&sys, params, system);
+	set_system(&sys, system);
 
 	const gsl_odeiv2_step_type *T;
 	set_integrator(&T, method);
@@ -47,8 +46,8 @@ int evolve_cycle(double *y, void *params,
 	return 0;
 }
 
-int evolve_orbit(void *params, double *ic, 
-				double cycle_period, int number_of_cycles, 
+int evolve_orbit(double *ic, double cycle_period, 
+				int number_of_cycles, 
 				double ***orbit, int *orbit_size,
 				dynsys system)
 {
@@ -78,7 +77,7 @@ int evolve_orbit(void *params, double *ic,
 	copy(y, ic, system.dim);
 	for (int i = 0; i < number_of_cycles; i++)
 	{
-		evolve_cycle(y, params, cycle_period, &t, system);
+		evolve_cycle(y, cycle_period, &t, system);
 	
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)

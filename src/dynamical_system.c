@@ -320,32 +320,35 @@ int init_orbital(double orb[4], double e)
 	return 0;
 }
 
-dynsys init_rigid()
+dynsys init_rigid(void *params)
 {
 	dynsys rigid;
     rigid.name = "rigid";
     rigid.dim = 6;
 	rigid.field = &field_rigid;
 	rigid.jac = &jacobian_rigid;
+	rigid.params = params;
     return rigid;
 }
 
-dynsys init_rigid_kepler()
+dynsys init_rigid_kepler(void *params)
 {
 	dynsys rigid_kepler;
     rigid_kepler.name = "rigid_kepler";
     rigid_kepler.dim = 2;
 	rigid_kepler.field = &field_rigid_kepler;
 	rigid_kepler.jac = &jacobian_rigid_kepler;
+	rigid_kepler.params = params;
     return rigid_kepler;
 }
 
-dynsys init_two_body()
+dynsys init_two_body(void *params)
 {
 	dynsys two_body;
     two_body.name = "two_body";
     two_body.dim = 4;
 	two_body.field = &field_two_body;
 	two_body.jac = &jacobian_two_body;
+	two_body.params = params;
     return two_body;
 }

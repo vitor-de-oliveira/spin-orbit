@@ -26,18 +26,14 @@ int main(int argc, char **argv)
 	double *params[5] 
 		= {&gamma, &e, &m_primary, &m_secondary, &G};
 
-	int nc, nv;
-	int number_of_cycles;
-	double cycle_period;
-	double coordinate_min;
-	double coordinate_max;
-	double velocity_min;
-	double velocity_max;
-	double orbital[4];
+	dynsys system;
+	dynsys system_rigid = init_rigid(*params);
+	dynsys system_rigid_kepler = init_rigid_kepler(*params);
+	dynsys system_two_body = init_two_body(*params);
 
-	dynsys system_rigid = init_rigid();
-	dynsys system_rigid_kepler = init_rigid_kepler();
-	dynsys system_two_body = init_two_body();
+	anlsis analysis;
+
+	double orbital[4];
 
 	/*******************************************************/
 	
@@ -45,7 +41,7 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	dynsys system = system_rigid;
+	system = system_rigid;
 	double ic[system.dim];
 
 	gamma = 0.01;
@@ -54,21 +50,20 @@ int main(int argc, char **argv)
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 
-	number_of_cycles = 1e3; //1e3 6e3
-	cycle_period = 2.0 * M_PI;
+	analysis.number_of_cycles = 1e3; //1e3 6e3
+	analysis.cycle_period = 2.0 * M_PI;
 
 	ic[0] = 0.1, ic[1] = 0.1;
 	init_orbital(orbital, e);
 	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	trace_orbit_map(ic, *params, cycle_period, 
-					number_of_cycles, system);
+	trace_orbit_map(ic, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-	// dynsys system = system_rigid;
+	// system = system_rigid;
 
 	// gamma = 0.01;
 	// e = 0.0549; 					//Moon
@@ -76,19 +71,15 @@ int main(int argc, char **argv)
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 
-	// number_of_cycles = 2e3; //1e3
-	// cycle_period = 2.0 * M_PI;
+	// analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
+	// analysis.number_of_cycles = 2e3; //1e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.coordinate_min = 0.0;
+	// analysis.coordinate_max = 2.0 * M_PI; // M_PI 2.0* M_PI
+	// analysis.velocity_min = 0.6;
+	// analysis.velocity_max = 1.6;
 
-	// nc = 5, nv = 15; //nc = 11, nv = 30;
-	// coordinate_min = 0.0;
-	// coordinate_max = 2.0 * M_PI; // M_PI 2.0* M_PI
-	// velocity_min = 0.6;
-	// velocity_max = 1.6;
-
-	// draw_phase_space(*params, cycle_period, 
-	// 	number_of_cycles, coordinate_min, 
-	// 	coordinate_max, velocity_min, 
-	// 	velocity_max, nc, nv, system);
+	// draw_phase_space(system, analysis);
 
 	/******************** Stop clock ***********************/
 
