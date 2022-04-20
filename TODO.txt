@@ -29,3 +29,9 @@ using the makefile itself
 
 - update all commentaries on header files
 - review includes in header files
+
+- Talvez, mais para frente, deixar o ponteiro params mais
+especifico para cada caso, associando quais valores entram
+lah e em qual posicao com os campos vetoriais, ajustando
+eles no init. Isso vai deixar o programa como um todo bem
+mais generico
