@@ -35,35 +35,25 @@ int main(int argc, char **argv)
 
 	double orbital[4];
 
-	/*******************************************************/
-	
+	/********************* Some values **********************/
+
+	/** Moon
+	 * e = 0.0549
+	 * m_secondary = 1.215e-2
+	**/
+
+	/** Hyperion (Wisdom 1987)
+	 * e = 0.1 
+	 * gamma = (.89 * .89) / 3.
+	 * m_secondary = 0. (assuming for now)
+	**/
+	  
 	/////////////////////////////////////////////////////////
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_rigid;
-	double ic[system.dim];
-
-	gamma = 0.01;
-	e = 0.0549; 					//Moon
-	m_secondary = 1.215e-2; 		//Moon
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-
-	analysis.number_of_cycles = 1e3; //1e3 6e3
-	analysis.cycle_period = 2.0 * M_PI;
-
-	ic[0] = 0.1, ic[1] = 0.1;
-	init_orbital(orbital, e);
-	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-
-	trace_orbit_map(ic, system, analysis);
-
-	/////////////////////////////////////////////////////////
-	/*				   		Phase space		   	           */
-	/////////////////////////////////////////////////////////
-
 	// system = system_rigid;
+	// double ic[system.dim];
 
 	// gamma = 0.01;
 	// e = 0.0549; 					//Moon
@@ -71,15 +61,36 @@ int main(int argc, char **argv)
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 
-	// analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
-	// analysis.number_of_cycles = 2e3; //1e3
+	// analysis.number_of_cycles = 1e3; //1e3 6e3
 	// analysis.cycle_period = 2.0 * M_PI;
-	// analysis.coordinate_min = 0.0;
-	// analysis.coordinate_max = 2.0 * M_PI; // M_PI 2.0* M_PI
-	// analysis.velocity_min = 0.6;
-	// analysis.velocity_max = 1.6;
 
-	// draw_phase_space(system, analysis);
+	// ic[0] = 0.1, ic[1] = 0.1;
+	// init_orbital(orbital, e);
+	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+
+	// trace_orbit_map(ic, system, analysis);
+
+	/////////////////////////////////////////////////////////
+	/*				   		Phase space		   	           */
+	/////////////////////////////////////////////////////////
+
+	system = system_rigid;
+
+	gamma = (.89 * .89) / 3.;
+	e = 0.1;
+	m_secondary = 0.0;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+
+	analysis.nc = 11, analysis.nv = 15; //nc = 11, nv = 30;
+	analysis.number_of_cycles = 2e3; //1e3
+	analysis.cycle_period = 2.0 * M_PI;
+	analysis.coordinate_min = 0.0;
+	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	analysis.velocity_min = 0.0;
+	analysis.velocity_max = 3.0;
+
+	draw_phase_space(system, analysis);
 
 	/******************** Stop clock ***********************/
 
