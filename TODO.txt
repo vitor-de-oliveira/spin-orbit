@@ -9,6 +9,9 @@ de acordo. Olhar Murray chap 2
 - stabilish the right values for G and m. Como adimensionalizar
 as massas, tendo em mente que existe a parte orbital e a parte
 do spin e um usa a soma das massas e o outro a massa do primario
+A eq do artigo do wisdom é diferente da do projeto. Pela 3a lei
+de kepler, dá para mostrar que elas são idênticas, exceto pela 
+presença da massa do secundário
 
 - implement automan. Maybe put everything regarding automan in
 the same place and call it. Look at the UPO calculator in the
