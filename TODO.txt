@@ -21,17 +21,15 @@ manifolds.h, colocar um check function para verificar se a
 orbita passada para o programa representa uma orbita periodica
 para uma certa tolerancia
 
-- talvez mover as main functions para dentro da struct anlsys.
-Com isso, montar uma lib nova de analys, a qual recebe dyn system
-talvez de para colcoar a cond inicial nessa arquitetura.
-Talvez até mover as aux function para essa lib. Seria algo como
-funções privadas
+- no futuro, mover as funções evolve_cycle e evolve_orbit
+para dentro da struct de analise no dynamical system e criar
+vetores de funções para  trace_orbit_map e draw_phase_space,
+as quais apontarão para funções definidas em libs externas
+como a spin_orbit.h. Isso deixará o programa bem mais geral.
+Nesse caso, será necessário entender ``this" em c
 
 - make modules for the program. Maybe using switch, maybe
 using the makefile itself
-
-- update all commentaries on header files
-- review includes in header files
 
 - Talvez, mais para frente, deixar o ponteiro params mais
 especifico para cada caso, associando quais valores entram

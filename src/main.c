@@ -52,23 +52,23 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	// double ic[system.dim];
+	system = system_rigid;
+	double ic[system.dim];
 
-	// gamma = 0.01;
-	// e = 0.0549; 					//Moon
-	// m_secondary = 1.215e-2; 		//Moon
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
+	gamma = 0.01;
+	e = 0.0549; 					//Moon
+	m_secondary = 1.215e-2; 		//Moon
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
 
-	// analysis.number_of_cycles = 1e3; //1e3 6e3
-	// analysis.cycle_period = 2.0 * M_PI;
+	analysis.number_of_cycles = 1e3; //1e3 6e3
+	analysis.cycle_period = 2.0 * M_PI;
 
-	// ic[0] = 0.1, ic[1] = 0.1;
-	// init_orbital(orbital, e);
-	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	ic[0] = 0.1, ic[1] = 0.1;
+	init_orbital(orbital, e);
+	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	// trace_orbit_map(ic, system, analysis);
+	trace_orbit_map(ic, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*				   		Phase space		   	           */

@@ -1,3 +1,8 @@
+/**
+ * personal library created by VMO to assist
+ * writting c programming codes
+**/
+
 #ifndef AUX_VMO_H
 #define AUX_VMO_H
 
@@ -7,11 +12,6 @@
 
 #define PBSTR "=================================================="
 #define PBWIDTH 50
-
-/**
- * personal library created by VMO to assist
- * writting c programming codes
-**/
 
 /*************************** makes life easier ********************************/
 
