@@ -56,13 +56,6 @@ int evolve_orbit(double *ic, double cycle_period,
                  int number_of_cycles, double ***orbit, 
                  int *orbit_size, dynsys system);
 
-int trace_orbit_map(double *ic, 
-                    dynsys system,
-                    anlsis analysis);
-
-int draw_phase_space(dynsys system,
-                     anlsis analysis);
-
 /**
  * functions to handle GSL
 **/

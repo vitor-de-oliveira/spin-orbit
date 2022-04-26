@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "main_functions.h"
 #include "dynamical_system.h"
 #include "spin_orbit.h"
 
