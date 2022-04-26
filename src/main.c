@@ -5,6 +5,7 @@
 
 #include "main_functions.h"
 #include "dynamical_system.h"
+#include "spin_orbit.h"
 
 int main(int argc, char **argv)
 {

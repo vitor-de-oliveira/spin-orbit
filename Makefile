@@ -9,9 +9,9 @@ TARGET = SPIN
 
 TARGET_TEST = TEST
 
-DEPENDENCIES =	main_functions.c \
-				dynamical_system.c \
-				aux_vmo.c
+DEPENDENCIES =	dynamical_system.c \
+				aux_vmo.c \
+				spin_orbit.c
 
 .PHONY: run compile test compile_test clean
 .SILENT: run test clean
