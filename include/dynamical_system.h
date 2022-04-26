@@ -16,7 +16,7 @@
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_vector.h>
 
-#include "auxiliar_functions_vmo.h"
+#include "aux_vmo.h"
 
 // field for rotational frame
 int field_two_body(double t, const double y[], double f[], 

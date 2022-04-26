@@ -1,4 +1,4 @@
-#include "auxiliar_functions_vmo.h"
+#include "aux_vmo.h"
 
 int array_to_matrix(double **m, double *x, int dim)
 {

@@ -1,5 +1,5 @@
-#ifndef AUX_FUNC_VMO_H
-#define AUX_FUNC_VMO_H
+#ifndef AUX_VMO_H
+#define AUX_VMO_H
 
 #include <math.h>
 #include <stdlib.h>

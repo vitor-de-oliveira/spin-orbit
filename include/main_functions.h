@@ -22,7 +22,7 @@
 #include <gsl/gsl_linalg.h>
 
 #include "dynamical_system.h"
-#include "auxiliar_functions_vmo.h"
+#include "aux_vmo.h"
 
 // calculates and writes an orbit with given initial 
 // condition in the rotational system
