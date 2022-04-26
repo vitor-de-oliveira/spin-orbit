@@ -16,7 +16,10 @@ presença da massa do secundário
 - implement automan. Maybe put everything regarding automan in
 the same place and call it. Look at the UPO calculator in the
 Vitor-David folder in Dropbox. maybe upo_calc.h and manifolds.h
-and write somewhere that these are forks from automan.h
+and write somewhere that these are forks from automan.h. No 
+manifolds.h, colocar um check function para verificar se a 
+orbita passada para o programa representa uma orbita periodica
+para uma certa tolerancia
 
 - talvez mover as main functions para dentro da struct anlsys.
 Com isso, montar uma lib nova de analys, a qual recebe dyn system

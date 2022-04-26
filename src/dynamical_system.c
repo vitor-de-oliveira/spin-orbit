@@ -352,3 +352,253 @@ dynsys init_two_body(void *params)
 	two_body.params = params;
     return two_body;
 }
+
+int evolve_cycle(double *y,	double cycle_period, 
+				 double *t, dynsys system)
+{
+	// declare variables
+	int status;
+	double h, h_max, h_min;
+	double error_abs, error_rel;
+	char *method, *control;
+
+	// initialize control variables
+	h = 1e-3 * sign(cycle_period);
+	error_abs = 1e-14;
+	error_rel = 0.0;
+	h_max = 1e-1;
+	h_min = 1e-11;
+	method = "rk8pd";
+	control = "adaptive";
+
+	// set system, integrator and driver
+	gsl_odeiv2_system sys;
+	set_system(&sys, system);
+
+	const gsl_odeiv2_step_type *T;
+	set_integrator(&T, method);
+
+	gsl_odeiv2_driver *d;
+	set_driver(&d, &sys, T, h, h_max, h_min,
+			   error_abs, error_rel, control);
+
+	// cycle evolution
+	status = gsl_odeiv2_driver_apply (d, t, 
+		*t + cycle_period, y);
+
+	// check if integration was successfull
+	if (status != GSL_SUCCESS)
+	{
+		printf("Warning: %s\n", gsl_strerror(status));
+		exit(2);
+	}
+
+	// free memory
+	gsl_odeiv2_driver_free(d);
+
+	return 0;
+}
+
+int evolve_orbit(double *ic, double cycle_period, 
+				int number_of_cycles, 
+				double ***orbit, int *orbit_size,
+				dynsys system)
+{
+	// declare variables
+	double y[system.dim];
+	double box = 1e5;
+	double t = 0.0;
+
+	// allocate memory and initializes exit data
+	if (orbit != NULL)
+	{
+		// takes into consideration initial condition
+		alloc_2d_double(orbit, number_of_cycles + 1, 
+			system.dim);
+		copy((*orbit)[0], ic, system.dim);
+	}
+	else
+	{
+		printf("Error: NULL orbit.");
+		exit(2);
+	}
+	
+	// takes into consideration initial condition
+	int counter = 1;
+
+	// orbit evolution
+	copy(y, ic, system.dim);
+	for (int i = 0; i < number_of_cycles; i++)
+	{
+		evolve_cycle(y, cycle_period, &t, system);
+	
+		// check if orbit diverges
+		for (int j = 0; j < system.dim; j++)
+		{
+			if (fabs(y[j]) > box)
+			{
+				printf("Warning: box limit reached\n");
+				goto out;
+			}
+		}
+
+		counter++;
+
+		// write orbit element
+		copy((*orbit)[i + 1], y, system.dim);
+	}
+
+	out:;
+
+	*orbit_size = counter;
+
+	return 0;
+}
+
+int set_driver(gsl_odeiv2_driver **d, 
+			   gsl_odeiv2_system *sys, 
+			   const gsl_odeiv2_step_type *T, 
+			   double h, double h_max, double h_min,
+			   double error_abs, double error_rel, 
+			   char *control)
+{
+	*d = gsl_odeiv2_driver_alloc_y_new(sys, 
+		T, h, error_abs, error_rel);
+		
+	if (strcmp(control, "adaptive") == 0)
+	{
+		gsl_odeiv2_driver_set_hmax(*d, h_max);
+		gsl_odeiv2_driver_set_hmin(*d, h_min);
+	}
+	else if (strcmp(control, "fixed") != 0)
+	{
+		printf("Warning: invalid GSL error control\n");
+		exit(2);
+	}
+	return 0;
+}
+
+int set_integrator(const gsl_odeiv2_step_type **T, 
+				   char *integrator)
+{
+    if (strcmp(integrator, "rk2") == 0)
+	{
+		*T = gsl_odeiv2_step_rk2;
+	}
+	else if (strcmp(integrator, "rk4") == 0)
+	{
+		*T = gsl_odeiv2_step_rk4;
+	}
+	else if (strcmp(integrator, "rk45") == 0)
+	{
+		*T = gsl_odeiv2_step_rkf45;
+	}
+	else if (strcmp(integrator, "rkck") == 0)
+	{
+		*T = gsl_odeiv2_step_rkck;
+	}
+	else if (strcmp(integrator, "rk8pd") == 0)
+	{
+		*T = gsl_odeiv2_step_rk8pd;
+	}
+	else if (strcmp(integrator, "rk4imp") == 0)
+	{
+		*T = gsl_odeiv2_step_rk4imp;
+	}
+	else if (strcmp(integrator, "bsimp") == 0)
+	{
+		*T = gsl_odeiv2_step_bsimp;
+	}
+	else if (strcmp(integrator, "msadams") == 0)
+	{
+		*T = gsl_odeiv2_step_msadams;
+	}
+	else if (strcmp(integrator, "msbdf") == 0)
+	{
+		*T = gsl_odeiv2_step_msbdf;	
+	}
+	else
+	{
+		printf("Warning: invalid GSL integrator\n");
+		exit(2);
+	}
+	return 0;
+}
+
+int set_system(gsl_odeiv2_system *sys, 
+			   dynsys system)
+{
+	sys->function = system.field;
+	sys->jacobian = system.jac;
+	sys->dimension = system.dim;
+	sys->params = system.params;
+	return 0;
+}
+
+double root_function_kepler(double u, void *params)
+{
+	struct root_params *p = (struct root_params *)params;
+	double e = p->e;
+	double t = p->t;
+	return u - e * sin(u) - t;
+}
+
+double root_derivative_kepler(double u, void *params)
+{
+	struct root_params *p = (struct root_params *)params;
+	double e = p->e;
+	return 1.0 - e * cos(u);
+}
+
+void root_fdf_kepler(double u, void *params, double *y, 
+                    double *dy)
+{
+	struct root_params *p = (struct root_params *)params;
+	double e = p->e;
+	double t = p->t;
+	*y = u - e * sin(u) - t;
+	*dy = 1.0 - e * cos(u);
+}
+
+double kepler_equation(double e, double t)
+{
+	int status, iter = 0, max_iter = 100;
+	double u0, u;
+	struct root_params params_root = {e, t};
+
+    // initial guess (works up to e = 0.99)
+    u = t + e * sin(t);
+
+    // stonger initial guess
+    // u = t + e * sin(t) + 0.5 * e * e * sin(2.0 * t)
+        // + (e * e * e / 8.0) * (3.0 * sin (3.0 * t) 
+        // - sin(t));
+
+    const gsl_root_fdfsolver_type *T 
+        = gsl_root_fdfsolver_steffenson;
+    gsl_root_fdfsolver *s = gsl_root_fdfsolver_alloc(T);
+    gsl_function_fdf FDF;
+    FDF.f = &root_function_kepler;
+    FDF.df = &root_derivative_kepler;
+    FDF.fdf = &root_fdf_kepler;
+    FDF.params = &params_root;
+    gsl_root_fdfsolver_set(s, &FDF, u);
+
+    do
+    {
+        iter++;
+        gsl_root_fdfsolver_iterate(s);
+        u0 = u;
+        u = gsl_root_fdfsolver_root(s);
+        status = gsl_root_test_delta(u, u0, 1e-15, 0);
+        if (iter == max_iter)
+        {
+            printf("Warning: reached maximum iterate\n");
+            return 1;
+        }
+    } while (status == GSL_CONTINUE);
+
+    gsl_root_fdfsolver_free(s);
+
+    return u;
+}

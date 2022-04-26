@@ -21,10 +21,8 @@
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_linalg.h>
 
-#include "auxiliar_functions.h"
-#include "auxiliar_functions_gsl.h"
-#include "auxiliar_functions_vmo.h"
 #include "dynamical_system.h"
+#include "auxiliar_functions_vmo.h"
 
 // calculates and writes an orbit with given initial 
 // condition in the rotational system

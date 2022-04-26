@@ -82,8 +82,8 @@ int main(int argc, char **argv)
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 
-	analysis.nc = 11, analysis.nv = 15; //nc = 11, nv = 30;
-	analysis.number_of_cycles = 2e3; //1e3
+	analysis.nc = 5, analysis.nv = 5; //nc = 11, nv = 30;
+	analysis.number_of_cycles = 1e3; //1e3
 	analysis.cycle_period = 2.0 * M_PI;
 	analysis.coordinate_min = 0.0;
 	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI

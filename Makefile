@@ -9,9 +9,9 @@ TARGET = SPIN
 
 TARGET_TEST = TEST
 
-DEPENDENCIES = main_functions.c auxiliar_functions.c \
-			   auxiliar_functions_gsl.c auxiliar_functions_vmo.c \
-			   dynamical_system.c kepler.c
+DEPENDENCIES = main_functions.c dynamical_system.c \
+				auxiliar_functions_vmo.c \
+				dynamical_system.c
 
 .PHONY: run compile test compile_test clean
 .SILENT: run test clean
