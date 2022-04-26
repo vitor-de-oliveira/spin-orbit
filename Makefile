@@ -30,5 +30,5 @@ clean:
 compile: main.c $(DEPENDENCIES) -lgsl -lgslcblas -lm  
 		   @$(CC) $(CFLAGS) -o $(TARGET) $^
 
-compile_test: main_test.c $(DEPENDENCIES) -lgsl -lgslcblas -lm  
+compile_test: ../dbg/test.c $(DEPENDENCIES) -lgsl -lgslcblas -lm  
 				@$(CC) $(CFLAGS) -o $(TARGET_TEST) $^
