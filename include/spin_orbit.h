@@ -80,9 +80,7 @@ double kepler_equation  (double e,
 
 double angular_momentum_two_body(double y[4]);
 
-double vis_viva_two_body    (double y[4], 
-                            double T,
-                            double a);
+double vis_viva_two_body    (double y[4]);
 
 /**
  * initializers

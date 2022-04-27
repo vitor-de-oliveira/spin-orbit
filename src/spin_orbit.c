@@ -351,9 +351,13 @@ double angular_momentum_two_body(double y[4])
 	return h;
 }
 
-double vis_viva_two_body(double y[4], double T, double a)
+double vis_viva_two_body(double y[4])
 {
 	double n, mu, r, v, C;
+
+	double a = 1.0;
+
+	double T = 2.0 * M_PI;
 
 	n = 2.0 * M_PI / T;
 
@@ -433,12 +437,22 @@ int trace_orbit_map(double *ic, dynsys system,
 		mkdir("output", 0700);
 	}
 
-	// declare and open exit files
-	FILE *orb = fopen("output/orbit.dat", "w");
-
 	// declare variables
+	FILE *out_orb, *out_orb_ang_mom_err, *out_vis_viva_err;
 	int orbit_size;
 	double **orbit;
+	double orb[4], orb_ini[4];
+
+	for (int i = 0; i < 4; i++)
+	{
+		orb_ini[i] = ic[i+2];
+	}
+
+	// open exit files
+	out_orb = fopen("output/orbit.dat", "w");
+	out_orb_ang_mom_err = 
+		fopen("output/orbit_orbital_angular_momentum_error.dat", "w");
+	out_vis_viva_err = fopen("output/orbit_vis_viva_error.dat", "w");
 
 	// evolve system
 	evolve_orbit(ic, analysis.cycle_period, 
@@ -448,10 +462,23 @@ int trace_orbit_map(double *ic, dynsys system,
 	// write orbit and constant error to file
 	for (int i = 0; i < orbit_size; i++)
 	{
-		// fprintf(orb, "%1.15e %1.15e\n", 
+		// fprintf(out_orb, "%1.15e %1.15e\n", 
 		// 		angle_mod(orbit[i][0]), orbit[i][1]);
-		fprintf(orb, "%1.15e %1.15e\n", 
+		fprintf(out_orb, "%1.15e %1.15e\n", 
 			fmod(orbit[i][0], 2.0*M_PI), orbit[i][1]);
+		if (strcmp(system.name, "rigid") == 0)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				orb[j] = orbit[i][j+2];
+			}
+			fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
+					i, fabs(angular_momentum_two_body(orb)-
+					angular_momentum_two_body(orb_ini)));
+			fprintf(out_vis_viva_err, "%d %1.15e\n", 
+					i, fabs(vis_viva_two_body(orb)-
+					vis_viva_two_body(orb_ini)));
+		}
 	}
 
 	printf("w = %1.10e\n", 
@@ -462,7 +489,9 @@ int trace_orbit_map(double *ic, dynsys system,
 	dealloc_2d_double(&orbit, analysis.number_of_cycles);
 
 	// close files
-	fclose(orb);
+	fclose(out_orb);
+	fclose(out_orb_ang_mom_err);
+	fclose(out_vis_viva_err);
 
 	printf("Data written in output folder\n");
 
@@ -471,18 +500,7 @@ int trace_orbit_map(double *ic, dynsys system,
 
 int draw_phase_space(dynsys system, anlsis analysis)
 {
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
-	}
-
-	// declare and open exit files
-	FILE *psp = fopen("output/phase_space.dat", "w");
-	FILE *inc 
-		= fopen("output/phase_space_initial_conditions.dat", 
-				"w");
-
+	// little warning
 	if (strcmp(system.name, "two_body") == 0)
 	{
 		printf("Warning: cant draw phase space\n");
@@ -490,15 +508,32 @@ int draw_phase_space(dynsys system, anlsis analysis)
 		exit(2);
 	}
 
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output", &st) == -1) {
+		mkdir("output", 0700);
+	}
+
 	// declare variables
+	FILE 	*out_psp, *out_ic, 
+			*out_orb_ang_mom_err, *out_vis_viva_err;
 	double y[system.dim], y0[system.dim];
 	double coordinate, velocity;
 	int orbit_fw_size, orbit_bw_size;
 	double **orbit_fw, **orbit_bw;
 	double *par = (double *)system.params;
 	double e = par[1];
-	double orb[4];
-	init_orbital(orb, e);
+	double orb[4], orb_ini[4];
+	init_orbital(orb_ini, e);
+
+	// open exit files
+	out_psp = fopen("output/phase_space.dat", "w");
+	out_ic = 
+		fopen("output/phase_space_initial_conditions.dat", 
+				"w");
+	out_orb_ang_mom_err = 
+		fopen("output/phase_space_orbital_angular_momentum_error.dat", "w");
+	out_vis_viva_err = fopen("output/phase_space_vis_viva_error.dat", "w");
 
 		// loop over coordinate values
 		for (int i = 0; i < analysis.nc; i++)
@@ -549,7 +584,7 @@ int draw_phase_space(dynsys system, anlsis analysis)
 					{
 						for (int k = 0; k < 4; k++)
 						{
-							y[k+2] = orb[k];
+							y[k+2] = orb_ini[k];
 						}
 					}
 
@@ -569,23 +604,52 @@ int draw_phase_space(dynsys system, anlsis analysis)
 					#pragma omp critical
 					{
 						// write initial condition to file
-						fprintf(inc, "%1.15e %1.15e\n", coordinate, 
+						fprintf(out_ic, "%1.15e %1.15e\n", coordinate, 
 								velocity);
-						// write orbit and constant error to file
+
+						// write orbit and error to file
 						for (int k = 0; k < orbit_fw_size; k++)
 						{
-							fprintf(psp, "%1.15e %1.15e\n", 
+							fprintf(out_psp, "%1.15e %1.15e\n", 
 								angle_mod(orbit_fw[k][0]), 
 								orbit_fw[k][1]);
+
+							if (strcmp(system.name, "rigid") == 0)
+							{
+								for (int l = 0; l < 4; l++)
+								{
+									orb[l] = orbit_fw[k][l+2];
+								}
+								fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
+										k, fabs(angular_momentum_two_body(orb)-
+										angular_momentum_two_body(orb_ini)));
+								fprintf(out_vis_viva_err, "%d %1.15e\n", 
+										k, fabs(vis_viva_two_body(orb)-
+										vis_viva_two_body(orb_ini)));
+							}
 						}
 						for (int k = 0; k < orbit_bw_size; k++)
 						{
-							fprintf(psp, "%1.15e %1.15e\n", 
+							fprintf(out_psp, "%1.15e %1.15e\n", 
 								angle_mod(orbit_bw[k][0]), 
 								orbit_bw[k][1]);
+
+							if (strcmp(system.name, "rigid") == 0)
+							{
+								for (int l = 0; l < 4; l++)
+								{
+									orb[l] = orbit_bw[k][l+2];
+								}
+								fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
+										k, fabs(angular_momentum_two_body(orb)-
+										angular_momentum_two_body(orb_ini)));
+								fprintf(out_vis_viva_err, "%d %1.15e\n", 
+										k, fabs(vis_viva_two_body(orb)-
+										vis_viva_two_body(orb_ini)));
+							}
 						}
 						// create new line on exit file
-						fprintf(psp, "\n");
+						fprintf(out_psp, "\n");
 
 					} // end pragma omp critical
 
@@ -603,8 +667,10 @@ int draw_phase_space(dynsys system, anlsis analysis)
 		}
 
 	// close exit files
-	fclose(psp);
-	fclose(inc);
+	fclose(out_psp);
+	fclose(out_ic);
+	fclose(out_orb_ang_mom_err);
+	fclose(out_vis_viva_err);
 
 	printf("Data written in output folder\n");
 

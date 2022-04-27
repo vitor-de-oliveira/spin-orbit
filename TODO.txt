@@ -1,6 +1,11 @@
-- adicionar alguma verificação de erro. Pode ser a parte 
-orbital, mas seria melhor se envolvesse a parte rotacional 
-também. Ver se momento angular nao preserva mesmo
+- pesquisa e adicionar, se houver, a verificação no erro de 
+alguma grandeza que envolva a parte rotacional do problema
+
+- pegar os tempos reais no integrador? multiplicar pelo passo?
+
+- adaptar a parte orbital nas funcoes de traco de orbita
+e espaco de fases para quando for usar campos dissipativos
+pois eles nao vao se chamar rigid
 
 - understand how the specific values to the moon (or any other)
 satellite comes into play in the initial conditions. There are
@@ -12,6 +17,8 @@ do spin e um usa a soma das massas e o outro a massa do primario
 A eq do artigo do wisdom é diferente da do projeto. Pela 3a lei
 de kepler, dá para mostrar que elas são idênticas, exceto pela 
 presença da massa do secundário
+- checar se o período deveria ser sempre 2pi e o eixo maior
+a igual a 1.
 
 - implement automan. Maybe put everything regarding automan in
 the same place and call it. Look at the UPO calculator in the
