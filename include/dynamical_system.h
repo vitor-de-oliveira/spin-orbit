@@ -41,12 +41,17 @@ typedef struct DynSys{
 // System analysis
 typedef struct AnlSis{
     size_t nc, nv;
+    int grid_resolution;
 	int number_of_cycles;
 	double cycle_period;
 	double coordinate_min;
 	double coordinate_max;
 	double velocity_min;
 	double velocity_max;
+    double grid_coordinate_min;
+	double grid_coordinate_max;
+	double grid_velocity_min;
+	double grid_velocity_max;
 } anlsis;
 
 int evolve_cycle(double *y, double cycle_period, 
@@ -55,6 +60,16 @@ int evolve_cycle(double *y, double cycle_period,
 int evolve_orbit(double *ic, double cycle_period, 
                  int number_of_cycles, double ***orbit, 
                  int *orbit_size, dynsys system);
+
+// returns the position of a double on a grid
+int double_to_grid  (int grid[2], 
+                    double x[2],
+                    anlsis analysis);
+
+// returns the first double on a grid square
+int grid_to_double  (int grid[2], 
+                    double x[2],
+                    anlsis analysis);
 
 /**
  * functions to handle GSL

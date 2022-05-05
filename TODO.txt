@@ -1,11 +1,29 @@
+- think of a good way to organize the data. config file
+along with another dir with figures and raw data.
+Perhaps, due to the existence of a config file, just
+put the date on the file name.
+Maybe write a print_config_file function which would
+be called along with the gnuplot pipe. Include execution time
+somehow
+
 - pesquisa e adicionar, se houver, a verificação no erro de 
 alguma grandeza que envolva a parte rotacional do problema
 
 - pegar os tempos reais no integrador? multiplicar pelo passo?
 
+- maybe remove two-body system
+
+- implementar a geração de figura utilizando o pipe para um
+nome de arquivo mais adequado. Colocar na msm função a geracao
+de um arquivo de configuração, com todos os valores utilizados
+para gerar a figura
+
+- calcular numero de voltar de theta com f para avaliar
+o valor da ressonancia
+
 - adaptar a parte orbital nas funcoes de traco de orbita
 e espaco de fases para quando for usar campos dissipativos
-pois eles nao vao se chamar rigid
+pois eles nao vao se chamar rigid. Isto é, usar a dimensão
 
 - understand how the specific values to the moon (or any other)
 satellite comes into play in the initial conditions. There are

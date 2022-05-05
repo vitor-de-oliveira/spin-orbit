@@ -55,6 +55,18 @@ int jacobian_rigid_kepler   (double t,
                             double dfdt[],
                             void *params);
 
+// field considering a linear tidal torque
+int field_linear(double t,
+                const double y[],
+                double f[],
+                void *params);
+
+// field considering an averaged linear tidal torque
+int field_linear_average(double t,
+                        const double y[],
+                        double f[],
+                        void *params);
+
 struct root_params_kepler
 {
 	double e, t;
@@ -86,11 +98,15 @@ double vis_viva_two_body    (double y[4]);
  * initializers
 **/
 
+dynsys init_two_body(void *params);
+
 dynsys init_rigid(void *params);
 
 dynsys init_rigid_kepler(void *params);
 
-dynsys init_two_body(void *params);
+dynsys init_linear(void *params);
+
+dynsys init_linear_average(void *params);
 
 int init_orbital(double y[4],
                 double e);
@@ -105,5 +121,19 @@ int trace_orbit_map (double *ic,
 
 int draw_phase_space    (dynsys system,
                         anlsis analysis);
+
+int evolve_basin(double *ic, double *ref, bool *converged,
+                 double ***orbit, int *orbit_size,
+                 dynsys system, anlsis analysis);
+
+int basin_of_attraction (double *ref,
+                        dynsys system,
+                        anlsis analysis);
+
+int multiple_basins_of_attraction   (dynsys system,
+                                    anlsis analysis);
+
+int all_basins_of_attraction(dynsys system,
+                            anlsis analysis);
 
 #endif

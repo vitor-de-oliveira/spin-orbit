@@ -82,7 +82,7 @@ int switch_array_element(double *x, int i, int j)
 	return 0;
 }
 
-double angle_mod(double x)
+double angle_mod_pos(double x)
 {
 	double result;
 	result = fmod (x , 2.0 * M_PI);
@@ -97,7 +97,7 @@ double angular_dist(double x1, double x2)
 {
 	double result;
 	double dif, dif_2pi;
-	dif = angle_mod(x1 - x2);
+	dif = angle_mod_pos(x1 - x2);
 	dif_2pi = fabs(2.0*M_PI - dif);
 	if (dif < dif_2pi)
 	{

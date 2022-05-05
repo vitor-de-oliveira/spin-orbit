@@ -222,9 +222,10 @@ int field_rigid_kepler(double t, const double y[],
 	double m_primary 	= par[2]; 
 	double m_secondary 	= par[3];
 	double G 			= par[4];
+	double a 			= par[5];
 
 	double u = kepler_equation(e,t);
-    double r = 1.0 - e * cos(u);
+    double r = a * (1.0 - e * cos(u));
     double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
 			* tan(0.5 * u));
 
@@ -247,9 +248,10 @@ int jacobian_rigid_kepler(double t, const double y[],
 	double m_primary 	= par[2]; 
 	double m_secondary 	= par[3];
 	double G 			= par[4];
+	double a 			= par[5];
 
 	double u = kepler_equation(e,t);
-    double r = 1.0 - e * cos(u);
+    double r = a * (1.0 - e * cos(u));
     double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
 			* tan(0.5 * u));
 
@@ -267,6 +269,66 @@ int jacobian_rigid_kepler(double t, const double y[],
 
 	dfdt[0] = 0.0;
 	dfdt[1] = 0.0;
+
+	return GSL_SUCCESS;
+}
+
+int field_linear(double t, const double y[], 
+				double f[], void *params)
+{
+	printf("linear field not implemented yet\n");
+	exit(2);
+
+	return 0;
+}
+
+int field_linear_average(double t, const double y[], 
+						double f[], void *params)
+{
+	(void)t;
+
+	double *par = (double *)params;
+
+	double gamma 		= par[0];
+	double e 			= par[1];
+	double m_primary 	= par[2]; 
+	double m_secondary 	= par[3];
+	double G 			= par[4];
+
+	double K			= par[6];
+
+	double total_mass = m_primary + m_secondary;
+
+    double r = sqrt((y[2] * y[2]) + (y[3] * y[3]));
+    double f_e = atan2(y[3], y[2]);
+
+	double aux = (-3.0/2.0) * gamma * G * m_primary;
+	double r_cube = r * r * r;
+
+	double e_2 = e * e;
+	double e_4 = e * e * e * e;
+	double e_6 = e * e * e * e * e * e;
+
+	double L_avg = (1.+3.*e_2+(3./8.)*e_4) / 
+					pow(1.-e_2,(9./2.));
+
+	double N_avg = (1.+(15./2.)*e_2+(45./8.)*e_4+
+					(5./16.)*e_6) / pow(1.-e_2,6.);
+
+	// y[0] = theta
+	// y[1] = theta_dot
+	// y[2] = x
+	// y[3] = y
+	// y[4] = x_dot
+	// y[5] = y_dot
+
+	f[0] = y[1];
+	f[1] = aux * sin(2.0 * (y[0] - f_e)) / r_cube 
+			- K * (L_avg * y[1] - N_avg);
+	f[2] = y[4];
+	f[3] = y[5];
+	f[4] = -1.0 * G * total_mass * y[2] / r_cube;
+	f[5] = -1.0 * G * total_mass * y[3] / r_cube;
 
 	return GSL_SUCCESS;
 }
@@ -372,6 +434,17 @@ double vis_viva_two_body(double y[4])
 	return C;
 }
 
+dynsys init_two_body(void *params)
+{
+	dynsys two_body;
+    two_body.name = "two_body";
+    two_body.dim = 4;
+	two_body.field = &field_two_body;
+	two_body.jac = &jacobian_two_body;
+	two_body.params = params;
+    return two_body;
+}
+
 dynsys init_rigid(void *params)
 {
 	dynsys rigid;
@@ -394,15 +467,26 @@ dynsys init_rigid_kepler(void *params)
     return rigid_kepler;
 }
 
-dynsys init_two_body(void *params)
+dynsys init_linear(void *params)
 {
-	dynsys two_body;
-    two_body.name = "two_body";
-    two_body.dim = 4;
-	two_body.field = &field_two_body;
-	two_body.jac = &jacobian_two_body;
-	two_body.params = params;
-    return two_body;
+	dynsys linear;
+    linear.name = "linear";
+    linear.dim = 6;
+	linear.field = &field_linear;
+	linear.jac = NULL;
+	linear.params = params;
+    return linear;
+}
+
+dynsys init_linear_average(void *params)
+{
+	dynsys linear_average;
+    linear_average.name = "linear_average";
+    linear_average.dim = 6;
+	linear_average.field = &field_linear_average;
+	linear_average.jac = NULL;
+	linear_average.params = params;
+    return linear_average;
 }
 
 int init_orbital(double orb[4], double e)
@@ -438,7 +522,8 @@ int trace_orbit_map(double *ic, dynsys system,
 	}
 
 	// declare variables
-	FILE *out_orb, *out_orb_ang_mom_err, *out_vis_viva_err;
+	FILE *out_orb, *out_orb_ic,
+		 *out_orb_ang_mom_err, *out_vis_viva_err;
 	int orbit_size;
 	double **orbit;
 	double orb[4], orb_ini[4];
@@ -450,6 +535,7 @@ int trace_orbit_map(double *ic, dynsys system,
 
 	// open exit files
 	out_orb = fopen("output/orbit.dat", "w");
+	out_orb_ic = fopen("output/orbit_ic.dat", "w");
 	out_orb_ang_mom_err = 
 		fopen("output/orbit_orbital_angular_momentum_error.dat", "w");
 	out_vis_viva_err = fopen("output/orbit_vis_viva_error.dat", "w");
@@ -460,13 +546,14 @@ int trace_orbit_map(double *ic, dynsys system,
 				&orbit, &orbit_size, system);
 
 	// write orbit and constant error to file
+	fprintf(out_orb_ic, "%1.15e %1.15e\n", 
+			angle_mod_pos(orbit[0][0]), orbit[0][1]);
 	for (int i = 0; i < orbit_size; i++)
 	{
-		// fprintf(out_orb, "%1.15e %1.15e\n", 
-		// 		angle_mod(orbit[i][0]), orbit[i][1]);
 		fprintf(out_orb, "%1.15e %1.15e\n", 
-			fmod(orbit[i][0], 2.0*M_PI), orbit[i][1]);
-		if (strcmp(system.name, "rigid") == 0)
+				angle_mod_pos(orbit[i][0]), orbit[i][1]);
+		// if (strcmp(system.name, "rigid") == 0)
+		if (system.dim == 6)
 		{
 			for (int j = 0; j < 4; j++)
 			{
@@ -490,6 +577,7 @@ int trace_orbit_map(double *ic, dynsys system,
 
 	// close files
 	fclose(out_orb);
+	fclose(out_orb_ic);
 	fclose(out_orb_ang_mom_err);
 	fclose(out_vis_viva_err);
 
@@ -533,54 +621,326 @@ int draw_phase_space(dynsys system, anlsis analysis)
 				"w");
 	out_orb_ang_mom_err = 
 		fopen("output/phase_space_orbital_angular_momentum_error.dat", "w");
-	out_vis_viva_err = fopen("output/phase_space_vis_viva_error.dat", "w");
+	out_vis_viva_err = 
+		fopen("output/phase_space_vis_viva_error.dat", "w");
 
-		// loop over coordinate values
-		for (int i = 0; i < analysis.nc; i++)
+	// loop over coordinate values
+	for (int i = 0; i < analysis.nc; i++)
+	{
+		// print progress on coordinate
+		printf("Calculating set %d of %ld\n", i + 1, analysis.nc);
+
+		#pragma omp parallel private(y, y0, coordinate, velocity, \
+				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw)
 		{
-			// print progress on coordinate
-			printf("Calculating set %d of %ld\n", i + 1, analysis.nc);
 
-			#pragma omp parallel private(y, y0, coordinate, velocity, \
-					orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw)
-			{
+		if (analysis.nc == 1)
+		{
+			coordinate = analysis.coordinate_min;
+		}
+		else
+		{
+			coordinate = analysis.coordinate_min + 
+					(double)(i) * (analysis.coordinate_max - 
+					analysis.coordinate_min) / 
+					(double)(analysis.nc - 1);
+		}
 
-			if (analysis.nc == 1)
+		#pragma omp for
+			// loop over velocity values
+			for (int j = 0; j < analysis.nv; j++)
 			{
-				coordinate = analysis.coordinate_min;
-			}
-			else
-			{
-				coordinate = analysis.coordinate_min + 
-						(double)(i) * (analysis.coordinate_max - 
-						analysis.coordinate_min) / 
-						(double)(analysis.nc - 1);
-			}
+				// print progress on velocity
+				printf("Calculating subset %d of %ld\n", 
+							j + 1, analysis.nv);
 
-			#pragma omp for
-				// loop over velocity values
-				for (int j = 0; j < analysis.nv; j++)
+				if (analysis.nv == 1)
 				{
-					// print progress on velocity
-					printf("Calculating subset %d of %ld\n", 
-								j + 1, analysis.nv);
+					velocity = analysis.velocity_min;
+				}
+				else
+				{
+					velocity = analysis.velocity_min + 
+							(double)(j) * (analysis.velocity_max - 
+							analysis.velocity_min) / 
+							(double)(analysis.nv - 1);
+				}
 
-					if (analysis.nv == 1)
+				y[0] = coordinate;
+				y[1] = velocity;
+
+				if (strcmp(system.name, "rigid") == 0)
+				{
+					for (int k = 0; k < 4; k++)
 					{
-						velocity = analysis.velocity_min;
+						y[k+2] = orb_ini[k];
 					}
-					else
+				}
+
+				// keep IC for backward integration
+				copy(y0, y, system.dim);
+
+				// calculate forward integration
+				evolve_orbit(y, analysis.cycle_period, 
+					analysis.number_of_cycles, &orbit_fw, 
+					&orbit_fw_size, system);
+
+				// calculate backward integration
+				evolve_orbit(y, -1.0 * analysis.cycle_period, 
+					analysis.number_of_cycles, &orbit_bw, 
+					&orbit_bw_size, system);
+
+				#pragma omp critical
+				{
+					// write initial condition to file
+					fprintf(out_ic, "%1.15e %1.15e\n", coordinate, 
+							velocity);
+
+					// write orbit and error to file
+					for (int k = 0; k < orbit_fw_size; k++)
 					{
-						velocity = analysis.velocity_min + 
-								(double)(j) * (analysis.velocity_max - 
-								analysis.velocity_min) / 
-								(double)(analysis.nv - 1);
+						fprintf(out_psp, "%1.15e %1.15e\n", 
+							angle_mod_pos(orbit_fw[k][0]), 
+							orbit_fw[k][1]);
+
+						if (strcmp(system.name, "rigid") == 0)
+						{
+							for (int l = 0; l < 4; l++)
+							{
+								orb[l] = orbit_fw[k][l+2];
+							}
+							fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
+									k, fabs(angular_momentum_two_body(orb)-
+									angular_momentum_two_body(orb_ini)));
+							fprintf(out_vis_viva_err, "%d %1.15e\n", 
+									k, fabs(vis_viva_two_body(orb)-
+									vis_viva_two_body(orb_ini)));
+						}
 					}
+					for (int k = 0; k < orbit_bw_size; k++)
+					{
+						fprintf(out_psp, "%1.15e %1.15e\n", 
+							angle_mod_pos(orbit_bw[k][0]), 
+							orbit_bw[k][1]);
+
+						if (strcmp(system.name, "rigid") == 0)
+						{
+							for (int l = 0; l < 4; l++)
+							{
+								orb[l] = orbit_bw[k][l+2];
+							}
+							fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
+									k, fabs(angular_momentum_two_body(orb)-
+									angular_momentum_two_body(orb_ini)));
+							fprintf(out_vis_viva_err, "%d %1.15e\n", 
+									k, fabs(vis_viva_two_body(orb)-
+									vis_viva_two_body(orb_ini)));
+						}
+					}
+					// create new line on exit file
+					fprintf(out_psp, "\n");
+
+				} // end pragma omp critical
+
+				// free memory
+				dealloc_2d_double(&orbit_fw, 
+						analysis.number_of_cycles);
+				dealloc_2d_double(&orbit_bw, 
+						analysis.number_of_cycles);
+			
+			}
+		} // end pragma
+
+		// new line on terminal
+		printf("\n");
+	}
+
+	// close exit files
+	fclose(out_psp);
+	fclose(out_ic);
+	fclose(out_orb_ang_mom_err);
+	fclose(out_vis_viva_err);
+
+	printf("Data written in output folder\n");
+
+	return 0;
+}
+
+int evolve_basin(double *ic, double *ref, bool *converged,
+                 double ***orbit, int *orbit_size,
+                 dynsys system, anlsis analysis)
+{
+	// declare variables
+	double y[system.dim];
+	double box = 1e6;
+	double t = 0.0;
+	double dist_from_ref_theta;
+	double dist_from_ref_theta_dot;
+	double dist_from_ref;
+	// tolerance for which we say the orbit converged
+	double eps = 1e-1;
+
+	// allocate memory and initializes exit data
+	if (orbit != NULL)
+	{
+		// takes into consideration initial condition
+		alloc_2d_double(orbit, 
+			analysis.number_of_cycles + 1, 
+			system.dim);
+		copy((*orbit)[0], ic, system.dim);
+	}
+	else
+	{
+		printf("Error: NULL orbit.");
+		exit(2);
+	}
+	
+	// takes into consideration initial condition
+	int counter = 1;
+
+	// orbit evolution
+	copy(y, ic, system.dim);
+	for (int i = 0; i < analysis.number_of_cycles; i++)
+	{
+		dist_from_ref_theta = 
+			fabs(angle_mod_pos(y[0])-angle_mod_pos(ref[0]));
+		if (dist_from_ref_theta > M_PI)
+		{
+			dist_from_ref_theta = 
+				2.*M_PI - dist_from_ref_theta;
+		}
+		dist_from_ref_theta_dot = 
+				fabs(y[1]-ref[1]);
+
+		dist_from_ref = 
+			sqrt(dist_from_ref_theta*dist_from_ref_theta
+				+dist_from_ref_theta_dot*dist_from_ref_theta_dot);
+	
+		if(dist_from_ref < eps)
+		{
+			*converged = true;
+			goto out;
+		}
+
+		evolve_cycle(y, analysis.cycle_period, &t, system);
+	
+		// check if orbit diverges
+		for (int j = 0; j < system.dim; j++)
+		{
+			if (fabs(y[j]) > box)
+			{
+				printf("Warning: box limit reached\n");
+				printf("y[%d] = %1.10e\n", j, y[j]);
+				goto out;
+			}
+		}
+
+		counter++;
+
+		// write orbit element
+		copy((*orbit)[i + 1], y, system.dim);
+
+	}
+
+	out:;
+
+	*orbit_size = counter;
+
+	return 0;
+}
+
+int basin_of_attraction(double *ref, dynsys system, 
+						anlsis analysis)
+{
+	// little warning
+	if (strcmp(system.name, "two_body") == 0)
+	{
+		printf("Warning: cant draw basins\n");
+		printf("for two-body system\n");
+		exit(2);
+	}
+
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output", &st) == -1) {
+		mkdir("output", 0700);
+	}
+
+	// declare variables
+	FILE 	*out_boa, *out_ref;
+	double y[system.dim];
+	double coordinate, velocity;
+	int orbit_fw_size;
+	double **orbit_fw;
+	double *par = (double *)system.params;
+	double e = par[1];
+	double orb[4], orb_ini[4];
+	init_orbital(orb_ini, e);
+	int basin_counter = 0;
+	int grid[2];
+	double basin[2];
+	int **basin_matrix, **control_matrix;
+	double **time_matrix;
+	alloc_2d_int(&basin_matrix, 
+		analysis.grid_resolution, analysis.grid_resolution);
+	alloc_2d_int(&control_matrix, 
+		analysis.grid_resolution, analysis.grid_resolution);
+	alloc_2d_double(&time_matrix, 
+		analysis.grid_resolution, analysis.grid_resolution);
+	for (int i = 0; i < analysis.grid_resolution; i++)
+	{
+		for (int j = 0; j < analysis.grid_resolution; j++)
+		{
+			basin_matrix[i][j] = 0;
+			control_matrix[i][j] = 0;
+			time_matrix[i][j] = NAN;
+		}
+	}
+	bool converged;
+
+	// open exit files
+	out_boa = fopen("output/basin.dat", "w");
+	out_ref = fopen("output/basin_ref.dat", "w");
+
+	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
+
+	// loop over coordinate values
+	for (int i = 0; i < analysis.grid_resolution; i++)
+	{
+		// print progress on coordinate
+		printf("Calculating set %d of %d\n", 
+					i + 1, analysis.grid_resolution);
+
+		#pragma omp parallel private(y, coordinate, velocity, \
+				orbit_fw_size, orbit_fw) shared(basin_matrix, \
+				control_matrix)
+		{
+
+		coordinate = analysis.grid_coordinate_min + 
+				(double)(i) * (analysis.grid_coordinate_max - 
+				analysis.grid_coordinate_min) / 
+				(double)(analysis.grid_resolution - 1);
+
+		#pragma omp for
+			// loop over velocity values
+			for (int j = 0; j < analysis.grid_resolution; j++)
+			{
+				// print progress on velocity
+				printf("Calculating subset %d of %d\n", 
+							j + 1, analysis.grid_resolution);
+
+				if (control_matrix[i][j] == 0)
+				{
+
+					velocity = analysis.grid_velocity_min + 
+							(double)(j) * (analysis.grid_velocity_max - 
+							analysis.grid_velocity_min) / 
+							(double)(analysis.grid_resolution - 1);
 
 					y[0] = coordinate;
 					y[1] = velocity;
 
-					if (strcmp(system.name, "rigid") == 0)
+					if (system.dim == 6)
 					{
 						for (int k = 0; k < 4; k++)
 						{
@@ -588,89 +948,108 @@ int draw_phase_space(dynsys system, anlsis analysis)
 						}
 					}
 
-					// keep IC for backward integration
-					copy(y0, y, system.dim);
-
-					// calculate forward integration
-					evolve_orbit(y, analysis.cycle_period, 
-						analysis.number_of_cycles, &orbit_fw, 
-						&orbit_fw_size, system);
-
-					// calculate backward integration
-					evolve_orbit(y, -1.0 * analysis.cycle_period, 
-						analysis.number_of_cycles, &orbit_bw, 
-						&orbit_bw_size, system);
-
 					#pragma omp critical
 					{
-						// write initial condition to file
-						fprintf(out_ic, "%1.15e %1.15e\n", coordinate, 
-								velocity);
+						converged = false;
 
-						// write orbit and error to file
-						for (int k = 0; k < orbit_fw_size; k++)
+						// calculate forward integration
+						evolve_basin(y, ref, &converged,
+							&orbit_fw, &orbit_fw_size,
+							system, analysis);
+
+						if(converged == true)
 						{
-							fprintf(out_psp, "%1.15e %1.15e\n", 
-								angle_mod(orbit_fw[k][0]), 
-								orbit_fw[k][1]);
+							basin_matrix[i][j] = 1;
+							control_matrix[i][j] = 1;
+							time_matrix[i][j] = (double)(orbit_fw_size);
+							basin_counter++;
 
-							if (strcmp(system.name, "rigid") == 0)
+							// I am not verifying if the bin is already
+							// written on or not
+
+							for (int k = 1; k < orbit_fw_size; k++)
 							{
-								for (int l = 0; l < 4; l++)
+								basin[0] = angle_mod_pos(orbit_fw[k][0]);
+								basin[1] = orbit_fw[k][1];
+								double_to_grid(grid, basin, analysis);
+
+								if ((grid[0] >= 0 && 
+									 grid[0] < analysis.grid_resolution) && 
+									(grid[1] >= 0 && 
+									 grid[1] < analysis.grid_resolution))
 								{
-									orb[l] = orbit_fw[k][l+2];
+									basin_matrix[grid[0]][grid[1]] = 1;
+									control_matrix[grid[0]][grid[1]] = 1;
+									time_matrix[grid[0]][grid[1]] = 
+										(double)(orbit_fw_size - k);
+									basin_counter++;
 								}
-								fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
-										k, fabs(angular_momentum_two_body(orb)-
-										angular_momentum_two_body(orb_ini)));
-								fprintf(out_vis_viva_err, "%d %1.15e\n", 
-										k, fabs(vis_viva_two_body(orb)-
-										vis_viva_two_body(orb_ini)));
 							}
 						}
-						for (int k = 0; k < orbit_bw_size; k++)
+						else
 						{
-							fprintf(out_psp, "%1.15e %1.15e\n", 
-								angle_mod(orbit_bw[k][0]), 
-								orbit_bw[k][1]);
+							control_matrix[i][j] = -1;
 
-							if (strcmp(system.name, "rigid") == 0)
-							{
-								for (int l = 0; l < 4; l++)
-								{
-									orb[l] = orbit_bw[k][l+2];
-								}
-								fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
-										k, fabs(angular_momentum_two_body(orb)-
-										angular_momentum_two_body(orb_ini)));
-								fprintf(out_vis_viva_err, "%d %1.15e\n", 
-										k, fabs(vis_viva_two_body(orb)-
-										vis_viva_two_body(orb_ini)));
-							}
+							// for (int k = 1; k < orbit_fw_size; k++)
+							// {
+							// 	basin[0] = angle_mod_pos(orbit_fw[k][0]);
+							// 	basin[1] = orbit_fw[k][1];
+							// 	double_to_grid(grid, basin, analysis);
+
+							// 	if ((grid[0] >= 0 && 
+							// 		 grid[0] < analysis.grid_resolution) && 
+							// 		(grid[1] >= 0 && 
+							// 		 grid[1] < analysis.grid_resolution))
+							// 	{
+							// 		control_matrix[grid[0]][grid[1]] = -1;
+							// 	}
+							// }
 						}
-						// create new line on exit file
-						fprintf(out_psp, "\n");
 
 					} // end pragma omp critical
 
 					// free memory
 					dealloc_2d_double(&orbit_fw, 
 							analysis.number_of_cycles);
-					dealloc_2d_double(&orbit_bw, 
-							analysis.number_of_cycles);
-				
 				}
-			} // end pragma
+			
+			}
+		} // end pragma
 
-			// new line on terminal
-			printf("\n");
+		// new line on terminal
+		printf("\n");
+	}
+
+	for (int i = 0; i < analysis.grid_resolution; i++)
+	{
+		for (int j = 0; j < analysis.grid_resolution; j++)
+		{
+			grid[0] = i;
+			grid[1] = j;
+			grid_to_double(grid, basin, analysis);
+
+			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
+				basin[0], basin[1], 
+				basin_matrix[grid[0]][grid[1]],
+				time_matrix[grid[0]][grid[1]]);
 		}
+		fprintf(out_boa, "\n");
+	}
+
+	printf("Basin counter = %d\n", basin_counter);
 
 	// close exit files
-	fclose(out_psp);
-	fclose(out_ic);
-	fclose(out_orb_ang_mom_err);
-	fclose(out_vis_viva_err);
+	fclose(out_boa);
+	fclose(out_ref);
+
+	dealloc_2d_int(&basin_matrix, 
+					analysis.grid_resolution);
+
+	dealloc_2d_int(&control_matrix, 
+					analysis.grid_resolution);
+
+	dealloc_2d_double(&time_matrix, 
+					analysis.grid_resolution);
 
 	printf("Data written in output folder\n");
 

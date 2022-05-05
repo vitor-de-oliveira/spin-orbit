@@ -53,7 +53,7 @@ int evolve_orbit(double *ic, double cycle_period,
 {
 	// declare variables
 	double y[system.dim];
-	double box = 1e5;
+	double box = 1e6;
 	double t = 0.0;
 
 	// allocate memory and initializes exit data
@@ -85,6 +85,7 @@ int evolve_orbit(double *ic, double cycle_period,
 			if (fabs(y[j]) > box)
 			{
 				printf("Warning: box limit reached\n");
+				printf("y[%d] = %1.10e\n", j, y[j]);
 				goto out;
 			}
 		}
@@ -100,6 +101,48 @@ int evolve_orbit(double *ic, double cycle_period,
 	*orbit_size = counter;
 
 	return 0;
+}
+
+int double_to_grid	(int grid[2], 
+					double x[2],
+					anlsis analysis)
+{
+	double res_i = (analysis.grid_coordinate_max -
+					analysis.grid_coordinate_min) / 
+					(double)(analysis.grid_resolution - 1);
+	
+	double res_j = (analysis.grid_velocity_max -
+					analysis.grid_velocity_min) / 
+					(double)(analysis.grid_resolution - 1);
+
+	double pos_i = 
+			(x[0] - analysis.grid_coordinate_min) / res_i;
+
+	double pos_j = 
+			(x[1] - analysis.grid_velocity_min) / res_j;
+
+	grid[0] = (int)pos_i;
+	grid[1] = (int)pos_j;
+
+	return 0;
+}
+
+int grid_to_double	(int grid[2],
+					double x[2],
+					anlsis analysis)
+{
+	double res_i = (analysis.grid_coordinate_max -
+					analysis.grid_coordinate_min) / 
+					(double)(analysis.grid_resolution - 1);
+	
+	double res_j = (analysis.grid_velocity_max -
+					analysis.grid_velocity_min) / 
+					(double)(analysis.grid_resolution - 1);
+
+	x[0] = analysis.grid_coordinate_min + 
+			(double)grid[0] * res_i;
+	x[1] = analysis.grid_velocity_min + 
+			(double)grid[1] * res_j;
 }
 
 int set_driver(gsl_odeiv2_driver **d, 
