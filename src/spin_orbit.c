@@ -911,8 +911,11 @@ int basin_of_attraction(double *ref, dynsys system,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
+		omp_set_dynamic(0);     // Explicitly disable dynamic teams
+		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+
 		#pragma omp parallel private(y, coordinate, velocity, \
-				orbit_fw_size, orbit_fw) shared(basin_matrix, \
+				orbit_fw_size, orbit_fw, converged) shared(basin_matrix, \
 				control_matrix)
 		{
 
@@ -948,8 +951,8 @@ int basin_of_attraction(double *ref, dynsys system,
 						}
 					}
 
-					#pragma omp critical
-					{
+//					#pragma omp critical
+//					{
 						converged = false;
 
 						// calculate forward integration
@@ -1006,7 +1009,7 @@ int basin_of_attraction(double *ref, dynsys system,
 							// }
 						}
 
-					} // end pragma omp critical
+//					} // end pragma omp critical
 
 					// free memory
 					dealloc_2d_double(&orbit_fw, 

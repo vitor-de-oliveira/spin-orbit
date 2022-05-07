@@ -1,3 +1,5 @@
+- correct weird values on attraction basin
+
 - think of a good way to organize the data. config file
 along with another dir with figures and raw data.
 Perhaps, due to the existence of a config file, just
