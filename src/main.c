@@ -22,14 +22,23 @@ int main(int argc, char **argv)
 	double m_primary;		// mass of primary
 	double m_secondary;		// mass of secondary
 	double G;				// gravitational constant
+	double a;				// semimajor axis
+	double K;				// dissipation parameter
 
-	double *params[5] 
-		= {&gamma, &e, &m_primary, &m_secondary, &G};
+	double *params[7] = {&gamma,
+						 &e,
+						 &m_primary,
+						 &m_secondary,
+						 &G,
+						 &a,
+						 &K};
 
 	dynsys system;
+	dynsys system_two_body = init_two_body(*params);
 	dynsys system_rigid = init_rigid(*params);
 	dynsys system_rigid_kepler = init_rigid_kepler(*params);
-	dynsys system_two_body = init_two_body(*params);
+	dynsys system_linear = init_linear(*params);
+	dynsys system_linear_average = init_linear_average(*params);
 
 	anlsis analysis;
 
@@ -52,14 +61,16 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
+	// system = system_linear_average;
 	// double ic[system.dim];
 
-	// gamma = 0.01;
-	// e = 0.0549; 					//Moon
-	// m_secondary = 1.215e-2; 		//Moon
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1;
+	// m_secondary = 0.;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
+	// a = 1.0;
+	// K = 1e-3;
 
 	// analysis.number_of_cycles = 1e4; //1e3 6e3
 	// analysis.cycle_period = 2.0 * M_PI;
@@ -74,23 +85,56 @@ int main(int argc, char **argv)
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_rigid;
+	// system = system_rigid;
+
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-6;
+
+	// analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
+	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.coordinate_min = M_PI; // M_PI
+	// analysis.coordinate_max = 2.0 * M_PI; // M_PI 2.0* M_PI
+	// analysis.velocity_min = 0.0;
+	// analysis.velocity_max = 3.0;
+
+	// draw_phase_space(system, analysis);
+
+	/////////////////////////////////////////////////////////
+	/*				Basin of attraction		   	           */
+	/////////////////////////////////////////////////////////
+
+	system = system_linear_average;
+	double ref[2];
 
 	gamma = (.89 * .89) / 3.;
 	e = 0.1;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
+	a = 1.0;
+ 	K = 1e-2;
 
-	analysis.nc = 5, analysis.nv = 5; //nc = 11, nv = 30;
-	analysis.number_of_cycles = 1e3; //1e3
+	analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
+	analysis.number_of_cycles = 2e3; //1e3
 	analysis.cycle_period = 2.0 * M_PI;
 	analysis.coordinate_min = 0.0;
 	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
 	analysis.velocity_min = 0.0;
 	analysis.velocity_max = 3.0;
+	analysis.grid_resolution = 300;
+	analysis.grid_coordinate_min = 0.0;
+	analysis.grid_coordinate_max = 2.0 * M_PI;
+	analysis.grid_velocity_min = 0.0;
+	analysis.grid_velocity_max = 3.0;
 
-	draw_phase_space(system, analysis);
+	ref[0] = M_PI; ref[1] = 0.551540;
+	basin_of_attraction (ref, system, analysis);
 
 	/******************** Stop clock ***********************/
 

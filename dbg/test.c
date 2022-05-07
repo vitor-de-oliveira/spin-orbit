@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "main_functions.h"
 #include "dynamical_system.h"
+#include "spin_orbit.h"
 
 int main(int argc, char **argv)
 {
@@ -19,21 +19,59 @@ int main(int argc, char **argv)
 	double m_primary;		// mass of primary
 	double m_secondary;		// mass of secondary
 	double G;				// gravitational constant
+	double a;				// semimajor axis
+	double K;				// dissipation parameter
 
-	double *params[5] 
-		= {&gamma, &e, &m_primary, &m_secondary, &G};
+	double *params[7] = {&gamma,
+						 &e,
+						 &m_primary,
+						 &m_secondary,
+						 &G,
+						 &a,
+						 &K};
 
-	char *system;
-	int nc, nv;
-	int number_of_cycles;
-	double ic[2];
-	double cycle_period;
-	double coordinate_min;
-	double coordinate_max;
-	double velocity_min;
-	double velocity_max;
+	dynsys system;
+	dynsys system_two_body = init_two_body(*params);
+	dynsys system_rigid = init_rigid(*params);
+	dynsys system_rigid_kepler = init_rigid_kepler(*params);
+	dynsys system_linear = init_linear(*params);
+	dynsys system_linear_average = init_linear_average(*params);
+
+	anlsis analysis;
+
+	int grid[2];
+	double orbital[4], basin[2];
 
 	/*******************************************************/
+
+	/////////////////////////////////////////////////////////
+	/*				Dynamical systems functions				*/
+	/////////////////////////////////////////////////////////
+
+	basin[0] = angle_mod_pos(2.0*M_PI);
+	basin[1] = 0.0;
+
+	analysis.grid_resolution = 10;
+	analysis.grid_coordinate_min = 0.0;
+	analysis.grid_coordinate_max = 2.0 * M_PI;
+	analysis.grid_velocity_min = 0.0;
+	analysis.grid_velocity_max = 3.0;
+
+	double_to_grid(grid, basin, analysis);
+
+	printf("i = %d j = %d\n", grid[0], grid[1]);
+
+	grid_to_double(grid, basin, analysis);
+
+	printf("x = %1.3f y = %1.3f\n", basin[0], basin[1]);
+
+	grid[0] = 9;
+	grid[1] = 0;
+
+	grid_to_double(grid, basin, analysis);
+
+	printf("x = %1.3f y = %1.3f\n", basin[0], basin[1]);
+
 
 	/////////////////////////////////////////////////////////
 	/*		  System and orbital motion analysis    	   */
