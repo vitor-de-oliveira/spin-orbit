@@ -93,6 +93,21 @@ double angle_mod_pos(double x)
 	return result;
 }
 
+double angle_mod(double x)
+{
+	double result;
+	result = fmod (x , 2.0 * M_PI);
+	if (result > M_PI)
+	{
+		result -= 2.0 * M_PI;
+	}
+	else if (result < -M_PI)
+	{
+		result += 2.0 * M_PI;
+	}
+	return result;
+}
+
 double angular_dist(double x1, double x2)
 {
 	double result;

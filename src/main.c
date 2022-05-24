@@ -130,31 +130,32 @@ int main(int argc, char **argv)
 	/*				   		Mean resonance	   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_rigid;
+// 	system = system_rigid;
 
-	gamma = (.89 * .89) / 3.;
-	e = 0.1;
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
+// 	gamma = (.89 * .89) / 3.;
+// 	e = 0.1;
+// 	m_secondary = 0.0;
+// 	m_primary = 1.0 - m_secondary;
+// 	G = 1.0;
+// 	a = 1.0;
 
-	analysis.number_of_cycles = 1e2;
-	analysis.cycle_period = 2.0 * M_PI;
-	analysis.grid_resolution = 300;
-	analysis.grid_coordinate_min = 0.0;
-	analysis.grid_coordinate_max = 2.0 * M_PI;
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 3.0;
+// 	analysis.number_of_cycles = 1e2;
+// 	analysis.cycle_period = 2.0 * M_PI;
+// 	analysis.grid_resolution = 300;
+// 	analysis.grid_coordinate_min = -M_PI; // 0.0
+// 	analysis.grid_coordinate_max = M_PI; // 2.0*M_PI
+// 	analysis.grid_velocity_min = 0.0;
+// 	analysis.grid_velocity_max = 3.0;
 
-	mean_resonance(system, analysis);
+// 	mean_resonance(system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
 	// system = system_linear_average;
-	// double ref[2];
+  // double ref[2], ref_union[2][2];
+  // int num_of_basins;
 
 	// gamma = (.89 * .89) / 3.;
 	// e = 0.1;
@@ -177,10 +178,20 @@ int main(int argc, char **argv)
 	// analysis.grid_velocity_min = 0.0;
 	// analysis.grid_velocity_max = 3.0;
 
-	// ref[0] = M_PI; ref[1] = 0.551540;
-	// basin_of_attraction (ref, system, analysis);
+ 	// ref[0] = M_PI; ref[1] = 0.551540;
+  // ref[0] = 0.0; ref[1] = 0.551540;
+  // basin_of_attraction (ref, system, analysis);
+	// basin_of_attraction_no_opt (ref, system, analysis);
+	// basin_of_attraction_no_grid (ref, system, analysis);
+	// basin_of_attraction_no_omp (ref, system, analysis);
+	// basin_of_attraction_no_grid_no_omp (ref, system, analysis);
 
-	/******************** Stop clock ***********************/
+	// num_of_basins = 2;
+	// ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540;
+	// ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540;
+	// union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
+  
+  /******************** Stop clock ***********************/
 
 	end_time = clock();
 	double time_spent 

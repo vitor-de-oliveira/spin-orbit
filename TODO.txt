@@ -1,13 +1,16 @@
-- correct weird values on attraction basin
-    - the last vertical line seems wrong (maybe has to do
-      with angle_mod_pos)
-    - there are points clearly wrong in the more detailed
-      result (300 x 300 grid)
-    - I still think this basin should be symmetrical to
-      the 1:1 starting at zero angle (maybe this has to
-      do with the distance from angle calculation. Or, maybe
-      this is just a question of convergence definition)
-    - run the code without the optimization
+- check order of functions on spin_orbit.h 
+
+- organize plot_phase_space script. See if it is still needed after 
+implementing gnuplot pipes
+
+- find out why optmization on basin of attraction calculation does not work
+
+- unify the core of basin of attraction functions
+
+- Colocar testes de erro no calculo da bacia para
+entender eventuais pontos estranhos
+
+- think of a good way to store the results. maybe dropbox or drive.
 
 - test the ressonance after implementing periodic orbit routine
     - write a new mean_resonance function using periodic orbit
@@ -77,3 +80,5 @@ especifico para cada caso, associando quais valores entram
 lah e em qual posicao com os campos vetoriais, ajustando
 eles no init. Isso vai deixar o programa como um todo bem
 mais generico
+
+- maybe, in the future, use heap memory for everything

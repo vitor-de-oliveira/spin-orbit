@@ -5,6 +5,7 @@
 
 #include "dynamical_system.h"
 #include "spin_orbit.h"
+#include "pendulum.h"
 
 int main(int argc, char **argv)
 {
@@ -36,6 +37,8 @@ int main(int argc, char **argv)
 	dynsys system_rigid_kepler = init_rigid_kepler(*params);
 	dynsys system_linear = init_linear(*params);
 	dynsys system_linear_average = init_linear_average(*params);
+	
+	dynsys system_pendulum = init_pendulum(*params);
 
 	anlsis analysis;
 
@@ -48,29 +51,121 @@ int main(int argc, char **argv)
 	/*				Dynamical systems functions				*/
 	/////////////////////////////////////////////////////////
 
-	basin[0] = angle_mod_pos(2.0*M_PI);
-	basin[1] = 0.0;
+	// basin[0] = angle_mod_pos(2.0*M_PI);
+	// basin[1] = 0.0;
 
-	analysis.grid_resolution = 10;
-	analysis.grid_coordinate_min = 0.0;
-	analysis.grid_coordinate_max = 2.0 * M_PI;
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 3.0;
+	// analysis.grid_resolution = 10;
+	// analysis.grid_coordinate_min = 0.0;
+	// analysis.grid_coordinate_max = 2.0 * M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
 
-	double_to_grid(grid, basin, analysis);
+	// double_to_grid(grid, basin, analysis);
 
-	printf("i = %d j = %d\n", grid[0], grid[1]);
+	// printf("i = %d j = %d\n", grid[0], grid[1]);
 
-	grid_to_double(grid, basin, analysis);
+	// grid_to_double(grid, basin, analysis);
 
-	printf("x = %1.3f y = %1.3f\n", basin[0], basin[1]);
+	// printf("x = %1.3f y = %1.3f\n", basin[0], basin[1]);
 
-	grid[0] = 9;
-	grid[1] = 0;
+	// grid[0] = 9;
+	// grid[1] = 0;
 
-	grid_to_double(grid, basin, analysis);
+	// grid_to_double(grid, basin, analysis);
 
-	printf("x = %1.3f y = %1.3f\n", basin[0], basin[1]);
+	// printf("x = %1.3f y = %1.3f\n", basin[0], basin[1]);
+
+	// analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
+	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.coordinate_min = 0.0;
+	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	// analysis.velocity_min = 0.0;
+	// analysis.velocity_max = 3.0;
+	// analysis.grid_resolution = 100;
+	// analysis.grid_coordinate_min = -M_PI; // 0.0
+	// analysis.grid_coordinate_max = M_PI; // 2.0*M_PI
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
+
+	// FILE *out_test = fopen("output/test_grid.dat", "w");
+
+	// for (int i = 0; i < analysis.grid_resolution; i++)
+	// {
+	// 	// int i = 0;
+	// 	// double coordinate = analysis.grid_coordinate_min + 
+	// 	// 	(double)(i) * (analysis.grid_coordinate_max - 
+	// 	// 	analysis.grid_coordinate_min) / 
+	// 	// 	(double)(analysis.grid_resolution - 1);
+	// 	for (int j = 0; j < analysis.grid_resolution; j++)
+	// 	{
+	// 		// int j = 9;
+	// 		// double velocity = analysis.grid_velocity_min + 
+	// 		// 	(double)(j) * (analysis.grid_velocity_max - 
+	// 		// 	analysis.grid_velocity_min) / 
+	// 		// 	(double)(analysis.grid_resolution - 1);
+
+	// 		grid[0] = i;
+	// 		grid[1] = j;
+
+	// 		grid_to_double(grid, basin, analysis);
+	// 		double_to_grid(grid, basin, analysis);
+
+	// 		// fprintf(out_test, 
+	// 		// 	"coordinate = %1.3e velocity = %1.3e basin[0] = %1.3e basin[1] = %1.3e diff_c = %1.10e diff_v = %1.10e\ni = %d j = %d grid[0] = %d grid[1] = %d diff_i = %d diff_j = %d\n", 
+	// 		// 	coordinate, velocity,
+	// 		// 	basin[0],
+	// 		// 	basin[1],
+	// 		// 	coordinate - basin[0],
+	// 		// 	velocity - basin[1],
+	// 		// 	i, j,
+	// 		// 	grid[0], grid[1],
+	// 		// 	i - grid[0],
+	// 		// 	j - grid[1]);
+
+	// 		// fprintf(out_test, 
+	// 		// 	"i = %d j = %d grid[0] = %d grid[1] = %d\n", 
+	// 		// 	i, j,
+	// 		// 	grid[0], grid[1]);
+
+	// 		fprintf(out_test, 
+	// 			"%d %d\n", 
+	// 			i - grid[0], j - grid[1]);
+	// 	}
+	// }
+
+	// fclose(out_test);
+
+	// system = system_linear_average;
+
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-3;
+
+	// analysis.nc = 5, analysis.nv = 15;
+	// analysis.number_of_cycles = 2e3;
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.coordinate_min = 0.0;
+	// analysis.coordinate_max = M_PI; 
+	// analysis.velocity_min = 0.0;
+	// analysis.velocity_max = 3.0;
+	// analysis.grid_resolution = 300;
+	// analysis.grid_coordinate_min = -M_PI;
+	// analysis.grid_coordinate_max = M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
+
+	// double ic[system.dim];
+	// ic[0] = 0.2;
+	// ic[1] = 0.1;
+	// init_orbital(orbital, e);
+	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+
+	// test_trace_orbit_map(ic, system, analysis);
 
 
 	/////////////////////////////////////////////////////////
@@ -269,6 +364,56 @@ int main(int argc, char **argv)
 	// fclose(tst_kep_ang_mom);
 
 	// dealloc_2d_double(&orbit, number_of_cycles);
+
+	////////////////////////////////////////////////////////
+	/*						 Pendulum   			   */
+	////////////////////////////////////////////////////////
+
+	// system = system_pendulum;
+
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-6;
+
+	// analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
+	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.cycle_period = 1e-1;
+	// analysis.coordinate_min = -M_PI; // M_PI
+	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	// analysis.velocity_min = -2.0;
+	// analysis.velocity_max = 2.0;
+	// analysis.grid_resolution = 1000;
+	// analysis.grid_coordinate_min = -M_PI; // 0.0
+	// analysis.grid_coordinate_max = M_PI; // 2.0*M_PI
+	// analysis.grid_velocity_min = -2.0;
+	// analysis.grid_velocity_max = 2.0;
+
+	// // draw_phase_space_grid(system, analysis);
+
+	double x[2], ref[2];
+	ref[0] = 0.0;
+	ref[1] = 0.0;
+	FILE *test_dis = 
+		fopen("output/test_dist_from_ref.dat","w");
+
+	for (double theta = -M_PI; theta < M_PI; theta += 1e-3)
+	{
+		for (double theta_dot = -M_PI; theta_dot < M_PI; theta_dot += 1e-3)
+		{
+			x[0] = theta;
+			x[1] = theta_dot;
+			double d = dist_from_ref(x, ref);
+			fprintf(test_dis, "%1.5f %1.5f %1.5f\n", 
+					theta, theta_dot, d);
+		}
+		fprintf(test_dis, "\n");
+	}
+
+	fclose(test_dis);
 
 	/******************** Stop clock ***********************/
 
