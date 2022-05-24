@@ -1,4 +1,18 @@
 - correct weird values on attraction basin
+    - the last vertical line seems wrong (maybe has to do
+      with angle_mod_pos)
+    - there are points clearly wrong in the more detailed
+      result (300 x 300 grid)
+    - I still think this basin should be symmetrical to
+      the 1:1 starting at zero angle (maybe this has to
+      do with the distance from angle calculation. Or, maybe
+      this is just a question of convergence definition)
+    - run the code without the optimization
+
+- test the ressonance after implementing periodic orbit routine
+    - write a new mean_resonance function using periodic orbit
+    calculation. Try different orbits to converge on a grid and, if 
+    it works, associate to it the resonance. Maybe
 
 - think of a good way to organize the data. config file
 along with another dir with figures and raw data.
