@@ -7,11 +7,17 @@ CC = gcc
 
 TARGET = SPIN
 
-TARGET_TEST = TEST
-
 DEPENDENCIES =	dynamical_system.c \
 				aux_vmo.c \
 				spin_orbit.c
+
+TARGET_TEST = TEST
+
+DEPENDENCIES_TEST =	dynamical_system.c \
+					aux_vmo.c \
+					spin_orbit.c \
+					pendulum.c \
+					test_spin_orbit.c
 
 .PHONY: run compile test compile_test clean
 .SILENT: run test clean
@@ -30,5 +36,5 @@ clean:
 compile: main.c $(DEPENDENCIES) -lgsl -lgslcblas -lm  
 		   @$(CC) $(CFLAGS) -o $(TARGET) $^
 
-compile_test: ../dbg/test.c $(DEPENDENCIES) -lgsl -lgslcblas -lm  
+compile_test: ../dbg/test.c $(DEPENDENCIES_TEST) -lgsl -lgslcblas -lm  
 				@$(CC) $(CFLAGS) -o $(TARGET_TEST) $^

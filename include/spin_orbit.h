@@ -122,13 +122,27 @@ int trace_orbit_map (double *ic,
 int draw_phase_space    (dynsys system,
                         anlsis analysis);
 
+
+double dist_from_ref(double x[2],
+                    double ref[2]);
+
 int evolve_basin(double *ic, double *ref, bool *converged,
                  double ***orbit, int *orbit_size,
                  dynsys system, anlsis analysis);
 
+int evolve_basin_union  (double *ic, double ref[][2], 
+                        int num_of_basins, bool *converged,
+                        double ***orbit, int *orbit_size,
+                        dynsys system, anlsis analysis);
+
 int basin_of_attraction (double *ref,
                         dynsys system,
                         anlsis analysis);
+
+int union_basin_of_attraction   (double ref[][2],
+                                int num_of_basins,
+                                dynsys system,
+                                anlsis analysis);
 
 int multiple_basins_of_attraction   (dynsys system,
                                     anlsis analysis);

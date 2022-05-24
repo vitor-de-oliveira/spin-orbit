@@ -49,6 +49,9 @@ int switch_array_element(double *x, int i, int j);
 // returns a value from 0 to 2PI for a given angle
 double angle_mod_pos(double x);
 
+// returns a value from -PI to PI for a given angle
+double angle_mod(double x);
+
 // returns the distance between two angles modulo 2PI
 double angular_dist(double x1, double x2);
 

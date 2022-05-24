@@ -1,4 +1,11 @@
-- correct weird values on attraction basin
+- find out why optmization on basin of attraction calculation does not work
+
+- unify the core of basin of attraction functions
+
+- Colocar testes de erro no calculo da bacia para
+entender eventuais pontos estranhos
+
+- think of a good way to store the results. maybe dropbox or drive.
 
 - think of a good way to organize the data. config file
 along with another dir with figures and raw data.
@@ -63,3 +70,5 @@ especifico para cada caso, associando quais valores entram
 lah e em qual posicao com os campos vetoriais, ajustando
 eles no init. Isso vai deixar o programa como um todo bem
 mais generico
+
+- maybe, in the future, use heap memory for everything
