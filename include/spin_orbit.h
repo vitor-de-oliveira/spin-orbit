@@ -119,8 +119,13 @@ int trace_orbit_map (double *ic,
                     dynsys system,
                     anlsis analysis);
 
-int draw_phase_space    (dynsys system,
-                        anlsis analysis);
+int phase_space    (dynsys system,
+                    anlsis analysis);
+
+int draw_phase_space    (dynsys system);
+
+int mean_resonance  (dynsys system,
+                    anlsis analysis);
 
 
 double dist_from_ref(double x[2],

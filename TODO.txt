@@ -1,3 +1,8 @@
+- check order of functions on spin_orbit.h 
+
+- organize plot_phase_space script. See if it is still needed after 
+implementing gnuplot pipes
+
 - find out why optmization on basin of attraction calculation does not work
 
 - unify the core of basin of attraction functions
@@ -6,6 +11,11 @@
 entender eventuais pontos estranhos
 
 - think of a good way to store the results. maybe dropbox or drive.
+
+- test the ressonance after implementing periodic orbit routine
+    - write a new mean_resonance function using periodic orbit
+    calculation. Try different orbits to converge on a grid and, if 
+    it works, associate to it the resonance. Maybe
 
 - think of a good way to organize the data. config file
 along with another dir with figures and raw data.

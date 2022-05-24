@@ -52,7 +52,7 @@
 # reset
 # set terminal pngcairo size 920,800 font 'Helvetica,15'
 # set loadpath "../output"
-# set output "../output/fig_phase_space_stickiness.png"
+# set output "../output/fig_basin_of_attraction.png"
 
 # set xrange[0.0:6.29]
 # set yrange[0.0:3.0]
@@ -60,7 +60,7 @@
 # set title "Phase space {/Symbol q}-~{/Symbol q}{1.1.}"
 
 # plot 'phase_space.dat' w d, \
-#      # 'phase_space_initial_conditions.dat' w p, \
+#      'basin.dat' u 1:2:3 w image, \
 
 reset
 set terminal pngcairo size 920,800 font 'Helvetica,15'
@@ -187,13 +187,12 @@ plot 'basin.dat' u 1:2:3 w image, \
 
 # plot 'basin_no_omp.dat' u 1:2:3 w image, \
 
-
 # reset
 # set terminal pngcairo size 920,800 font 'Helvetica,15'
 # set loadpath "../output"
 # set output "../output/fig_basin_of_attraction_times.png"
 
-# set xrange[0.0:6.28318530718]
+# set xrange[0.0:6.29]
 # set yrange[0.0:3.0]
 # unset key
 # set title "Phase space {/Symbol q}-~{/Symbol q}{1.1.}"

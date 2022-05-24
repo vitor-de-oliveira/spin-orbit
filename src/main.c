@@ -61,7 +61,8 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_linear_average;
+	// system = system_rigid;
+	// // system = system_linear_average;
 	// double ic[system.dim];
 
 	// gamma = (.89 * .89) / 3.;
@@ -72,10 +73,12 @@ int main(int argc, char **argv)
 	// a = 1.0;
 	// K = 1e-3;
 
-	// analysis.number_of_cycles = 1e4; //1e3 6e3
+	// analysis.number_of_cycles = 1e3; //1e3 6e3
 	// analysis.cycle_period = 2.0 * M_PI;
 
 	// ic[0] = 0.1, ic[1] = 0.1;
+	// // //near the 1:1 stable fp in the rigid case
+	// // ic[0] = M_PI; ic[1] = 0.551537;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
@@ -103,40 +106,81 @@ int main(int argc, char **argv)
 	// analysis.velocity_min = 0.0;
 	// analysis.velocity_max = 3.0;
 
-	// draw_phase_space(system, analysis);
+	// phase_space(system, analysis);
+	// draw_phase_space(system);
+
+	// for (e = 0.01; e < 0.205; e += 0.01)
+	// {
+	// 	// phase_space(system, analysis);
+	// 	draw_phase_space(system);
+	// }
+
+	// double gamma_hyperion = ((.89 * .89) / 3.); //~0.264
+	// double delta_gamma =  gamma_hyperion / 10.;
+
+	// for (gamma = 0.0; 
+	// 	 gamma < gamma_hyperion * 2.;
+	// 	 gamma += delta_gamma)
+	// {
+	// 	phase_space(system, analysis);
+	// 	draw_phase_space(system);
+	// }
+
+	/////////////////////////////////////////////////////////
+	/*				   		Mean resonance	   	           */
+	/////////////////////////////////////////////////////////
+
+// 	system = system_rigid;
+
+// 	gamma = (.89 * .89) / 3.;
+// 	e = 0.1;
+// 	m_secondary = 0.0;
+// 	m_primary = 1.0 - m_secondary;
+// 	G = 1.0;
+// 	a = 1.0;
+
+// 	analysis.number_of_cycles = 1e2;
+// 	analysis.cycle_period = 2.0 * M_PI;
+// 	analysis.grid_resolution = 300;
+// 	analysis.grid_coordinate_min = -M_PI; // 0.0
+// 	analysis.grid_coordinate_max = M_PI; // 2.0*M_PI
+// 	analysis.grid_velocity_min = 0.0;
+// 	analysis.grid_velocity_max = 3.0;
+
+// 	mean_resonance(system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_linear_average;
-	double ref[2], ref_union[2][2];
-	int num_of_basins;
+	// system = system_linear_average;
+  // double ref[2], ref_union[2][2];
+  // int num_of_basins;
 
-	gamma = (.89 * .89) / 3.;
-	e = 0.1;
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-2;
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
 
-	analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
-	analysis.number_of_cycles = 1e3; //1e3
-	analysis.cycle_period = 2.0 * M_PI;
-	analysis.coordinate_min = 0.0;
-	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
-	analysis.velocity_min = 0.0;
-	analysis.velocity_max = 3.0;
-	analysis.grid_resolution = 300;
-	analysis.grid_coordinate_min = -M_PI; // 0.0
-	analysis.grid_coordinate_max = M_PI; // 2.0*M_PI
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 3.0;
+	// analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
+	// analysis.number_of_cycles = 2e3; //1e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.coordinate_min = 0.0;
+	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	// analysis.velocity_min = 0.0;
+	// analysis.velocity_max = 3.0;
+	// analysis.grid_resolution = 300;
+	// analysis.grid_coordinate_min = 0.0;
+	// analysis.grid_coordinate_max = 2.0 * M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
 
-	// ref[0] = M_PI; ref[1] = 0.551540;
-	ref[0] = 0.0; ref[1] = 0.551540;
-	basin_of_attraction (ref, system, analysis);
+ 	// ref[0] = M_PI; ref[1] = 0.551540;
+  // ref[0] = 0.0; ref[1] = 0.551540;
+  // basin_of_attraction (ref, system, analysis);
 	// basin_of_attraction_no_opt (ref, system, analysis);
 	// basin_of_attraction_no_grid (ref, system, analysis);
 	// basin_of_attraction_no_omp (ref, system, analysis);
@@ -146,8 +190,8 @@ int main(int argc, char **argv)
 	// ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540;
 	// ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540;
 	// union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
-
-	/******************** Stop clock ***********************/
+  
+  /******************** Stop clock ***********************/
 
 	end_time = clock();
 	double time_spent 
