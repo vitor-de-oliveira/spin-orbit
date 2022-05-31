@@ -1,5 +1,3 @@
-- check order of functions on spin_orbit.h 
-
 - organize plot_phase_space script. See if it is still needed after 
 implementing gnuplot pipes
 

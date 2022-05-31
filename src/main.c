@@ -153,34 +153,34 @@ int main(int argc, char **argv)
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_linear_average;
-  // double ref[2], ref_union[2][2];
-  // int num_of_basins;
+	system = system_linear_average;
+	double ref[2], ref_union[2][2];
+	int num_of_basins;
 
-	// gamma = (.89 * .89) / 3.;
-	// e = 0.1;
-	// m_secondary = 0.0;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
- 	// K = 1e-2;
+	gamma = (.89 * .89) / 3.;
+	e = 0.1;
+	m_secondary = 0.0;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+ 	K = 1e-2;
 
-	// analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
-	// analysis.number_of_cycles = 2e3; //1e3
-	// analysis.cycle_period = 2.0 * M_PI;
-	// analysis.coordinate_min = 0.0;
-	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
-	// analysis.velocity_min = 0.0;
-	// analysis.velocity_max = 3.0;
-	// analysis.grid_resolution = 300;
-	// analysis.grid_coordinate_min = 0.0;
-	// analysis.grid_coordinate_max = 2.0 * M_PI;
-	// analysis.grid_velocity_min = 0.0;
-	// analysis.grid_velocity_max = 3.0;
+	analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
+	analysis.number_of_cycles = 1e3; //1e3
+	analysis.cycle_period = 2.0 * M_PI;
+	analysis.coordinate_min = 0.0;
+	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	analysis.velocity_min = 0.0;
+	analysis.velocity_max = 3.0;
+	analysis.grid_resolution = 100;
+	analysis.grid_coordinate_min = 0.0;
+	analysis.grid_coordinate_max = 2.0 * M_PI;
+	analysis.grid_velocity_min = 0.0;
+	analysis.grid_velocity_max = 3.0;
 
- 	// ref[0] = M_PI; ref[1] = 0.551540;
-  // ref[0] = 0.0; ref[1] = 0.551540;
-  // basin_of_attraction (ref, system, analysis);
+ 	ref[0] = M_PI; ref[1] = 0.551540;
+	// ref[0] = 0.0; ref[1] = 0.551540;
+	basin_of_attraction (ref, system, analysis);
 	// basin_of_attraction_no_opt (ref, system, analysis);
 	// basin_of_attraction_no_grid (ref, system, analysis);
 	// basin_of_attraction_no_omp (ref, system, analysis);
