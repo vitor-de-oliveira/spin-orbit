@@ -173,23 +173,19 @@ int main(int argc, char **argv)
 	analysis.velocity_min = 0.0;
 	analysis.velocity_max = 3.0;
 	analysis.grid_resolution = 100;
-	analysis.grid_coordinate_min = 0.0;
-	analysis.grid_coordinate_max = 2.0 * M_PI;
+	analysis.grid_coordinate_min = -M_PI;
+	analysis.grid_coordinate_max = M_PI;
 	analysis.grid_velocity_min = 0.0;
 	analysis.grid_velocity_max = 3.0;
 
- 	ref[0] = M_PI; ref[1] = 0.551540;
-	// ref[0] = 0.0; ref[1] = 0.551540;
-	basin_of_attraction (ref, system, analysis);
-	// basin_of_attraction_no_opt (ref, system, analysis);
-	// basin_of_attraction_no_grid (ref, system, analysis);
-	// basin_of_attraction_no_omp (ref, system, analysis);
-	// basin_of_attraction_no_grid_no_omp (ref, system, analysis);
+ 	// ref[0] = M_PI; ref[1] = 0.551540;
+  	// ref[0] = 0.0; ref[1] = 0.551540;
+  	// basin_of_attraction (ref, system, analysis);
 
-	// num_of_basins = 2;
-	// ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540;
+	num_of_basins = 1;
+	ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540;
 	// ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540;
-	// union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
+	union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
   
   /******************** Stop clock ***********************/
 
