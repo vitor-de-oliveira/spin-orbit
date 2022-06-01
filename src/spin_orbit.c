@@ -1255,29 +1255,6 @@ int basin_of_attraction(double *ref, dynsys system,
 						control_matrix[i][j] = 1;
 						time_matrix[i][j] = (double)(orbit_fw_size);
 						basin_counter++;
-
-						for (int k = 1; k < orbit_fw_size; k++)
-						{
-							// basin[0] = angle_mod_pos(orbit_fw[k][0]);
-							// basin[0] = fmod(orbit_fw[k][0], M_PI);
-							basin[0] = angle_mod(orbit_fw[k][0]);
-							basin[1] = orbit_fw[k][1];
-							double_to_grid(grid, basin, analysis);
-							if (grid[0] >= 0 && 
-								grid[0] < analysis.grid_resolution && 
-								grid[1] >= 0 && 
-								grid[1] < analysis.grid_resolution)
-							{
-								if (control_matrix[grid[0]][grid[1]] == 0)
-								{
-									basin_matrix[grid[0]][grid[1]] = 1;
-									control_matrix[grid[0]][grid[1]] = 1;
-									time_matrix[grid[0]][grid[1]] = 
-										(double)(orbit_fw_size - k);
-									basin_counter++;
-								}
-							}
-						}
 					}
 					else
 					{

@@ -7,11 +7,16 @@
 #include "spin_orbit.h"
 #include "pendulum.h"
 
+#include "test_spin_orbit.h"
+
 int main(int argc, char **argv)
 {
 	/******************** Start clock **********************/
 
 	clock_t begin = clock(), end;
+	#ifdef _OMP_H
+		double begin_time_omp = omp_get_wtime(), end_time_omp;
+	#endif
 
 	/***************** Declared variables ******************/
 
@@ -394,26 +399,69 @@ int main(int argc, char **argv)
 
 	// // draw_phase_space_grid(system, analysis);
 
-	double x[2], ref[2];
-	ref[0] = 0.0;
-	ref[1] = 0.0;
-	FILE *test_dis = 
-		fopen("output/test_dist_from_ref.dat","w");
+	// double x[2], ref[2];
+	// ref[0] = 0.0;
+	// ref[1] = 0.0;
+	// FILE *test_dis = 
+	// 	fopen("output/test_dist_from_ref.dat","w");
 
-	for (double theta = -M_PI; theta < M_PI; theta += 1e-3)
-	{
-		for (double theta_dot = -M_PI; theta_dot < M_PI; theta_dot += 1e-3)
-		{
-			x[0] = theta;
-			x[1] = theta_dot;
-			double d = dist_from_ref(x, ref);
-			fprintf(test_dis, "%1.5f %1.5f %1.5f\n", 
-					theta, theta_dot, d);
-		}
-		fprintf(test_dis, "\n");
-	}
+	// for (double theta = -M_PI; theta < M_PI; theta += 1e-3)
+	// {
+	// 	for (double theta_dot = -M_PI; theta_dot < M_PI; theta_dot += 1e-3)
+	// 	{
+	// 		x[0] = theta;
+	// 		x[1] = theta_dot;
+	// 		double d = dist_from_ref(x, ref);
+	// 		fprintf(test_dis, "%1.5f %1.5f %1.5f\n", 
+	// 				theta, theta_dot, d);
+	// 	}
+	// 	fprintf(test_dis, "\n");
+	// }
 
-	fclose(test_dis);
+	// fclose(test_dis);
+
+	////////////////////////////////////////////////////////
+	/*					 Test Spin Orbit	  			   */
+	////////////////////////////////////////////////////////
+
+	// system = system_linear_average;
+  	// double ref[2], ref_union[2][2];
+  	// int num_of_basins;
+
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
+
+	// analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
+	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.coordinate_min = 0.0;
+	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	// analysis.velocity_min = 0.0;
+	// analysis.velocity_max = 3.0;
+	// analysis.grid_resolution = 600;
+	// analysis.grid_coordinate_min = -M_PI;
+	// analysis.grid_coordinate_max = M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
+
+ 	// ref[0] = M_PI; ref[1] = 0.551540;
+  	// // ref[0] = 0.0; ref[1] = 0.551540;
+  	// // basin_of_attraction (ref, system, analysis);
+	// // basin_of_attraction_no_opt (ref, system, analysis);
+	// basin_of_attraction_no_grid (ref, system, analysis);
+	// // basin_of_attraction_no_omp (ref, system, analysis);
+	// // basin_of_attraction_no_grid_no_omp (ref, system, analysis);
+
+	// // num_of_basins = 2;
+	// // ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540;
+	// // ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540;
+	// // union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
+  
 
 	/******************** Stop clock ***********************/
 
@@ -436,6 +484,27 @@ int main(int argc, char **argv)
 				time_spent/3600.0);
 	}
 	
+	#ifdef _OMP_H
+		end_time_omp = omp_get_wtime();
+		double time_spent_omp
+			= (double)(end_time_omp - begin_time_omp);
+		if (time_spent_omp < 60.0)
+		{
+			printf("time_spent_omp = %1.2e seconds\n", 
+					time_spent_omp);
+		}
+		else if (time_spent_omp < 3600.0)
+		{
+			printf("time_spent_omp = %1.2e minutes\n", 
+					time_spent_omp/60.0);
+		}
+		else
+		{
+			printf("time_spent_omp = %1.2e hours\n", 
+					time_spent_omp/3600.0);
+		}
+	#endif
+
 
 	/*******************************************************/
 

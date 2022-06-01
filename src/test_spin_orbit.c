@@ -250,9 +250,16 @@ int basin_of_attraction_no_grid(double *ref, dynsys system,
 					{
 						#pragma omp critical
 						{
-							fprintf(out_boa, "%1.5e %1.5e\n",
-								rot_ini[0], rot_ini[1]);
+							fprintf(out_boa, "%1.5e %1.5e %d\n",
+								rot_ini[0], rot_ini[1], orbit_fw_size);
 							basin_counter++;
+							// for (int k = 0; k < orbit_fw_size; k++)
+							// {
+							// 	fprintf(out_boa, "%1.5e %1.5e %d\n", 
+							// 		angle_mod(orbit_fw[k][0]),
+							// 		orbit_fw[k][1],
+							// 		orbit_fw_size - 1 - k);
+							// }
 						}
 
 					}
@@ -263,6 +270,8 @@ int basin_of_attraction_no_grid(double *ref, dynsys system,
 			
 			}
 		} // end pragma
+
+		fprintf(out_boa, "\n");
 
 		// new line on terminal
 		printf("\n");
@@ -711,8 +720,8 @@ int basin_of_attraction_no_grid_no_omp(double *ref,
 	return 0;
 }
 
-int test_trace_orbit_map(double *ic, dynsys system,
-						anlsis analysis)
+int trace_orbit_map_image	(double *ic, dynsys system,
+							anlsis analysis)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
