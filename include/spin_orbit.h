@@ -127,7 +127,6 @@ int draw_phase_space    (dynsys system);
 int mean_resonance  (dynsys system,
                     anlsis analysis);
 
-
 double dist_from_ref(double x[2],
                     double ref[2]);
 

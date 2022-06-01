@@ -1178,12 +1178,14 @@ int basin_of_attraction(double *ref, dynsys system,
 	int grid[2];
 	double basin[2];
 	int **basin_matrix, **control_matrix;
-	double **time_matrix;
+	double **time_matrix, **rotation_matrix;
 	alloc_2d_int(&basin_matrix, 
 		analysis.grid_resolution, analysis.grid_resolution);
 	alloc_2d_int(&control_matrix, 
 		analysis.grid_resolution, analysis.grid_resolution);
 	alloc_2d_double(&time_matrix, 
+		analysis.grid_resolution, analysis.grid_resolution);
+	alloc_2d_double(&rotation_matrix, 
 		analysis.grid_resolution, analysis.grid_resolution);
 	for (int i = 0; i < analysis.grid_resolution; i++)
 	{
@@ -1192,6 +1194,7 @@ int basin_of_attraction(double *ref, dynsys system,
 			basin_matrix[i][j] = 0;
 			control_matrix[i][j] = 0;
 			time_matrix[i][j] = NAN;
+			rotation_matrix[i][j] = NAN;
 		}
 	}
 	bool converged;
@@ -1254,6 +1257,12 @@ int basin_of_attraction(double *ref, dynsys system,
 						basin_matrix[i][j] = 1;
 						control_matrix[i][j] = 1;
 						time_matrix[i][j] = (double)(orbit_fw_size);
+						rotation_matrix[i][j] = 
+							orbit_fw[orbit_fw_size-1][0] / 2.*M_PI;
+						if (analysis.grid_coordinate_min < 0.0)
+						{
+							rotation_matrix[i][j] += 1.0;
+						}
 						basin_counter++;
 					}
 					else
@@ -1281,10 +1290,11 @@ int basin_of_attraction(double *ref, dynsys system,
 			grid[1] = j;
 			grid_to_double(grid, basin, analysis);
 
-			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
+			fprintf(out_boa, "%1.5f %1.5f %d %1.5e %1.5e\n", 
 				basin[0], basin[1], 
 				basin_matrix[grid[0]][grid[1]],
-				time_matrix[grid[0]][grid[1]]);
+				time_matrix[grid[0]][grid[1]],
+				rotation_matrix[grid[0]][grid[1]]);
 		}
 		fprintf(out_boa, "\n");
 	}
@@ -1302,6 +1312,9 @@ int basin_of_attraction(double *ref, dynsys system,
 					analysis.grid_resolution);
 
 	dealloc_2d_double(&time_matrix, 
+					analysis.grid_resolution);
+
+	dealloc_2d_double(&rotation_matrix, 
 					analysis.grid_resolution);
 
 	printf("Data written in output folder\n");

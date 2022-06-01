@@ -154,8 +154,8 @@ int main(int argc, char **argv)
 	/////////////////////////////////////////////////////////
 
 	system = system_linear_average;
-  	double ref[2], ref_union[2][2];
-  	int num_of_basins;
+	double ref[2], ref_union[2][2];
+	int num_of_basins;
 
 	gamma = (.89 * .89) / 3.;
 	e = 0.1;

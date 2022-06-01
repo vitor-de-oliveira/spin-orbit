@@ -1,3 +1,5 @@
+- Verify the rotation matrix for grid_min < 0.0. Do I have to add 1 to all values?
+
 - Use terminal eps in scripts and pipes (or both versions on pipe and script)
 
 - Transform union basin in basin functions. Compare them. Move basin function to test
