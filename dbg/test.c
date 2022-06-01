@@ -461,6 +461,12 @@ int main(int argc, char **argv)
 	// // ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540;
 	// // ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540;
 	// // union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
+
+	// double rot[2], ref[2];
+	// rot[0] = 3.1; rot[1] = 1.0;
+	// ref[0] = M_PI; ref[1] = 0.551540;
+	// // ref[0] = 0.0; ref[1] = 0.551540;
+	// printf("%1.5e\n", dist_from_ref(rot, ref));
   
 
 	/******************** Stop clock ***********************/

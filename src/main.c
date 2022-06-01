@@ -61,22 +61,22 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	// // system = system_linear_average;
+	// // system = system_rigid;
+	// system = system_linear_average;
 	// double ic[system.dim];
 
 	// gamma = (.89 * .89) / 3.;
-	// e = 0.1;
+	// e = 0.0; // e = 0.1;
 	// m_secondary = 0.;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 	// a = 1.0;
-	// K = 1e-3;
+	// K = 1e-2;
 
 	// analysis.number_of_cycles = 1e3; //1e3 6e3
 	// analysis.cycle_period = 2.0 * M_PI;
 
-	// ic[0] = 0.1, ic[1] = 0.1;
+	// ic[0] = 3.1, ic[1] = 1.;
 	// // //near the 1:1 stable fp in the rigid case
 	// // ic[0] = M_PI; ic[1] = 0.551537;
 	// init_orbital(orbital, e);
@@ -89,42 +89,43 @@ int main(int argc, char **argv)
 	/////////////////////////////////////////////////////////
 
 	// system = system_rigid;
+	// // system = system_linear_average;
 
 	// gamma = (.89 * .89) / 3.;
-	// e = 0.1;
+	// e = 0.0; // e= 0.1;
 	// m_secondary = 0.0;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 	// a = 1.0;
- 	// K = 1e-6;
+ 	// K = 1e-2;
 
 	// analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
 	// analysis.number_of_cycles = 1e3; //1e3
 	// analysis.cycle_period = 2.0 * M_PI;
-	// analysis.coordinate_min = M_PI; // M_PI
-	// analysis.coordinate_max = 2.0 * M_PI; // M_PI 2.0* M_PI
+	// analysis.coordinate_min = -M_PI; // M_PI
+	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
 	// analysis.velocity_min = 0.0;
 	// analysis.velocity_max = 3.0;
 
 	// phase_space(system, analysis);
 	// draw_phase_space(system);
 
-	// for (e = 0.01; e < 0.205; e += 0.01)
-	// {
-	// 	// phase_space(system, analysis);
-	// 	draw_phase_space(system);
-	// }
+	// // for (e = 0.01; e < 0.205; e += 0.01)
+	// // {
+	// // 	// phase_space(system, analysis);
+	// // 	draw_phase_space(system);
+	// // }
 
-	// double gamma_hyperion = ((.89 * .89) / 3.); //~0.264
-	// double delta_gamma =  gamma_hyperion / 10.;
+	// // double gamma_hyperion = ((.89 * .89) / 3.); //~0.264
+	// // double delta_gamma =  gamma_hyperion / 10.;
 
-	// for (gamma = 0.0; 
-	// 	 gamma < gamma_hyperion * 2.;
-	// 	 gamma += delta_gamma)
-	// {
-	// 	phase_space(system, analysis);
-	// 	draw_phase_space(system);
-	// }
+	// // for (gamma = 0.0; 
+	// // 	 gamma < gamma_hyperion * 2.;
+	// // 	 gamma += delta_gamma)
+	// // {
+	// // 	phase_space(system, analysis);
+	// // 	draw_phase_space(system);
+	// // }
 
 	/////////////////////////////////////////////////////////
 	/*				   		Mean resonance	   	           */
@@ -158,35 +159,34 @@ int main(int argc, char **argv)
 	int num_of_basins;
 
 	gamma = (.89 * .89) / 3.;
-	e = 0.1;
+	e = 0.0; //0.1
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 	a = 1.0;
  	K = 1e-2;
 
-	analysis.nc = 5, analysis.nv = 15; //nc = 11, nv = 30;
 	analysis.number_of_cycles = 1e3; //1e3
 	analysis.cycle_period = 2.0 * M_PI;
-	analysis.coordinate_min = 0.0;
-	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
-	analysis.velocity_min = 0.0;
-	analysis.velocity_max = 3.0;
 	analysis.grid_resolution = 100;
 	analysis.grid_coordinate_min = -M_PI;
 	analysis.grid_coordinate_max = M_PI;
 	analysis.grid_velocity_min = 0.0;
 	analysis.grid_velocity_max = 3.0;
 
- 	// ref[0] = M_PI; ref[1] = 0.551540;
-  	// ref[0] = 0.0; ref[1] = 0.551540;
-  	// basin_of_attraction (ref, system, analysis);
+  	// ref[0] = 0.0; ref[1] = 0.551540; // e = 0.1
+ 	// ref[0] = M_PI; ref[1] = 0.551540; // e = 0.1
+  	ref[0] = 0.0; ref[1] = 1.0; // e = 0.0
+	// ref[0] = M_PI; ref[1] = 1.0; // e = 0.0
+  	basin_of_attraction (ref, system, analysis);
 
-	num_of_basins = 1;
-	ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540;
-	// ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540;
+	num_of_basins = 2;
+	// ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540; // e = 0.1
+	// ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540; // e = 0.1
+	ref_union[0][0] = 0.0; ref_union[0][1] = 1.0; // e = 0.0
+	ref_union[1][0] = M_PI; ref_union[1][1] = 1.0; // e = 0.0
 	union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
-  
+
   /******************** Stop clock ***********************/
 
 	end_time = clock();

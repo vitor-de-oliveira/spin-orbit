@@ -546,9 +546,7 @@ int trace_orbit_map(double *ic, dynsys system,
 	out_vis_viva_err = fopen("output/orbit_vis_viva_error.dat", "w");
 
 	// evolve system
-	evolve_orbit(ic, analysis.cycle_period, 
-				analysis.number_of_cycles, 
-				&orbit, &orbit_size, system);
+	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
 
 	// write orbit and constant error to file
 	fprintf(out_orb_ic, "%1.15e %1.15e\n", 
@@ -557,8 +555,10 @@ int trace_orbit_map(double *ic, dynsys system,
 	res_mean = 0.0;
 	for (int i = 0; i < orbit_size; i++)
 	{
+		// fprintf(out_orb, "%1.15e %1.15e\n", 
+		// 		angle_mod_pos(orbit[i][0]), orbit[i][1]);
 		fprintf(out_orb, "%1.15e %1.15e\n", 
-				angle_mod_pos(orbit[i][0]), orbit[i][1]);
+				angle_mod(orbit[i][0]), orbit[i][1]);
 		
 		if (i > 0) 	
 		{
@@ -664,10 +664,13 @@ int phase_space(dynsys system, anlsis analysis)
 	for (int i = 0; i < analysis.nc; i++)
 	{
 		// print progress on coordinate
-		printf("Calculating set %d of %ld\n", i + 1, analysis.nc);
+		printf("Calculating set %d of %d\n", i + 1, analysis.nc);
+
+		omp_set_dynamic(0);     // Explicitly disable dynamic teams
+		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, y0, coordinate, velocity, \
-				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw)
+				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb)
 		{
 
 		if (analysis.nc == 1)
@@ -687,7 +690,7 @@ int phase_space(dynsys system, anlsis analysis)
 			for (int j = 0; j < analysis.nv; j++)
 			{
 				// print progress on velocity
-				printf("Calculating subset %d of %ld\n", 
+				printf("Calculating subset %d of %d\n", 
 							j + 1, analysis.nv);
 
 				if (analysis.nv == 1)
@@ -705,7 +708,7 @@ int phase_space(dynsys system, anlsis analysis)
 				y[0] = coordinate;
 				y[1] = velocity;
 
-				if (strcmp(system.name, "rigid") == 0)
+				if (system.dim == 6)
 				{
 					for (int k = 0; k < 4; k++)
 					{
@@ -717,14 +720,14 @@ int phase_space(dynsys system, anlsis analysis)
 				copy(y0, y, system.dim);
 
 				// calculate forward integration
-				evolve_orbit(y, analysis.cycle_period, 
-					analysis.number_of_cycles, &orbit_fw, 
-					&orbit_fw_size, system);
+				evolve_orbit(y, &orbit_fw, 
+					&orbit_fw_size, system, analysis);
 
 				// calculate backward integration
-				evolve_orbit(y0, -1.0 * analysis.cycle_period, 
-					analysis.number_of_cycles, &orbit_bw, 
-					&orbit_bw_size, system);
+				analysis.cycle_period *= -1.0;
+				evolve_orbit(y0, &orbit_bw, 
+					&orbit_bw_size, system, analysis);
+				analysis.cycle_period *= -1.0;
 
 				#pragma omp critical
 				{
@@ -742,7 +745,7 @@ int phase_space(dynsys system, anlsis analysis)
 							angle_mod(orbit_fw[k][0]), 
 							orbit_fw[k][1]);
 
-						if (strcmp(system.name, "rigid") == 0)
+						if (system.dim == 6)
 						{
 							for (int l = 0; l < 4; l++)
 							{
@@ -767,7 +770,7 @@ int phase_space(dynsys system, anlsis analysis)
 							angle_mod(orbit_bw[k][0]), 
 							orbit_bw[k][1]);
 
-						if (strcmp(system.name, "rigid") == 0)
+						if (system.dim == 6)
 						{
 							for (int l = 0; l < 4; l++)
 							{
@@ -825,7 +828,7 @@ int draw_phase_space(dynsys system)
 		"set output \"output/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set xrange [0.0:6.29]\n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
@@ -927,9 +930,8 @@ int mean_resonance(dynsys system, anlsis analysis)
 				}
 
 				// calculate forward integration
-				evolve_orbit(y, analysis.cycle_period, 
-					analysis.number_of_cycles, &orbit_fw, 
-					&orbit_fw_size, system);
+				evolve_orbit(y, &orbit_fw, 
+					&orbit_fw_size, system, analysis);
 
 				mean_res = 0.0;
 				for (int k = 1; k < orbit_fw_size; k++)
@@ -1036,7 +1038,7 @@ int evolve_basin(double *ic, double *ref, bool *converged,
 			goto out;
 		}
 
-		evolve_cycle(y, analysis.cycle_period, &t, system);
+		evolve_cycle(y, &t, system, analysis);
 	
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
@@ -1119,7 +1121,7 @@ int evolve_basin_union (double *ic, double ref[][2],
 			}
 		}
 
-		evolve_cycle(y, analysis.cycle_period, &t, system);
+		evolve_cycle(y, &t, system, analysis);
 	
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
@@ -1216,7 +1218,7 @@ int basin_of_attraction(double *ref, dynsys system,
 		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
-				orbit_fw_size, orbit_fw, converged) shared(basin_matrix, \
+				orbit_fw_size, orbit_fw, converged, orb, rot_ini) shared(basin_matrix, \
 				control_matrix, time_matrix)
 		{
 
@@ -1259,7 +1261,8 @@ int basin_of_attraction(double *ref, dynsys system,
 						time_matrix[i][j] = (double)(orbit_fw_size);
 						rotation_matrix[i][j] = 
 							orbit_fw[orbit_fw_size-1][0] / 2.*M_PI;
-						if (analysis.grid_coordinate_min < 0.0)
+						if ((analysis.grid_coordinate_min < 0.0) &&
+							(fmod (orbit_fw[orbit_fw_size-1][0] , 2.0 * M_PI) > M_PI))
 						{
 							rotation_matrix[i][j] += 1.0;
 						}

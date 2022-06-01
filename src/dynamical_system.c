@@ -1,7 +1,6 @@
 #include "dynamical_system.h"
 
-int evolve_cycle(double *y,	double cycle_period, 
-				 double *t, dynsys system)
+int evolve_cycle(double *y, double *t, dynsys system, anlsis analysis)
 {
 	// declare variables
 	int status;
@@ -10,7 +9,7 @@ int evolve_cycle(double *y,	double cycle_period,
 	char *method, *control;
 
 	// initialize control variables
-	h = 1e-3 * sign(cycle_period);
+	h = 1e-3 * sign(analysis.cycle_period);
 	error_abs = 1e-14;
 	error_rel = 0.0;
 	h_max = 1e-1;
@@ -31,7 +30,7 @@ int evolve_cycle(double *y,	double cycle_period,
 
 	// cycle evolution
 	status = gsl_odeiv2_driver_apply (d, t, 
-		*t + cycle_period, y);
+		*t + analysis.cycle_period, y);
 
 	// check if integration was successfull
 	if (status != GSL_SUCCESS)
@@ -46,10 +45,8 @@ int evolve_cycle(double *y,	double cycle_period,
 	return 0;
 }
 
-int evolve_orbit(double *ic, double cycle_period, 
-				int number_of_cycles, 
-				double ***orbit, int *orbit_size,
-				dynsys system)
+int evolve_orbit(double *ic, double ***orbit, int *orbit_size,
+				dynsys system, anlsis analysis)
 {
 	// declare variables
 	double y[system.dim];
@@ -60,7 +57,7 @@ int evolve_orbit(double *ic, double cycle_period,
 	if (orbit != NULL)
 	{
 		// takes into consideration initial condition
-		alloc_2d_double(orbit, number_of_cycles + 1, 
+		alloc_2d_double(orbit, analysis.number_of_cycles + 1, 
 			system.dim);
 		copy((*orbit)[0], ic, system.dim);
 	}
@@ -75,9 +72,9 @@ int evolve_orbit(double *ic, double cycle_period,
 
 	// orbit evolution
 	copy(y, ic, system.dim);
-	for (int i = 0; i < number_of_cycles; i++)
+	for (int i = 0; i < analysis.number_of_cycles; i++)
 	{
-		evolve_cycle(y, cycle_period, &t, system);
+		evolve_cycle(y, &t, system, analysis);
 	
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
