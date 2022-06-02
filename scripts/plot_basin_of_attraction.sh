@@ -20,45 +20,45 @@
 # BASIN OF ATTRACTION
 #####
 
-reset
-set terminal pngcairo size 920,800 font 'Helvetica,15'
-set loadpath "../output"
-set output "../output/fig_basin_of_attraction.png"
+# reset
+# set terminal pngcairo size 920,800 font 'Helvetica,15'
+# set loadpath "../output"
+# set output "../output/fig_basin_of_attraction.png"
 
-# set xrange[0.0:6.29]
-set xrange[-3.1415:3.1415]
-set yrange[0.0:3.0]
-unset key
-unset title
+# # set xrange[0.0:6.29]
+# set xrange[-3.1415:3.1415]
+# set yrange[0.0:3.0]
+# unset key
+# unset title
 
-plot 'basin.dat' u 1:2:3 w image notitle
+# plot 'basin.dat' u 1:2:3 w image notitle
 
-reset
-set terminal pngcairo size 920,800 font 'Helvetica,15'
-set loadpath "../output"
-set output "../output/fig_basin_of_attraction_times.png"
+# reset
+# set terminal pngcairo size 920,800 font 'Helvetica,15'
+# set loadpath "../output"
+# set output "../output/fig_basin_of_attraction_times.png"
 
-# set xrange[0.0:6.29]
-set xrange[-3.1415:3.1415]
-set yrange[0.0:3.0]
-unset key
-unset title
+# # set xrange[0.0:6.29]
+# set xrange[-3.1415:3.1415]
+# set yrange[0.0:3.0]
+# unset key
+# unset title
 
-plot 'basin.dat' u 1:2:4 w image notitle
+# plot 'basin.dat' u 1:2:4 w image notitle
 
-reset
-set terminal pngcairo size 920,800 font 'Helvetica,15'
-set loadpath "../output"
-set output "../output/fig_basin_of_attraction_rotation.png"
-unset key
-unset title
+# reset
+# set terminal pngcairo size 920,800 font 'Helvetica,15'
+# set loadpath "../output"
+# set output "../output/fig_basin_of_attraction_rotation.png"
+# unset key
+# unset title
 
-# set xrange[0.0:6.28318530718]
-set xrange[-3.1415:3.1415]
-set yrange[0.0:3.0]
-unset key
+# # set xrange[0.0:6.28318530718]
+# set xrange[-3.1415:3.1415]
+# set yrange[0.0:3.0]
+# unset key
 
-plot 'basin.dat' u 1:2:5 w image notitle
+# plot 'basin.dat' u 1:2:5 w image notitle
 
 ######
 # BASIN OF ATTRACTION - UNION
@@ -103,3 +103,21 @@ set yrange[0.0:3.0]
 unset key
 
 plot 'basin_union.dat' u 1:2:5 w image notitle
+
+
+######
+# BASIN OF ATTRACTION - TEST
+#####
+
+# reset
+# set terminal pngcairo size 920,800 font 'Helvetica,15'
+# set loadpath "../output"
+# set output "../output/fig_basin_of_attraction_300_test.png"
+
+# # set xrange[0.0:6.29]
+# set xrange[-3.1415:3.1415]
+# set yrange[0.0:3.0]
+# unset key
+# unset title
+
+# plot 'basin_300.dat' u 1:2:3 w image notitle

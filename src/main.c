@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 	int num_of_basins;
 
 	gamma = (.89 * .89) / 3.;
-	e = 0.0; //0.1
+	e = 0.1; //0.1
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 
 	analysis.number_of_cycles = 1e3; //1e3
 	analysis.cycle_period = 2.0 * M_PI;
-	analysis.grid_resolution = 100;
+	analysis.grid_resolution = 600;
 	analysis.grid_coordinate_min = -M_PI;
 	analysis.grid_coordinate_max = M_PI;
 	analysis.grid_velocity_min = 0.0;
@@ -176,15 +176,15 @@ int main(int argc, char **argv)
 
   	// ref[0] = 0.0; ref[1] = 0.551540; // e = 0.1
  	// ref[0] = M_PI; ref[1] = 0.551540; // e = 0.1
-  	ref[0] = 0.0; ref[1] = 1.0; // e = 0.0
+  	// ref[0] = 0.0; ref[1] = 1.0; // e = 0.0
 	// ref[0] = M_PI; ref[1] = 1.0; // e = 0.0
-  	basin_of_attraction (ref, system, analysis);
+  	// basin_of_attraction (ref, system, analysis);
 
 	num_of_basins = 2;
-	// ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540; // e = 0.1
-	// ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540; // e = 0.1
-	ref_union[0][0] = 0.0; ref_union[0][1] = 1.0; // e = 0.0
-	ref_union[1][0] = M_PI; ref_union[1][1] = 1.0; // e = 0.0
+	ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540; // e = 0.1
+	ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540; // e = 0.1
+	// ref_union[0][0] = 0.0; ref_union[0][1] = 1.0; // e = 0.0
+	// ref_union[1][0] = M_PI; ref_union[1][1] = 1.0; // e = 0.0
 	union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
 
   /******************** Stop clock ***********************/
