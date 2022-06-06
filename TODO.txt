@@ -1,4 +1,6 @@
-- maybe use a different software than gnuplot to fit histogram
+- maybe use a different software than gnuplot to fit histogram and fit cuvers
+ perhaps matlab or python. No caso de python, criar um projeto
+ aqui dentro chamado python_tools
 
 - Fix rotation matrix
 

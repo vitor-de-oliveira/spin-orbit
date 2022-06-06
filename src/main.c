@@ -61,28 +61,36 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// // system = system_rigid;
-	// system = system_linear_average;
-	// double ic[system.dim];
+	// system = system_rigid;
+	system = system_linear_average;
+	double ic[system.dim];
 
-	// gamma = (.89 * .89) / 3.;
-	// e = 0.0; // e = 0.1;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-2;
+	gamma = (.89 * .89) / 3.;
+	e = 0.0; // e = 0.1;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
 
-	// analysis.number_of_cycles = 1e3; //1e3 6e3
-	// analysis.cycle_period = 2.0 * M_PI;
+	analysis.number_of_cycles = 2e2; //1e3 6e3
+	analysis.cycle_period = 2.0 * M_PI; // 1e-3
 
-	// ic[0] = 3.1, ic[1] = 1.;
+	// ic[0] = 0.0, ic[1] = 100.;
 	// // //near the 1:1 stable fp in the rigid case
 	// // ic[0] = M_PI; ic[1] = 0.551537;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	// trace_orbit_map(ic, system, analysis);
+	// trace_orbit_map(0, ic, system, analysis);
+
+	for (int i = 1; i < 11; i++)
+	{
+		ic[0] = 0.0, ic[1] = 50. + 50. * (double)i;
+		init_orbital(orbital, e);
+		for (int j = 0; j < 4; j++) ic[j+2] = orbital[j];
+		trace_orbit_map(i, ic, system, analysis);
+	}
 
 	/////////////////////////////////////////////////////////
 	/*				   		Phase space		   	           */
@@ -158,34 +166,34 @@ int main(int argc, char **argv)
 	double ref[2], ref_union[2][2];
 	int num_of_basins;
 
-	gamma = (.89 * .89) / 3.;
-	e = 0.1; //0.1
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-2;
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1; //0.1
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
 
-	analysis.number_of_cycles = 1e3; //1e3
-	analysis.cycle_period = 2.0 * M_PI;
-	analysis.grid_resolution = 600;
-	analysis.grid_coordinate_min = -M_PI;
-	analysis.grid_coordinate_max = M_PI;
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 3.0;
+	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.grid_resolution = 600;
+	// analysis.grid_coordinate_min = -M_PI;
+	// analysis.grid_coordinate_max = M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
 
-  	// ref[0] = 0.0; ref[1] = 0.551540; // e = 0.1
- 	// ref[0] = M_PI; ref[1] = 0.551540; // e = 0.1
-  	// ref[0] = 0.0; ref[1] = 1.0; // e = 0.0
-	// ref[0] = M_PI; ref[1] = 1.0; // e = 0.0
-  	// basin_of_attraction (ref, system, analysis);
+  	// // ref[0] = 0.0; ref[1] = 0.551540; // e = 0.1
+ 	// // ref[0] = M_PI; ref[1] = 0.551540; // e = 0.1
+  	// // ref[0] = 0.0; ref[1] = 1.0; // e = 0.0
+	// // ref[0] = M_PI; ref[1] = 1.0; // e = 0.0
+  	// // basin_of_attraction (ref, system, analysis);
 
-	num_of_basins = 2;
-	ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540; // e = 0.1
-	ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540; // e = 0.1
-	// ref_union[0][0] = 0.0; ref_union[0][1] = 1.0; // e = 0.0
-	// ref_union[1][0] = M_PI; ref_union[1][1] = 1.0; // e = 0.0
-	union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
+	// num_of_basins = 2;
+	// ref_union[0][0] = 0.0; ref_union[0][1] = 0.551540; // e = 0.1
+	// ref_union[1][0] = M_PI; ref_union[1][1] = 0.551540; // e = 0.1
+	// // ref_union[0][0] = 0.0; ref_union[0][1] = 1.0; // e = 0.0
+	// // ref_union[1][0] = M_PI; ref_union[1][1] = 1.0; // e = 0.0
+	// union_basin_of_attraction (ref_union, num_of_basins, system, analysis);
 
   /******************** Stop clock ***********************/
 

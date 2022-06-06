@@ -1,6 +1,7 @@
 #include "dynamical_system.h"
 
-int evolve_cycle(double *y, double *t, dynsys system, anlsis analysis)
+int evolve_cycle(double *y, double *t,
+				 dynsys system, anlsis analysis)
 {
 	// declare variables
 	int status;

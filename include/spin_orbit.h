@@ -115,9 +115,14 @@ int init_orbital(double y[4],
  * implementation
 **/
 
-int trace_orbit_map (double *ic,
+int trace_orbit_map (int id, 
+                    double *ic,
                     dynsys system,
                     anlsis analysis);
+
+int time_series (double *ic,
+                dynsys system,
+                anlsis analysis);
 
 int phase_space    (dynsys system,
                     anlsis analysis);

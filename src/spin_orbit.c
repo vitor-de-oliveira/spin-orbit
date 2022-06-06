@@ -512,7 +512,7 @@ int init_orbital(double orb[4], double e)
 	return 0;
 }
 
-int trace_orbit_map(double *ic, dynsys system,
+int trace_orbit_map(int id, double *ic, dynsys system,
 					anlsis analysis)
 {
 	// create output folder if it does not exist
@@ -521,10 +521,25 @@ int trace_orbit_map(double *ic, dynsys system,
 		mkdir("output", 0700);
 	}
 
-	// declare variables
+	// prepare and open exit files 
 	FILE *out_orb, *out_orb_ic, *out_orb_res,
 		 *out_orb_res_mean,
 		 *out_orb_ang_mom_err, *out_vis_viva_err;
+	char	filename[100];
+
+	// indexed file
+	sprintf(filename, "output/orbit_%d.dat", id);
+	out_orb = fopen(filename, "w");
+	// out_orb = fopen("output/orbit.dat", "w");
+	out_orb_ic = fopen("output/orbit_ic.dat", "w");
+	out_orb_res = fopen("output/orbit_resonance.dat", "w");
+	out_orb_res_mean = 
+		fopen("output/orbit_resonance_mean.dat", "w");
+	out_orb_ang_mom_err = 
+		fopen("output/orbit_orbital_angular_momentum_error.dat", "w");
+	out_vis_viva_err = fopen("output/orbit_vis_viva_error.dat", "w");
+
+	// declare variables
 	int orbit_size;
 	double res_mean;
 	double **orbit;
@@ -534,16 +549,6 @@ int trace_orbit_map(double *ic, dynsys system,
 	{
 		orb_ini[i] = ic[i+2];
 	}
-
-	// open exit files
-	out_orb = fopen("output/orbit.dat", "w");
-	out_orb_ic = fopen("output/orbit_ic.dat", "w");
-	out_orb_res = fopen("output/orbit_resonance.dat", "w");
-	out_orb_res_mean = 
-		fopen("output/orbit_resonance_mean.dat", "w");
-	out_orb_ang_mom_err = 
-		fopen("output/orbit_orbital_angular_momentum_error.dat", "w");
-	out_vis_viva_err = fopen("output/orbit_vis_viva_error.dat", "w");
 
 	// evolve system
 	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
