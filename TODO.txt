@@ -2,6 +2,8 @@
  perhaps matlab or python. No caso de python, criar um projeto
  aqui dentro chamado python_tools
 
+- talvez fazer uma apsta de fguras / exemplos e subir no github
+
 - Fix rotation matrix
 
 - Make an init for the paramerters of Hyperion and so on

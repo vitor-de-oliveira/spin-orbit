@@ -82,15 +82,26 @@ int main(int argc, char **argv)
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	// trace_orbit_map(0, ic, system, analysis);
+	// trace_orbit_map(ic, system, analysis);
 
-	for (int i = 1; i < 11; i++)
-	{
-		ic[0] = 0.0, ic[1] = 50. + 50. * (double)i;
-		init_orbital(orbital, e);
-		for (int j = 0; j < 4; j++) ic[j+2] = orbital[j];
-		trace_orbit_map(i, ic, system, analysis);
-	}
+	// multiple_time_series(system, analysis);
+
+	// draw_multiple_time_series(system);
+
+	// for (e = 0.00; e < 0.205; e += 0.01)
+	// {
+	// 	time_series(system, analysis);
+	// }
+
+	// draw_time_series_union_e(system);
+
+	// analysis.number_of_cycles = 1e3;
+	// for (K = 0.01; K > 0.00095; K -= 0.001)
+	// {
+	// 	time_series(system, analysis);
+	// }
+
+	draw_time_series_union_K(system);
 
 	/////////////////////////////////////////////////////////
 	/*				   		Phase space		   	           */
@@ -162,9 +173,9 @@ int main(int argc, char **argv)
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_linear_average;
-	double ref[2], ref_union[2][2];
-	int num_of_basins;
+	// system = system_linear_average;
+	// double ref[2], ref_union[2][2];
+	// int num_of_basins;
 
 	// gamma = (.89 * .89) / 3.;
 	// e = 0.1; //0.1

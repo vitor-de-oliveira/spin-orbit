@@ -512,7 +512,7 @@ int init_orbital(double orb[4], double e)
 	return 0;
 }
 
-int trace_orbit_map(int id, double *ic, dynsys system,
+int trace_orbit_map(double *ic, dynsys system,
 					anlsis analysis)
 {
 	// create output folder if it does not exist
@@ -525,12 +525,8 @@ int trace_orbit_map(int id, double *ic, dynsys system,
 	FILE *out_orb, *out_orb_ic, *out_orb_res,
 		 *out_orb_res_mean,
 		 *out_orb_ang_mom_err, *out_vis_viva_err;
-	char	filename[100];
 
-	// indexed file
-	sprintf(filename, "output/orbit_%d.dat", id);
-	out_orb = fopen(filename, "w");
-	// out_orb = fopen("output/orbit.dat", "w");
+	out_orb = fopen("output/orbit.dat", "w");
 	out_orb_ic = fopen("output/orbit_ic.dat", "w");
 	out_orb_res = fopen("output/orbit_resonance.dat", "w");
 	out_orb_res_mean = 
@@ -841,6 +837,267 @@ int draw_phase_space(dynsys system)
 		gamma, e);
 	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle",
 		gamma, e);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int time_series(dynsys system,
+				anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/time_series", &st) == -1) {
+		mkdir("output/time_series", 0700);
+	}
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files 
+	FILE *out;
+	char	filename[100];
+
+	// indexed file
+	sprintf(filename, "output/time_series/time_series_e_%1.3f_K_%1.5f.dat", e, K);
+	out = fopen(filename, "w");
+
+	printf("Writting time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	// declare variables
+	int orbit_size;
+	double res_mean;
+	double **orbit;
+	double ic[system.dim], orb[4];
+
+	ic[0] = 0.0, ic[1] = 1000.;
+
+	if (system.dim == 6)
+	{
+		init_orbital(orb, e);
+		for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
+	}
+
+	// evolve system
+	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+	for (int j = 0; j < orbit_size; j++)
+	{
+		fprintf(out, "%d %1.15e\n", j, orbit[j][1]);
+	}
+
+	fprintf(out, "\n");
+
+	// free memory
+	dealloc_2d_double(&orbit, analysis.number_of_cycles);
+
+	// close files
+	fclose(out);
+
+	printf("Data written in output/time_series/ folder\n");
+
+	return 0;
+}
+
+int draw_time_series_union_e(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double K = par[6];
+
+	int color;
+	double e;
+
+	printf("Drawing union of time series\n");
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_union_K_%1.5f.png\"\n", K);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	color = 1;
+	e = 0.00;
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	for (e = 0.02; e < 0.205; e += 0.02)
+	{
+		color++;
+		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	}
+	fclose(gnuplotPipe);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_union_K_%1.5f_zoom.png\"\n", K);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "set xrange[0:120]\n");
+	fprintf(gnuplotPipe, "set yrange[0.8:1000]\n");
+	fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	color = 1;
+	e = 0.00;
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	for (e = 0.02; e < 0.205; e += 0.02)
+	{
+		color++;
+		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	}
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_time_series_union_K(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+
+	int color;
+	double K;
+
+	printf("Drawing union of time series\n");
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_union_e_%1.3f.png\"\n", e);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set title \"e = %1.3f\"\n", e);
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	color = 1;
+	K = 0.01;
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"K = %1.3f\"", e, K, color, K);
+	for (K = 0.009; K > 0.00095; K -= 0.001)
+	{
+		color++;
+		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"K = %1.3f\"", e, K, color, K);
+	}
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int multiple_time_series(dynsys system,
+						anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/time_series", &st) == -1) {
+		mkdir("output/time_series", 0700);
+	}
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files 
+	FILE *out;
+	char	filename[100];
+
+	// indexed file
+	sprintf(filename, "output/time_series/multiple_time_series_e_%1.3f_K_%1.5f.dat", e, K);
+	out = fopen(filename, "w");
+
+	// declare variables
+	int orbit_size;
+	double res_mean;
+	double **orbit;
+	double ic[system.dim], orb[4];
+
+	for (int i = 0; i < 20; i++)
+	{
+		if (i < 10)
+		{
+			ic[0] = 0.0, ic[1] = 10. + 10. * (double)(i);
+		}
+		else
+		{
+			ic[0] = 0.0, ic[1] = 100. + 100. * (double)(i-10);
+		}
+
+		if (system.dim == 6)
+		{
+			init_orbital(orb, e);
+			for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
+		}
+
+		// evolve system
+		evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+		for (int j = 0; j < orbit_size; j++)
+		{
+			fprintf(out, "%d %1.15e\n", 
+					j, orbit[j][1]);
+		}
+
+		fprintf(out, "\n");
+
+		// free memory
+		dealloc_2d_double(&orbit, analysis.number_of_cycles);
+	
+	}
+
+	// close files
+	fclose(out);
+
+	printf("Data written in output/time_series/ folder\n");
+
+	return 0;
+}
+
+int draw_multiple_time_series(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing multiple time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_multiple_time_series_e_%1.3f_K_%1.5f.png\"\n", e, K);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set key title \"e = %1.3f K = %1.5f\" box opaque top right width 2\n", e, K);
+	fprintf(gnuplotPipe, "plot 'multiple_time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 notitle", e, K);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");
