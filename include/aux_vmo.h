@@ -66,6 +66,9 @@ double dist(double *x, double *y, int dim);
 // a range of indicies of arrays x and y
 double dist_partial(double *x, double *y, int index_1, int index_2);
 
+// returns the greatest common divisor of two integers
+int greatest_common_divisor (int n1, int n2);
+
 // defines x as a two-dimensional real-valued identity matrix
 // of size order by order in array form starting from index
 // arr_first_index

@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 	double ic[system.dim];
 
 	gamma = (.89 * .89) / 3.;
-	e = 0.0; // e = 0.1;
+	e = 0.180; // e = 0.1;
 	m_secondary = 0.;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -82,11 +82,22 @@ int main(int argc, char **argv)
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	// trace_orbit_map(ic, system, analysis);
+	ic[0] = 0.0, ic[1] = 1000.;
+	init_orbital(orbital, e);
+	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	orbit_map(ic, system, analysis);
+
+	// draw_orbit_map(system);
+
+	// draw_orbit_on_phase_space(system);
 
 	// multiple_time_series(system, analysis);
 
 	// draw_multiple_time_series(system);
+
+	// time_series(system, analysis);
+
+	// draw_time_series(system);
 
 	// for (e = 0.00; e < 0.205; e += 0.01)
 	// {
@@ -101,7 +112,7 @@ int main(int argc, char **argv)
 	// 	time_series(system, analysis);
 	// }
 
-	draw_time_series_union_K(system);
+	// draw_time_series_union_K(system);
 
 	/////////////////////////////////////////////////////////
 	/*				   		Phase space		   	           */
@@ -111,7 +122,7 @@ int main(int argc, char **argv)
 	// // system = system_linear_average;
 
 	// gamma = (.89 * .89) / 3.;
-	// e = 0.0; // e= 0.1;
+	// e = 0.180; // e = 0.1;
 	// m_secondary = 0.0;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
@@ -119,9 +130,9 @@ int main(int argc, char **argv)
  	// K = 1e-2;
 
 	// analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
-	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.number_of_cycles = 2e3; //1e3
 	// analysis.cycle_period = 2.0 * M_PI;
-	// analysis.coordinate_min = -M_PI; // M_PI
+	// analysis.coordinate_min = 0.0; // M_PI
 	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
 	// analysis.velocity_min = 0.0;
 	// analysis.velocity_max = 3.0;

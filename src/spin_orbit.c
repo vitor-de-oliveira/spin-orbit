@@ -512,34 +512,49 @@ int init_orbital(double orb[4], double e)
 	return 0;
 }
 
-int trace_orbit_map(double *ic, dynsys system,
+int orbit_map(double *ic, dynsys system,
 					anlsis analysis)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
+	if (stat("output/orbit", &st) == -1) {
+		mkdir("output/orbit", 0700);
 	}
 
+	printf("Calculating orbit\n");
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
 	// prepare and open exit files 
-	FILE *out_orb, *out_orb_ic, *out_orb_res,
-		 *out_orb_res_mean,
-		 *out_orb_ang_mom_err, *out_vis_viva_err;
+	FILE	*out_orb, *out_orb_ic, 
+			*out_orb_res, *out_orb_err;
+	char	filename[150];
 
-	out_orb = fopen("output/orbit.dat", "w");
-	out_orb_ic = fopen("output/orbit_ic.dat", "w");
-	out_orb_res = fopen("output/orbit_resonance.dat", "w");
-	out_orb_res_mean = 
-		fopen("output/orbit_resonance_mean.dat", "w");
-	out_orb_ang_mom_err = 
-		fopen("output/orbit_orbital_angular_momentum_error.dat", "w");
-	out_vis_viva_err = fopen("output/orbit_vis_viva_error.dat", "w");
+	sprintf(filename, "output/orbit/orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_orb = fopen(filename, "w");
 
+	sprintf(filename, "output/orbit/orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_orb_ic = fopen(filename, "w");
+
+	sprintf(filename, "output/orbit/orbit_resonance_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_orb_res = fopen(filename, "w");
+
+	sprintf(filename, "output/orbit/orbit_orbital_error_angular_momentum_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_orb_err = fopen(filename, "w");
+	
 	// declare variables
 	int orbit_size;
-	double res_mean;
+	int gcd, numerator, denominator;
 	double **orbit;
 	double orb[4], orb_ini[4];
+	double last_angle_dif;
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -553,23 +568,13 @@ int trace_orbit_map(double *ic, dynsys system,
 	fprintf(out_orb_ic, "%1.15e %1.15e\n", 
 			angle_mod_pos(orbit[0][0]), orbit[0][1]);
 
-	res_mean = 0.0;
 	for (int i = 0; i < orbit_size; i++)
 	{
 		// fprintf(out_orb, "%1.15e %1.15e\n", 
 		// 		angle_mod_pos(orbit[i][0]), orbit[i][1]);
-		fprintf(out_orb, "%1.15e %1.15e\n", 
-				angle_mod(orbit[i][0]), orbit[i][1]);
+		fprintf(out_orb, "%1.15e %1.15e %d\n", 
+				angle_mod(orbit[i][0]), orbit[i][1], i);
 		
-		if (i > 0) 	
-		{
-			double angle_dif 
-					= orbit[i][0] - orbit[i-1][0];
-			fprintf(out_orb_res, "%d %1.5e\n", 
-				i, angle_dif / analysis.cycle_period);
-			res_mean += angle_dif / analysis.cycle_period;
-		}
-
 		// if (strcmp(system.name, "rigid") == 0)
 		if (system.dim == 6)
 		{
@@ -577,21 +582,43 @@ int trace_orbit_map(double *ic, dynsys system,
 			{
 				orb[j] = orbit[i][j+2];
 			}
-			fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
+			fprintf(out_orb_err, "%d %1.15e\n", 
 					i, fabs(angular_momentum_two_body(orb)-
 					angular_momentum_two_body(orb_ini)));
-			fprintf(out_vis_viva_err, "%d %1.15e\n", 
-					i, fabs(vis_viva_two_body(orb)-
-					vis_viva_two_body(orb_ini)));
 		}
 	}
 
-	printf("w = %1.10e\n", 
-		angular_dist(orbit[orbit_size-1][0], orbit[0][0])
-		/ (double)analysis.number_of_cycles);
+	// calculating the resonance
+	last_angle_dif = 
+		orbit[orbit_size-1][0] - orbit[orbit_size-2][0];
 
-	printf("resonance mean = %1.3f\n", 
-			res_mean / (double)(orbit_size - 1));
+	fprintf(out_orb_res, "Angular difference:\n\n%1.10e\n\n", 
+		last_angle_dif);
+
+	fprintf(out_orb_res, "Number of spins:\n\n%1.10e\n\n", 
+		last_angle_dif / (2.*M_PI));
+
+	fprintf(out_orb_res, "Fractional approximations:\n\n"); 
+	denominator = 10;
+	for (int i = 0; i < 5; i++)
+	{
+		numerator = 
+		(int) round((last_angle_dif / (2.*M_PI)) * (double) denominator);
+
+		gcd = greatest_common_divisor (numerator, denominator);
+	
+		if (gcd != 1)
+		{
+			fprintf(out_orb_res, "%d / %d\n", 
+				numerator / gcd, denominator / gcd);
+		}
+		else
+		{
+			fprintf(out_orb_res, "%d / %d (GCD not found)\n", 
+				numerator / gcd, denominator / gcd);
+		}
+		denominator *= 10;
+	}
 
 	// free memory
 	dealloc_2d_double(&orbit, analysis.number_of_cycles);
@@ -600,11 +627,47 @@ int trace_orbit_map(double *ic, dynsys system,
 	fclose(out_orb);
 	fclose(out_orb_ic);
 	fclose(out_orb_res);
-	fclose(out_orb_res_mean);
-	fclose(out_orb_ang_mom_err);
-	fclose(out_vis_viva_err);
+	fclose(out_orb_err);
 
-	printf("Data written in output folder\n");
+	printf("Data written in output/orbit/\n");
+
+	return 0;
+}
+
+int draw_orbit_map(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing orbit of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/orbit\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/orbit/fig_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
+		gamma, e, system.name, K);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"gamma = %1.3f    e = %1.3f    K = %1.5f\"\n", 
+		gamma, e, K);
+	fprintf(gnuplotPipe, "plot 'orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
+		gamma, e, system.name, K, gamma, e, system.name, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/orbit/\n");
 
 	return 0;
 }
@@ -621,8 +684,8 @@ int phase_space(dynsys system, anlsis analysis)
 
 	// create output folder if it does not exist
 	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
+	if (stat("output/phase_space", &st) == -1) {
+		mkdir("output/phase_space", 0700);
 	}
 
 	double *par = (double *)system.params;
@@ -635,21 +698,21 @@ int phase_space(dynsys system, anlsis analysis)
 	char	filename[100];
 
 	sprintf(filename, 
-		"output/phase_space_gamma_%1.3f_e_%1.3f.dat", gamma, e);
+		"output/phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat", gamma, e);
 	out_psp = fopen(filename, "w");
 
 	sprintf(filename, 
-		"output/phase_space_initial_conditions_gamma_%1.3f_e_%1.3f.dat", 
+		"output/phase_space/phase_space_initial_conditions_gamma_%1.3f_e_%1.3f.dat", 
 		gamma, e);
 	out_ic = fopen(filename, "w");
 
 	sprintf(filename, 
-		"output/phase_space_orbital_angular_momentum_error_gamma_%1.3f_e_%1.3f.dat",
+		"output/phase_space/phase_space_orbital_angular_momentum_error_gamma_%1.3f_e_%1.3f.dat",
 		gamma, e);
 	out_orb_ang_mom_err = fopen(filename, "w");
 
 	sprintf(filename, 
-		"output/phase_space_vis_viva_error_gamma_%1.3f_e_%1.3f.dat",
+		"output/phase_space/phase_space_vis_viva_error_gamma_%1.3f_e_%1.3f.dat",
 		gamma, e);
 	out_vis_viva_err = fopen(filename, "w");
 
@@ -824,11 +887,12 @@ int draw_phase_space(dynsys system)
 	gnuplotPipe = popen("gnuplot -persistent", "w");
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/phase_space\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
+		"set output \"output/phase_space/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
@@ -840,6 +904,44 @@ int draw_phase_space(dynsys system)
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_orbit_on_phase_space(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing orbit on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/orbit/fig_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
+		gamma, e, system.name, K);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"gamma = %1.3f    e = %1.3f    K = %1.5f\"\n", 
+		gamma, e, K);
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'orbit/orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit/orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
+		gamma, e, gamma, e, system.name, K, gamma, e, system.name, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/orbit/\n");
 
 	return 0;
 }
@@ -899,6 +1001,39 @@ int time_series(dynsys system,
 	fclose(out);
 
 	printf("Data written in output/time_series/ folder\n");
+
+	return 0;
+}
+
+int draw_time_series(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_e_%1.3f_K_%1.5f.png\"\n", e, K);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange [60:200] \n");
+	fprintf(gnuplotPipe, "set yrange [0.5:2] \n");
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set key title \"e = %1.3f K = %1.5f\" box opaque top right width 2\n", e, K);
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 notitle", e, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
 
 	return 0;
 }

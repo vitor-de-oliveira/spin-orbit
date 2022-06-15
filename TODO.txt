@@ -1,8 +1,13 @@
+- reorder spin_orbit functions
+
+- move resonance calculation from trace 
+orbit to future periodic orbit function.
+
 - maybe use a different software than gnuplot to fit histogram and fit cuvers
  perhaps matlab or python. No caso de python, criar um projeto
  aqui dentro chamado python_tools
 
-- talvez fazer uma apsta de fguras / exemplos e subir no github
+- talvez fazer uma pasta de figuras / exemplos e subir no github
 
 - Fix rotation matrix
 
@@ -11,8 +16,6 @@
 - Use terminal eps in scripts and pipes (or both versions on pipe and script)
 
 - Transform union basin in basin functions. Compare them. Move basin function to test
-
-- check order of functions on spin_orbit.h 
 
 - organize plot_phase_space script. See if it is still needed after 
 implementing gnuplot pipes

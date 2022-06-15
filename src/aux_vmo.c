@@ -155,6 +155,27 @@ double dist_partial(double *x, double *y, int index_1, int index_2)
 	return sqrt(d_squared);
 }
 
+int greatest_common_divisor (int n1, int n2)
+{
+	int gcd = 1;
+
+    for(int i = 2; i <= n1 && i <= n2; i++)
+    {
+        // Checks if i is factor of both integers
+        if((n1 % i == 0) && (n2 % i == 0))
+		{
+            gcd = i;
+		}
+	}
+
+	if (gcd == 1)
+	{
+		printf("Warning: Greatest common divisor not found.\n");
+	}
+
+	return gcd;
+}
+
 int identity_matrix_array_form(double *x, int arr_first_index, int order)
 {
 	for (int i = arr_first_index; i < arr_first_index + order * order; i++)

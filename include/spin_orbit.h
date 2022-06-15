@@ -115,24 +115,30 @@ int init_orbital(double y[4],
  * implementation
 **/
 
-int trace_orbit_map (double *ic,
+int orbit_map (double *ic,
                     dynsys system,
                     anlsis analysis);
+
+int draw_orbit_map  (dynsys system);
 
 int phase_space    (dynsys system,
                     anlsis analysis);
 
 int draw_phase_space    (dynsys system);
 
+int draw_orbit_on_phase_space(dynsys system);
+
 int time_series(dynsys system,
                 anlsis analysis);
 
-int multiple_time_series(dynsys system,
-                        anlsis analysis);
+int draw_time_series(dynsys system);
 
 int draw_time_series_union_e(dynsys system);
 
 int draw_time_series_union_K(dynsys system);
+
+int multiple_time_series(dynsys system,
+                        anlsis analysis);
 
 int draw_multiple_time_series(dynsys system);
 
