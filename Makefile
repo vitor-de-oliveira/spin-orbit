@@ -13,10 +13,18 @@ DEPENDENCIES =	dynamical_system.c \
 
 TARGET_TEST = TEST
 
-DEPENDENCIES_TEST =	dynamical_system.c \
+# on this moment, june 17 2022, there are
+# changes that I did in the dynamical system
+# lib that I did not update on pendulum.c
+# DEPENDENCIES_TEST =	dynamical_system.c \
 					aux_vmo.c \
 					spin_orbit.c \
 					pendulum.c \
+					test_spin_orbit.c
+
+DEPENDENCIES_TEST =	dynamical_system.c \
+					aux_vmo.c \
+					spin_orbit.c \
 					test_spin_orbit.c
 
 .PHONY: run compile test compile_test clean

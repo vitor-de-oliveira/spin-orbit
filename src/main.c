@@ -61,31 +61,31 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	system = system_linear_average;
-	double ic[system.dim];
+	// // system = system_rigid;
+	// system = system_linear_average;
+	// double ic[system.dim];
 
-	gamma = (.89 * .89) / 3.;
-	e = 0.180; // e = 0.1;
-	m_secondary = 0.;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
-	K = 1e-2;
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.180; // e = 0.1;
+	// m_secondary = 0.;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+	// K = 1e-2;
 
-	analysis.number_of_cycles = 2e2; //1e3 6e3
-	analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	// analysis.number_of_cycles = 2e2; //1e3 6e3
+	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
 
-	// ic[0] = 0.0, ic[1] = 100.;
-	// // //near the 1:1 stable fp in the rigid case
-	// // ic[0] = M_PI; ic[1] = 0.551537;
+	// // ic[0] = 0.0, ic[1] = 100.;
+	// // // //near the 1:1 stable fp in the rigid case
+	// // // ic[0] = M_PI; ic[1] = 0.551537;
+	// // init_orbital(orbital, e);
+	// // for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+
+	// ic[0] = 0.0, ic[1] = 1000.;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-
-	ic[0] = 0.0, ic[1] = 1000.;
-	init_orbital(orbital, e);
-	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	orbit_map(ic, system, analysis);
+	// orbit_map(ic, system, analysis);
 
 	// draw_orbit_map(system);
 
