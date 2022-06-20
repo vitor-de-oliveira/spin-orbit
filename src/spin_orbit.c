@@ -985,10 +985,7 @@ int evolve_basin(double *ic, double ref[][2], int ref_period, bool *converged,
 {
 	// declare variables
 	double y[system.dim], rot[2];
-	double box = 1e6;
 	double t = 0.0;
-	// tolerance for which we say the orbit converged
-	double eps = 1e-1;	// eps = 1e-1
 
 	// allocate memory and initializes exit data
 	if (orbit != NULL)
@@ -1016,7 +1013,7 @@ int evolve_basin(double *ic, double ref[][2], int ref_period, bool *converged,
 
 		for (int j = 0; j < ref_period; j++)
 		{
-			if(dist_from_ref(rot, ref[j]) < eps)
+			if(dist_from_ref(rot, ref[j]) < analysis.evolve_basin_eps)
 			{
 				*converged = true;
 				goto out;
@@ -1028,7 +1025,7 @@ int evolve_basin(double *ic, double ref[][2], int ref_period, bool *converged,
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
 		{
-			if (fabs(y[j]) > box)
+			if (fabs(y[j]) > analysis.evolve_box_size)
 			{
 				printf("Warning: box limit reached\n");
 				printf("y[%d] = %1.10e\n", j, y[j]);
@@ -1074,14 +1071,14 @@ int basin_of_attraction(double ref[][2], int ref_period, dynsys system,
 
 	// prepare and open exit files
 	FILE	*out_boa, *out_ref;
-	char	filename[150];
+	char	filename[200];
 
-	sprintf(filename, "output/basin_of_attraction/basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat", 
-		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period);
+	sprintf(filename, "output/basin_of_attraction/basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_boa = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat", 
-		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period);
+	sprintf(filename, "output/basin_of_attraction/basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_ref = fopen(filename, "w");
 
 	// declare variables
@@ -1506,7 +1503,7 @@ int draw_multiple_time_series(dynsys system)
 }
 
 int draw_basin_of_attraction(double ref[][2], int ref_period,
-                            dynsys system)
+                            dynsys system, anlsis analysis)
 {
 	FILE *gnuplotPipe;
 
@@ -1523,8 +1520,8 @@ int draw_basin_of_attraction(double ref[][2], int ref_period,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_basin_of_attraction_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
-		gamma, e, system.name, K);
+		"set output \"output/basin_of_attraction/fig_basin_of_attraction_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -1532,10 +1529,10 @@ int draw_basin_of_attraction(double ref[][2], int ref_period,
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
-		"set title \"Basin of attraction   for   gamma = %1.3f   e = %1.3f   K = %1.5f\"\n", 
-		gamma, e, K);
-	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
-		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period);
+		"set title \"        Basin of attraction  for  gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e\"\n", 
+		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");
@@ -1549,8 +1546,8 @@ int draw_basin_of_attraction(double ref[][2], int ref_period,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_convergence_times_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
-		gamma, e, system.name, K);
+		"set output \"output/basin_of_attraction/fig_convergence_times_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -1558,10 +1555,10 @@ int draw_basin_of_attraction(double ref[][2], int ref_period,
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
-		"set title \"Convergence times   for   gamma = %1.3f   e = %1.3f   K = %1.5f\"\n", 
-		gamma, e, K);
-	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
-		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period);
+		"set title \"        Convergence times  for  gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e\"\n", 
+		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");

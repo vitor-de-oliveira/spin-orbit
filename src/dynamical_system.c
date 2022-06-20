@@ -51,7 +51,6 @@ int evolve_orbit(double *ic, double ***orbit, int *orbit_size,
 {
 	// declare variables
 	double y[system.dim];
-	double box = 1e6;
 	double t = 0.0;
 
 	// allocate memory and initializes exit data
@@ -80,7 +79,7 @@ int evolve_orbit(double *ic, double ***orbit, int *orbit_size,
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
 		{
-			if (fabs(y[j]) > box)
+			if (fabs(y[j]) > analysis.evolve_box_size)
 			{
 				printf("Warning: box limit reached\n");
 				printf("y[%d] = %1.10e\n", j, y[j]);

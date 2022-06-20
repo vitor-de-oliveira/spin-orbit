@@ -159,6 +159,6 @@ int draw_time_series_union_K(dynsys system);
 int draw_multiple_time_series(dynsys system);
 
 int draw_basin_of_attraction(double ref[][2], int ref_period,
-                            dynsys system);
+                            dynsys system, anlsis analysis);
 
 #endif

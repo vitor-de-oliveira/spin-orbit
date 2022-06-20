@@ -52,6 +52,8 @@ typedef struct AnlSis{
 	double grid_coordinate_max;
 	double grid_velocity_min;
 	double grid_velocity_max;
+    double evolve_box_size;     // maximum size of a variable
+    double evolve_basin_eps;    // distance from reference for which we say an orbit converged
 } anlsis;
 
 int evolve_cycle(double *y, double *t,
