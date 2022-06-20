@@ -1,15 +1,19 @@
-- reorder spin_orbit functions
+- improve resonance calculation for periodic orbits
+
+- maybe change argument of basin of attraction function to
+a member of periodic orbit structure. Also do this to evolve_basin
 
 - move resonance calculation from trace 
 orbit to future periodic orbit function.
+
+- check if the mean resonance still makes sense, specially after
+wrtitting the resonance in a more correct form at the orbit map function
 
 - maybe use a different software than gnuplot to fit histogram and fit cuvers
  perhaps matlab or python. No caso de python, criar um projeto
  aqui dentro chamado python_tools
 
 - talvez fazer uma pasta de figuras / exemplos e subir no github
-
-- Fix rotation matrix
 
 - Make an init for the paramerters of Hyperion and so on
 

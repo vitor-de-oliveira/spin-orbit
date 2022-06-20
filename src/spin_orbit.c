@@ -634,44 +634,6 @@ int orbit_map(double *ic, dynsys system,
 	return 0;
 }
 
-int draw_orbit_map(dynsys system)
-{
-	FILE *gnuplotPipe;
-
-	double *par = (double *)system.params;
-	double gamma = par[0];
-	double e = par[1];
-	double K = par[6];
-
-	printf("Drawing orbit of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
-		system.name, gamma, e, K);
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output/orbit\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/orbit/fig_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
-		gamma, e, system.name, K);
-	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	fprintf(gnuplotPipe, "unset key\n");
-	fprintf(gnuplotPipe, 
-		"set title \"gamma = %1.3f    e = %1.3f    K = %1.5f\"\n", 
-		gamma, e, K);
-	fprintf(gnuplotPipe, "plot 'orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
-		gamma, e, system.name, K, gamma, e, system.name, K);
-	fclose(gnuplotPipe);
-
-	printf("Done!\n");
-	printf("Data written in output/orbit/\n");
-
-	return 0;
-}
-
 int phase_space(dynsys system, anlsis analysis)
 {
 	// little warning
@@ -873,79 +835,6 @@ int phase_space(dynsys system, anlsis analysis)
 	return 0;
 }
 
-int draw_phase_space(dynsys system)
-{
-	FILE *gnuplotPipe;
-
-	double *par = (double *)system.params;
-	double gamma = par[0];
-	double e = par[1];
-
-	printf("Drawing phase space with gamma = %1.3f and e = %1.3f\n", 
-		gamma, e);
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output/phase_space\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/phase_space/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
-	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	fprintf(gnuplotPipe, "unset key\n");
-	fprintf(gnuplotPipe, 
-		"set key title \"gamma = %1.3f e = %1.3f\" box opaque top right width 2\n", 
-		gamma, e);
-	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle",
-		gamma, e);
-	fclose(gnuplotPipe);
-
-	printf("Done!\n");
-
-	return 0;
-}
-
-int draw_orbit_on_phase_space(dynsys system)
-{
-	FILE *gnuplotPipe;
-
-	double *par = (double *)system.params;
-	double gamma = par[0];
-	double e = par[1];
-	double K = par[6];
-
-	printf("Drawing orbit on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
-		system.name, gamma, e, K);
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/orbit/fig_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
-		gamma, e, system.name, K);
-	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	fprintf(gnuplotPipe, "unset key\n");
-	fprintf(gnuplotPipe, 
-		"set title \"gamma = %1.3f    e = %1.3f    K = %1.5f\"\n", 
-		gamma, e, K);
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'orbit/orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit/orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
-		gamma, e, gamma, e, system.name, K, gamma, e, system.name, K);
-	fclose(gnuplotPipe);
-
-	printf("Done!\n");
-	printf("Data written in output/orbit/\n");
-
-	return 0;
-}
-
 int time_series(dynsys system,
 				anlsis analysis)
 {
@@ -1001,141 +890,6 @@ int time_series(dynsys system,
 	fclose(out);
 
 	printf("Data written in output/time_series/ folder\n");
-
-	return 0;
-}
-
-int draw_time_series(dynsys system)
-{
-	FILE *gnuplotPipe;
-
-	double *par = (double *)system.params;
-	double e = par[1];
-	double K = par[6];
-
-	printf("Drawing time series with e = %1.3f and K = %1.5f\n", e, K);
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/time_series/fig_time_series_e_%1.3f_K_%1.5f.png\"\n", e, K);
-	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set xrange [60:200] \n");
-	fprintf(gnuplotPipe, "set yrange [0.5:2] \n");
-	fprintf(gnuplotPipe, "set log y\n");
-	fprintf(gnuplotPipe, "unset key\n");
-	fprintf(gnuplotPipe, 
-		"set key title \"e = %1.3f K = %1.5f\" box opaque top right width 2\n", e, K);
-	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 notitle", e, K);
-	fclose(gnuplotPipe);
-
-	printf("Done!\n");
-
-	return 0;
-}
-
-int draw_time_series_union_e(dynsys system)
-{
-	FILE *gnuplotPipe;
-
-	double *par = (double *)system.params;
-	double K = par[6];
-
-	int color;
-	double e;
-
-	printf("Drawing union of time series\n");
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/time_series/fig_time_series_union_K_%1.5f.png\"\n", K);
-	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
-	fprintf(gnuplotPipe, "set log y\n");
-	fprintf(gnuplotPipe, "set linetype cycle 20\n");
-	color = 1;
-	e = 0.00;
-	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
-	for (e = 0.02; e < 0.205; e += 0.02)
-	{
-		color++;
-		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
-	}
-	fclose(gnuplotPipe);
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/time_series/fig_time_series_union_K_%1.5f_zoom.png\"\n", K);
-	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
-	fprintf(gnuplotPipe, "set log y\n");
-	fprintf(gnuplotPipe, "set xrange[0:120]\n");
-	fprintf(gnuplotPipe, "set yrange[0.8:1000]\n");
-	fprintf(gnuplotPipe, "set linetype cycle 20\n");
-	color = 1;
-	e = 0.00;
-	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
-	for (e = 0.02; e < 0.205; e += 0.02)
-	{
-		color++;
-		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
-	}
-	fclose(gnuplotPipe);
-
-	printf("Done!\n");
-
-	return 0;
-}
-
-int draw_time_series_union_K(dynsys system)
-{
-	FILE *gnuplotPipe;
-
-	double *par = (double *)system.params;
-	double e = par[1];
-
-	int color;
-	double K;
-
-	printf("Drawing union of time series\n");
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/time_series/fig_time_series_union_e_%1.3f.png\"\n", e);
-	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set title \"e = %1.3f\"\n", e);
-	fprintf(gnuplotPipe, "set log y\n");
-	fprintf(gnuplotPipe, "set linetype cycle 20\n");
-	color = 1;
-	K = 0.01;
-	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"K = %1.3f\"", e, K, color, K);
-	for (K = 0.009; K > 0.00095; K -= 0.001)
-	{
-		color++;
-		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"K = %1.3f\"", e, K, color, K);
-	}
-	fclose(gnuplotPipe);
-
-	printf("Done!\n");
 
 	return 0;
 }
@@ -1205,37 +959,6 @@ int multiple_time_series(dynsys system,
 	fclose(out);
 
 	printf("Data written in output/time_series/ folder\n");
-
-	return 0;
-}
-
-int draw_multiple_time_series(dynsys system)
-{
-	FILE *gnuplotPipe;
-
-	double *par = (double *)system.params;
-	double e = par[1];
-	double K = par[6];
-
-	printf("Drawing multiple time series with e = %1.3f and K = %1.5f\n", e, K);
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/time_series/fig_multiple_time_series_e_%1.3f_K_%1.5f.png\"\n", e, K);
-	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set log y\n");
-	fprintf(gnuplotPipe, "unset key\n");
-	fprintf(gnuplotPipe, 
-		"set key title \"e = %1.3f K = %1.5f\" box opaque top right width 2\n", e, K);
-	fprintf(gnuplotPipe, "plot 'multiple_time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 notitle", e, K);
-	fclose(gnuplotPipe);
-
-	printf("Done!\n");
 
 	return 0;
 }
@@ -1394,7 +1117,7 @@ double dist_from_ref(double x[2],
     return dist_ref;
 }
 
-int evolve_basin(double *ic, double *ref, bool *converged,
+int evolve_basin(double *ic, double ref[][2], int ref_period, bool *converged,
                  double ***orbit, int *orbit_size,
                  dynsys system, anlsis analysis)
 {
@@ -1403,7 +1126,7 @@ int evolve_basin(double *ic, double *ref, bool *converged,
 	double box = 1e6;
 	double t = 0.0;
 	// tolerance for which we say the orbit converged
-	double eps = 1e-1;
+	double eps = 1e-1;	// eps = 1e-1
 
 	// allocate memory and initializes exit data
 	if (orbit != NULL)
@@ -1416,7 +1139,7 @@ int evolve_basin(double *ic, double *ref, bool *converged,
 	}
 	else
 	{
-		printf("Error: NULL orbit.");
+		printf("Error: NULL orbit.\n");
 		exit(2);
 	}
 	
@@ -1428,90 +1151,10 @@ int evolve_basin(double *ic, double *ref, bool *converged,
 	for (int i = 0; i < analysis.number_of_cycles; i++)
 	{
 		copy(rot, y, 2);
-	
-		if(dist_from_ref(rot, ref) < eps)
+
+		for (int j = 0; j < ref_period; j++)
 		{
-			*converged = true;
-			goto out;
-		}
-
-		evolve_cycle(y, &t, system, analysis);
-	
-		// check if orbit diverges
-		for (int j = 0; j < system.dim; j++)
-		{
-			if (fabs(y[j]) > box)
-			{
-				printf("Warning: box limit reached\n");
-				printf("y[%d] = %1.10e\n", j, y[j]);
-				goto out;
-			}
-		}
-
-		counter++;
-
-		// write orbit element
-		copy((*orbit)[i + 1], y, system.dim);
-
-	}
-
-	out:;
-
-	*orbit_size = counter;
-
-	return 0;
-}
-
-int evolve_basin_union (double *ic, double ref[][2],
-						int num_of_basins, bool *converged,
-                 		double ***orbit, int *orbit_size,
-                 		dynsys system, anlsis analysis)
-{
-	// declare variables
-	double y[system.dim];
-	double box = 1e6;
-	double t = 0.0;
-	double dist_from_ref_theta;
-	double dist_from_ref_theta_dot;
-	double dist_from_ref;
-	// tolerance for which we say the orbit converged
-	double eps = 1e-1;
-
-	// allocate memory and initializes exit data
-	if (orbit != NULL)
-	{
-		// takes into consideration initial condition
-		alloc_2d_double(orbit, 
-			analysis.number_of_cycles + 1, 
-			system.dim);
-		copy((*orbit)[0], ic, system.dim);
-	}
-	else
-	{
-		printf("Error: NULL orbit.");
-		exit(2);
-	}
-	
-	// takes into consideration initial condition
-	int counter = 1;
-
-	// orbit evolution
-	copy(y, ic, system.dim);
-	for (int i = 0; i < analysis.number_of_cycles; i++)
-	{
-		for (int j = 0; j < num_of_basins; j++)
-		{
-			dist_from_ref_theta = 
-					angular_dist(y[0], ref[j][0]);
-			
-			dist_from_ref_theta_dot = 
-					fabs(y[1]-ref[j][1]);
-
-			dist_from_ref = 
-				sqrt(dist_from_ref_theta*dist_from_ref_theta
-					+dist_from_ref_theta_dot*dist_from_ref_theta_dot);
-		
-			if(dist_from_ref < eps)
+			if(dist_from_ref(rot, ref[j]) < eps)
 			{
 				*converged = true;
 				goto out;
@@ -1545,7 +1188,7 @@ int evolve_basin_union (double *ic, double ref[][2],
 	return 0;
 }
 
-int basin_of_attraction(double *ref, dynsys system, 
+int basin_of_attraction(double ref[][2], int ref_period, dynsys system, 
 						anlsis analysis)
 {
 	// little warning
@@ -1558,33 +1201,47 @@ int basin_of_attraction(double *ref, dynsys system,
 
 	// create output folder if it does not exist
 	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
+	if (stat("output/basin_of_attraction", &st) == -1) {
+		mkdir("output/basin_of_attraction", 0700);
 	}
 
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files
+	FILE	*out_boa, *out_ref;
+	char	filename[150];
+
+	sprintf(filename, "output/basin_of_attraction/basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period);
+	out_boa = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period);
+	out_ref = fopen(filename, "w");
+
 	// declare variables
-	FILE 	*out_boa, *out_ref;
 	double y[system.dim];
 	double coordinate, velocity;
 	int orbit_fw_size;
 	double **orbit_fw;
-	double *par = (double *)system.params;
-	double e = par[1];
 	double rot_ini[2];
 	double orb[4], orb_ini[4];
 	init_orbital(orb_ini, e);
 	int basin_counter = 0;
 	int grid[2];
 	double basin[2];
+	bool converged;
 	int **basin_matrix, **control_matrix;
-	double **time_matrix, **rotation_matrix;
+	double **time_matrix;
+
 	alloc_2d_int(&basin_matrix, 
 		analysis.grid_resolution, analysis.grid_resolution);
 	alloc_2d_int(&control_matrix, 
 		analysis.grid_resolution, analysis.grid_resolution);
 	alloc_2d_double(&time_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_double(&rotation_matrix, 
 		analysis.grid_resolution, analysis.grid_resolution);
 	for (int i = 0; i < analysis.grid_resolution; i++)
 	{
@@ -1593,16 +1250,14 @@ int basin_of_attraction(double *ref, dynsys system,
 			basin_matrix[i][j] = 0;
 			control_matrix[i][j] = 0;
 			time_matrix[i][j] = NAN;
-			rotation_matrix[i][j] = NAN;
 		}
 	}
-	bool converged;
 
-	// open exit files
-	out_boa = fopen("output/basin.dat", "w");
-	out_ref = fopen("output/basin_ref.dat", "w");
-
-	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
+	for (int i = 0; i < ref_period; i++)
+	{
+		fprintf(out_ref, "%1.15e %1.15e\n", 
+						ref[i][0], ref[i][1]);
+	}	
 
 	// loop over coordinate values
 	for (int i = 0; i < analysis.grid_resolution; i++)
@@ -1647,186 +1302,7 @@ int basin_of_attraction(double *ref, dynsys system,
 					converged = false;
 
 					// calculate forward integration
-					evolve_basin(y, ref, &converged,
-						&orbit_fw, &orbit_fw_size,
-						system, analysis);
-
-					if(converged == true)
-					{
-						basin_matrix[i][j] = 1;
-						control_matrix[i][j] = 1;
-						time_matrix[i][j] = (double)(orbit_fw_size);
-						rotation_matrix[i][j] = 
-							orbit_fw[orbit_fw_size-1][0] / 2.*M_PI;
-						if ((analysis.grid_coordinate_min < 0.0) &&
-							(fmod (orbit_fw[orbit_fw_size-1][0] , 2.0 * M_PI) > M_PI))
-						{
-							rotation_matrix[i][j] += 1.0;
-						}
-						basin_counter++;
-					}
-					else
-					{
-						control_matrix[i][j] = -1;
-					}
-
-					// free memory
-					dealloc_2d_double(&orbit_fw, 
-							analysis.number_of_cycles);
-				}
-			
-			}
-		} // end pragma
-
-		// new line on terminal
-		printf("\n");
-	}
-
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		for (int j = 0; j < analysis.grid_resolution; j++)
-		{
-			grid[0] = i;
-			grid[1] = j;
-			grid_to_double(grid, basin, analysis);
-
-			fprintf(out_boa, "%1.5f %1.5f %d %1.5e %1.5e\n", 
-				basin[0], basin[1], 
-				basin_matrix[grid[0]][grid[1]],
-				time_matrix[grid[0]][grid[1]],
-				rotation_matrix[grid[0]][grid[1]]);
-		}
-		fprintf(out_boa, "\n");
-	}
-
-	printf("Basin counter = %d\n", basin_counter);
-
-	// close exit files
-	fclose(out_boa);
-	fclose(out_ref);
-
-	dealloc_2d_int(&basin_matrix, 
-					analysis.grid_resolution);
-
-	dealloc_2d_int(&control_matrix, 
-					analysis.grid_resolution);
-
-	dealloc_2d_double(&time_matrix, 
-					analysis.grid_resolution);
-
-	dealloc_2d_double(&rotation_matrix, 
-					analysis.grid_resolution);
-
-	printf("Data written in output folder\n");
-
-	return 0;
-}
-
-int union_basin_of_attraction(double ref[][2], 
-	int num_of_basins, dynsys system, anlsis analysis)
-{
-	// little warning
-	if (strcmp(system.name, "two_body") == 0)
-	{
-		printf("Warning: cant draw basins\n");
-		printf("for two-body system\n");
-		exit(2);
-	}
-
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
-	}
-
-	// declare variables
-	FILE 	*out_boa, *out_ref;
-	double y[system.dim];
-	double coordinate, velocity;
-	int orbit_fw_size;
-	double **orbit_fw;
-	double *par = (double *)system.params;
-	double e = par[1];
-	double rot_ini[2];
-	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
-	int basin_counter = 0;
-	int grid[2];
-	double basin[2];
-	int **basin_matrix, **control_matrix;
-	double **time_matrix;
-	alloc_2d_int(&basin_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_int(&control_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_double(&time_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		for (int j = 0; j < analysis.grid_resolution; j++)
-		{
-			basin_matrix[i][j] = 0;
-			control_matrix[i][j] = 0;
-			time_matrix[i][j] = NAN;
-		}
-	}
-	bool converged;
-
-	// open exit files
-	out_boa = fopen("output/basin_union.dat", "w");
-	out_ref = fopen("output/basin_ref_union.dat", "w");
-
-	for (int i = 0; i < num_of_basins; i++)
-	{
-		fprintf(out_ref, "%1.15e %1.15e\n\n", 
-						ref[i][0], ref[i][1]);
-	}
-		
-	// loop over coordinate values
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		// print progress on coordinate
-		printf("Calculating set %d of %d\n", 
-					i + 1, analysis.grid_resolution);
-
-		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
-
-		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
-				orbit_fw_size, orbit_fw, converged) shared(basin_matrix, \
-				control_matrix)
-		{
-
-		#pragma omp for
-			// loop over velocity values
-			for (int j = 0; j < analysis.grid_resolution; j++)
-			{
-				// print progress on velocity
-				printf("Calculating subset %d of %d\n", 
-							j + 1, analysis.grid_resolution);
-
-				if (control_matrix[i][j] == 0)
-				{
-					grid[0] = i;
-					grid[1] = j;
-
-					grid_to_double(grid, rot_ini, analysis);
-
-					copy(y, rot_ini, 2);
-
-					if (system.dim == 6)
-					{
-						for (int k = 0; k < 4; k++)
-						{
-							y[k+2] = orb_ini[k];
-						}
-					}
-
-					converged = false;
-
-					// calculate forward integration
-					evolve_basin_union(y, ref, 
-						num_of_basins, &converged,
+					evolve_basin(y, ref, ref_period, &converged,
 						&orbit_fw, &orbit_fw_size,
 						system, analysis);
 
@@ -1862,7 +1338,7 @@ int union_basin_of_attraction(double ref[][2],
 			grid[1] = j;
 			grid_to_double(grid, basin, analysis);
 
-			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
+			fprintf(out_boa, "%1.5f %1.5f %d %1.5e\n", 
 				basin[0], basin[1], 
 				basin_matrix[grid[0]][grid[1]],
 				time_matrix[grid[0]][grid[1]]);
@@ -1885,7 +1361,350 @@ int union_basin_of_attraction(double ref[][2],
 	dealloc_2d_double(&time_matrix, 
 					analysis.grid_resolution);
 
-	printf("Data written in output folder\n");
+	printf("Data written in output/basin_of_attraction/\n");
 
 	return 0;
 }
+
+int draw_orbit_map(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing orbit of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/orbit\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/orbit/fig_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
+		gamma, e, system.name, K);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"gamma = %1.3f    e = %1.3f    K = %1.5f\"\n", 
+		gamma, e, K);
+	fprintf(gnuplotPipe, "plot 'orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
+		gamma, e, system.name, K, gamma, e, system.name, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/orbit/\n");
+
+	return 0;
+}
+
+int draw_phase_space(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+
+	printf("Drawing phase space with gamma = %1.3f and e = %1.3f\n", 
+		gamma, e);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/phase_space\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/phase_space/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set key title \"gamma = %1.3f e = %1.3f\" box opaque top right width 2\n", 
+		gamma, e);
+	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle",
+		gamma, e);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_orbit_on_phase_space(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing orbit on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/orbit/fig_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
+		gamma, e, system.name, K);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"gamma = %1.3f    e = %1.3f    K = %1.5f\"\n", 
+		gamma, e, K);
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'orbit/orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit/orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
+		gamma, e, gamma, e, system.name, K, gamma, e, system.name, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/orbit/\n");
+
+	return 0;
+}
+
+int draw_time_series(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_e_%1.3f_K_%1.5f.png\"\n", e, K);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange [60:200] \n");
+	fprintf(gnuplotPipe, "set yrange [0.5:2] \n");
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set key title \"e = %1.3f K = %1.5f\" box opaque top right width 2\n", e, K);
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 notitle", e, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_time_series_union_e(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double K = par[6];
+
+	int color;
+	double e;
+
+	printf("Drawing union of time series\n");
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_union_K_%1.5f.png\"\n", K);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	color = 1;
+	e = 0.00;
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	for (e = 0.02; e < 0.205; e += 0.02)
+	{
+		color++;
+		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	}
+	fclose(gnuplotPipe);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_union_K_%1.5f_zoom.png\"\n", K);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "set xrange[0:120]\n");
+	fprintf(gnuplotPipe, "set yrange[0.8:1000]\n");
+	fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	color = 1;
+	e = 0.00;
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	for (e = 0.02; e < 0.205; e += 0.02)
+	{
+		color++;
+		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	}
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_time_series_union_K(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+
+	int color;
+	double K;
+
+	printf("Drawing union of time series\n");
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_union_e_%1.3f.png\"\n", e);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set title \"e = %1.3f\"\n", e);
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	color = 1;
+	K = 0.01;
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"K = %1.3f\"", e, K, color, K);
+	for (K = 0.009; K > 0.00095; K -= 0.001)
+	{
+		color++;
+		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"K = %1.3f\"", e, K, color, K);
+	}
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_multiple_time_series(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing multiple time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_multiple_time_series_e_%1.3f_K_%1.5f.png\"\n", e, K);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set key title \"e = %1.3f K = %1.5f\" box opaque top right width 2\n", e, K);
+	fprintf(gnuplotPipe, "plot 'multiple_time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 notitle", e, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_basin_of_attraction(double ref[][2], int ref_period,
+                            dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f and reference theta = %1.3f theta_dot = %1.3f with period = %d\n", 
+		system.name, gamma, e, K, ref[0][0], ref[0][1], ref_period);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/basin_of_attraction/fig_basin_of_attraction_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
+		gamma, e, system.name, K);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"Basin of attraction   for   gamma = %1.3f   e = %1.3f   K = %1.5f\"\n", 
+		gamma, e, K);
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/basin_of_attraction/\n");
+
+	printf("Drawing convergence times of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f and reference theta = %1.3f theta_dot = %1.3f with period = %d\n", 
+		system.name, gamma, e, K, ref[0][0], ref[0][1], ref_period);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/basin_of_attraction/fig_convergence_times_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
+		gamma, e, system.name, K);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"Convergence times   for   gamma = %1.3f   e = %1.3f   K = %1.5f\"\n", 
+		gamma, e, K);
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/basin_of_attraction/\n");
+
+	return 0;
+}
+

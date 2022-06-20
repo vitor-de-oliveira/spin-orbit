@@ -119,28 +119,14 @@ int orbit_map (double *ic,
                     dynsys system,
                     anlsis analysis);
 
-int draw_orbit_map  (dynsys system);
-
-int phase_space    (dynsys system,
-                    anlsis analysis);
-
-int draw_phase_space    (dynsys system);
-
-int draw_orbit_on_phase_space(dynsys system);
+int phase_space (dynsys system,
+                anlsis analysis);
 
 int time_series(dynsys system,
                 anlsis analysis);
 
-int draw_time_series(dynsys system);
-
-int draw_time_series_union_e(dynsys system);
-
-int draw_time_series_union_K(dynsys system);
-
 int multiple_time_series(dynsys system,
                         anlsis analysis);
-
-int draw_multiple_time_series(dynsys system);
 
 int mean_resonance  (dynsys system,
                     anlsis analysis);
@@ -148,28 +134,34 @@ int mean_resonance  (dynsys system,
 double dist_from_ref(double x[2],
                     double ref[2]);
 
-int evolve_basin(double *ic, double *ref, bool *converged,
-                 double ***orbit, int *orbit_size,
-                 dynsys system, anlsis analysis);
+int evolve_basin(double *ic, double ref[][2], 
+                int ref_period, bool *converged,
+                double ***orbit, int *orbit_size,
+                dynsys system, anlsis analysis);
 
-int evolve_basin_union  (double *ic, double ref[][2], 
-                        int num_of_basins, bool *converged,
-                        double ***orbit, int *orbit_size,
-                        dynsys system, anlsis analysis);
-
-int basin_of_attraction (double *ref,
+int basin_of_attraction (double ref[][2], int ref_period,
                         dynsys system,
                         anlsis analysis);
 
-int union_basin_of_attraction   (double ref[][2],
-                                int num_of_basins,
-                                dynsys system,
-                                anlsis analysis);
+/**
+ * Gnuplot pipe
+**/
 
-int multiple_basins_of_attraction   (dynsys system,
-                                    anlsis analysis);
+int draw_orbit_map  (dynsys system);
 
-int all_basins_of_attraction(dynsys system,
-                            anlsis analysis);
+int draw_phase_space    (dynsys system);
+
+int draw_orbit_on_phase_space(dynsys system);
+
+int draw_time_series(dynsys system);
+
+int draw_time_series_union_e(dynsys system);
+
+int draw_time_series_union_K(dynsys system);
+
+int draw_multiple_time_series(dynsys system);
+
+int draw_basin_of_attraction(double ref[][2], int ref_period,
+                            dynsys system);
 
 #endif
