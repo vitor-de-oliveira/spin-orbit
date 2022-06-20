@@ -4,7 +4,7 @@
 a member of periodic orbit structure. Also do this to evolve_basin
 
 - move resonance calculation from trace 
-orbit to future periodic orbit function.
+orbit to future periodic orbit function
 
 - check if the mean resonance still makes sense, specially after
 wrtitting the resonance in a more correct form at the orbit map function
@@ -15,31 +15,11 @@ wrtitting the resonance in a more correct form at the orbit map function
 
 - talvez fazer uma pasta de figuras / exemplos e subir no github
 
-- Make an init for the paramerters of Hyperion and so on
+- Make an init for the parameters of Hyperion and so on
 
 - Use terminal eps in scripts and pipes (or both versions on pipe and script)
 
-- Transform union basin in basin functions. Compare them. Move basin function to test
-
-- organize plot_phase_space script. See if it is still needed after 
-implementing gnuplot pipes
-
-- write pipes for other functions, such as basin of attraction and error 
-on phase space. Use grid values for gnuplot ranges
-
-- find out why optmization on basin of attraction calculation does not work
-
-- unify the core of basin of attraction functions
-
-- Colocar testes de erro no calculo da bacia para
-entender eventuais pontos estranhos
-
 - think of a good way to store the results. maybe dropbox or drive.
-
-- test the ressonance after implementing periodic orbit routine
-    - write a new mean_resonance function using periodic orbit
-    calculation. Try different orbits to converge on a grid and, if 
-    it works, associate to it the resonance. Maybe
 
 - think of a good way to organize the data. config file
 along with another dir with figures and raw data.
@@ -49,20 +29,12 @@ Maybe write a print_config_file function which would
 be called along with the gnuplot pipe. Include execution time
 somehow
 
-- pesquisa e adicionar, se houver, a verificação no erro de 
+- pesquisar e adicionar, se houver, a verificação no erro de 
 alguma grandeza que envolva a parte rotacional do problema
 
 - pegar os tempos reais no integrador? multiplicar pelo passo?
 
 - maybe remove two-body system
-
-- implementar a geração de figura utilizando o pipe para um
-nome de arquivo mais adequado. Colocar na msm função a geracao
-de um arquivo de configuração, com todos os valores utilizados
-para gerar a figura
-
-- calcular numero de voltar de theta com f para avaliar
-o valor da ressonancia
 
 - adaptar a parte orbital nas funcoes de traco de orbita
 e espaco de fases para quando for usar campos dissipativos
