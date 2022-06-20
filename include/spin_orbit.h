@@ -128,9 +128,6 @@ int time_series(dynsys system,
 int multiple_time_series(dynsys system,
                         anlsis analysis);
 
-int mean_resonance  (dynsys system,
-                    anlsis analysis);
-
 double dist_from_ref(double x[2],
                     double ref[2]);
 
