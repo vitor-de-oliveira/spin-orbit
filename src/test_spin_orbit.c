@@ -720,6 +720,275 @@ int basin_of_attraction_no_grid_no_omp(double *ref,
 	return 0;
 }
 
+int test_phase_space(dynsys system, anlsis analysis)
+{
+	// little warning
+	if (strcmp(system.name, "two_body") == 0)
+	{
+		printf("Warning: cant draw phase space\n");
+		printf("for two-body system\n");
+		exit(2);
+	}
+
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/test", &st) == -1) {
+		mkdir("output/test", 0700);
+	}
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+
+	// prepare and open exit files 
+	FILE 	*out_psp, *out_ic,
+			*out_orb_ang_mom_err, *out_vis_viva_err;
+	char	filename[100];
+
+	sprintf(filename, 
+		"output/test/phase_space_gamma_%1.3f_e_%1.3f.dat", gamma, e);
+	out_psp = fopen(filename, "w");
+
+	sprintf(filename, 
+		"output/test/phase_space_initial_conditions_gamma_%1.3f_e_%1.3f.dat", 
+		gamma, e);
+	out_ic = fopen(filename, "w");
+
+	sprintf(filename, 
+		"output/test/phase_space_orbital_angular_momentum_error_gamma_%1.3f_e_%1.3f.dat",
+		gamma, e);
+	out_orb_ang_mom_err = fopen(filename, "w");
+
+	sprintf(filename, 
+		"output/test/phase_space_vis_viva_error_gamma_%1.3f_e_%1.3f.dat",
+		gamma, e);
+	out_vis_viva_err = fopen(filename, "w");
+
+	// declare variables
+	double y[system.dim], y0[system.dim];
+	double coordinate, velocity;
+	int orbit_fw_size, orbit_bw_size;
+	double **orbit_fw, **orbit_bw;
+	double orb[4], orb_ini[4];
+	init_orbital(orb_ini, e);
+
+	// loop over coordinate values
+	for (int i = 0; i < analysis.nc; i++)
+	{
+		// print progress on coordinate
+		printf("Calculating set %d of %d\n", i + 1, analysis.nc);
+
+		omp_set_dynamic(0);     // Explicitly disable dynamic teams
+		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+
+		#pragma omp parallel private(y, y0, coordinate, velocity, \
+				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb)
+		{
+
+		if (analysis.nc == 1)
+		{
+			coordinate = analysis.coordinate_min;
+		}
+		else
+		{
+			coordinate = analysis.coordinate_min + 
+					(double)(i) * (analysis.coordinate_max - 
+					analysis.coordinate_min) / 
+					(double)(analysis.nc - 1);
+		}
+
+		#pragma omp for
+			// loop over velocity values
+			for (int j = 0; j < analysis.nv; j++)
+			{
+				// print progress on velocity
+				printf("Calculating subset %d of %d\n", 
+							j + 1, analysis.nv);
+
+				if (analysis.nv == 1)
+				{
+					velocity = analysis.velocity_min;
+				}
+				else
+				{
+					velocity = analysis.velocity_min + 
+							(double)(j) * (analysis.velocity_max - 
+							analysis.velocity_min) / 
+							(double)(analysis.nv - 1);
+				}
+
+				y[0] = coordinate;
+				y[1] = velocity;
+
+				if (system.dim == 6)
+				{
+					for (int k = 0; k < 4; k++)
+					{
+						y[k+2] = orb_ini[k];
+					}
+				}
+
+				// keep IC for backward integration
+				copy(y0, y, system.dim);
+
+				// calculate forward integration
+				evolve_orbit(y, &orbit_fw, 
+					&orbit_fw_size, system, analysis);
+
+				// calculate backward integration
+				analysis.cycle_period *= -1.0;
+				evolve_orbit(y0, &orbit_bw, 
+					&orbit_bw_size, system, analysis);
+				analysis.cycle_period *= -1.0;
+
+				#pragma omp critical
+				{
+					// write initial condition to file
+					fprintf(out_ic, "%1.15e %1.15e\n", coordinate, velocity);
+
+					// write orbit and error to file
+					for (int k = 0; k < orbit_fw_size; k++)
+					{
+						// fprintf(out_psp, "%1.15e %1.15e\n", 
+						// 	angle_mod_pos(orbit_fw[k][0]), 
+						// 	orbit_fw[k][1]);
+
+						fprintf(out_psp, "%1.15e %1.15e\n", 
+							angle_mod(orbit_fw[k][0]), 
+							orbit_fw[k][1]);
+
+						if (system.dim == 6)
+						{
+							for (int l = 0; l < 4; l++)
+							{
+								orb[l] = orbit_fw[k][l+2];
+							}
+							fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
+									k, fabs(angular_momentum_two_body(orb)-
+									angular_momentum_two_body(orb_ini)));
+							fprintf(out_vis_viva_err, "%d %1.15e\n", 
+									k, fabs(vis_viva_two_body(orb)-
+									vis_viva_two_body(orb_ini)));
+						}
+					}
+
+					for (int k = 0; k < orbit_bw_size; k++)
+					{
+						// fprintf(out_psp, "%1.15e %1.15e\n", 
+						// 	angle_mod_pos(orbit_bw[k][0]), 
+						// 	orbit_bw[k][1]);
+
+						fprintf(out_psp, "%1.15e %1.15e\n", 
+							angle_mod(orbit_bw[k][0]), 
+							orbit_bw[k][1]);
+
+						if (system.dim == 6)
+						{
+							for (int l = 0; l < 4; l++)
+							{
+								orb[l] = orbit_bw[k][l+2];
+							}
+							fprintf(out_orb_ang_mom_err, "%d %1.15e\n", 
+									k, fabs(angular_momentum_two_body(orb)-
+									angular_momentum_two_body(orb_ini)));
+							fprintf(out_vis_viva_err, "%d %1.15e\n", 
+									k, fabs(vis_viva_two_body(orb)-
+									vis_viva_two_body(orb_ini)));
+						}
+					}
+				} // end pragma omp critical
+
+				// free memory
+				dealloc_2d_double(&orbit_fw, 
+						analysis.number_of_cycles);
+				dealloc_2d_double(&orbit_bw, 
+						analysis.number_of_cycles);
+			
+			}
+		} // end pragma
+		// new line on terminal
+		printf("\n");
+	}
+
+	// close exit files
+	fclose(out_psp);
+	fclose(out_ic);
+	fclose(out_orb_ang_mom_err);
+	fclose(out_vis_viva_err);
+
+	printf("Data written in output folder\n");
+
+	return 0;
+}
+
+int test_time_series(dynsys system,
+					anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/test", &st) == -1) {
+		mkdir("output/test", 0700);
+	}
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files 
+	FILE *out, *out_err;
+	char	filename[100];
+
+	// indexed file
+	sprintf(filename, "output/test/time_series_e_%1.3f_K_%1.5f.dat", e, K);
+	out = fopen(filename, "w");
+
+	sprintf(filename, "output/test/time_series_e_%1.3f_K_%1.5f_err.dat", e, K);
+	out_err = fopen(filename, "w");
+
+	printf("Writting TEST time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	// declare variables
+	int orbit_size;
+	double res_mean;
+	double **orbit;
+	double ic[system.dim], orb[4], orbital[4];
+
+	ic[0] = 0.0, ic[1] = 1000.;
+
+	if (system.dim == 6)
+	{
+		init_orbital(orb, e);
+		for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
+	}
+
+	// evolve system
+	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+	for (int j = 0; j < orbit_size; j++)
+	{
+		fprintf(out, "%d %1.15e\n", j, orbit[j][1]);
+		for (int k = 0; k < 4; k++)
+		{
+			orbital[k] = orbit[j][k+2];
+		}
+		fprintf(out_err, "%d %1.15e\n", 
+				j, fabs(angular_momentum_two_body(orb)-
+				angular_momentum_two_body(orbital)));
+	}
+
+	// free memory
+	dealloc_2d_double(&orbit, analysis.number_of_cycles);
+
+	// close files
+	fclose(out);
+	fclose(out_err);
+
+	printf("Data written in output/test/ folder\n");
+
+	return 0;
+}
+
 int trace_orbit_map_image	(double *ic, dynsys system,
 							anlsis analysis)
 {
@@ -768,9 +1037,8 @@ int trace_orbit_map_image	(double *ic, dynsys system,
 	out_grid = fopen("output/test_orbit_grid.dat", "w");
 
 	// evolve system
-	evolve_orbit(ic, analysis.cycle_period, 
-				analysis.number_of_cycles, 
-				&orbit, &orbit_size, system);
+	evolve_orbit(ic, &orbit, 
+				&orbit_size, system, analysis);
 
 	// write orbit and constant error to file
 	fprintf(out_orb_ic, "%1.15e %1.15e\n", 

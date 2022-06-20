@@ -5,7 +5,7 @@
 
 #include "dynamical_system.h"
 #include "spin_orbit.h"
-#include "pendulum.h"
+// #include "pendulum.h"
 
 #include "test_spin_orbit.h"
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	dynsys system_linear = init_linear(*params);
 	dynsys system_linear_average = init_linear_average(*params);
 	
-	dynsys system_pendulum = init_pendulum(*params);
+	// dynsys system_pendulum = init_pendulum(*params);
 
 	anlsis analysis;
 
@@ -467,7 +467,52 @@ int main(int argc, char **argv)
 	// ref[0] = M_PI; ref[1] = 0.551540;
 	// // ref[0] = 0.0; ref[1] = 0.551540;
 	// printf("%1.5e\n", dist_from_ref(rot, ref));
-  
+
+	/////////////////////////////////////////////////////////
+	/*				   		Phase space		   	           */
+	/////////////////////////////////////////////////////////
+
+	// system = system_rigid;
+	// // system = system_linear_average;
+
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.140; // e = 0.1;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
+
+	// analysis.nc = 20, analysis.nv = 20; //nc = 3, nv = 50;
+	// analysis.number_of_cycles = 1e3; //1e3 2e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.coordinate_min = -2.61584; // 0.0 M_PI
+	// analysis.coordinate_max = -2.53924; // M_PI 2.0* M_PI
+	// analysis.velocity_min = 1.41818;
+	// analysis.velocity_max = 1.49319;
+
+	// test_phase_space(system, analysis);
+
+	/////////////////////////////////////////////////////////
+	/*				   		   Orbit		   	           */
+	/////////////////////////////////////////////////////////
+
+	// system = system_rigid;
+	system = system_linear_average;
+	double ic[system.dim];
+
+	gamma = (.89 * .89) / 3.;
+	e = 0.140; // e = 0.1;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
+
+	analysis.number_of_cycles = 1e5; //1e3 6e3
+	analysis.cycle_period = 2.0 * M_PI; // 1e-3
+
+	test_time_series(system, analysis);
 
 	/******************** Stop clock ***********************/
 

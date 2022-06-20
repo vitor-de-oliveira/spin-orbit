@@ -24,6 +24,12 @@ int basin_of_attraction_no_grid_no_omp  (double *ref,
                                         dynsys system,
                                         anlsis analysis);
 
+int test_phase_space(dynsys system,
+                    anlsis analysis);
+
+int test_time_series(dynsys system,
+                    anlsis analysis);
+
 int trace_orbit_map_image   (double *ic,
                             dynsys system,
                             anlsis analysis);
