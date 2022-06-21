@@ -2,6 +2,7 @@
 #define SPIN_ORB_H
 
 #include <math.h>
+#include <omp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
