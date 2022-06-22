@@ -10,8 +10,9 @@
 
 #include <gsl/gsl_roots.h>
 
-#include "dynamical_system.h"
 #include "aux_vmo.h"
+#include "dynamical_system.h"
+#include "periodic_orbit.h"
 
 /**
  * vector fields and jacobians related 
