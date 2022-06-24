@@ -118,8 +118,8 @@ int init_orbital(double y[4],
 **/
 
 int orbit_map (double *ic,
-                    dynsys system,
-                    anlsis analysis);
+               dynsys system,
+               anlsis analysis);
 
 int phase_space (dynsys system,
                 anlsis analysis);
@@ -143,6 +143,14 @@ int basin_of_attraction (double ref[][2], int ref_period,
                         anlsis analysis);
 
 /**
+ * periodic orbit
+**/
+
+// prints periodic orbit on exit file
+int print_periodic_orbit(perorb po,
+                         dynsys system);
+
+/**
  * Gnuplot pipe
 **/
 
@@ -162,5 +170,8 @@ int draw_multiple_time_series(dynsys system);
 
 int draw_basin_of_attraction(double ref[][2], int ref_period,
                             dynsys system, anlsis analysis);
+
+int draw_periodic_orbit_on_phase_space  (perorb po,
+                                         dynsys system);
 
 #endif

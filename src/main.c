@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
 	anlsis analysis;
 
-	double orbital[4];
+	double orbital[4], seed[2];
 
 	/********************* Some values **********************/
 
@@ -62,33 +62,41 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	// // system = system_linear_average;
-	// double ic[system.dim];
+	system = system_rigid;
+	// system = system_linear_average;
+	double ic[system.dim];
 
-	// gamma = (.89 * .89) / 3.;
-	// e = 0.1; // e = 0.1;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-2;
+	gamma = (.89 * .89) / 3.;
+	e = 0.1; // e = 0.1;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
 
-	// analysis.number_of_cycles = 1e2; //1e3 6e3
-	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
-	// analysis.evolve_box_size = 1e6;
-	// analysis.evolve_basin_eps = 1e-1;
+	analysis.number_of_cycles = 1e2; //1e3 6e3
+	analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	analysis.evolve_box_size = 1e6;
+	analysis.evolve_basin_eps = 1e-1;
 
-	// // ic[0] = 0.0, ic[1] = 100.;
-	// // // //near the 1:1 stable fp in the rigid case
-	// // // ic[0] = M_PI; ic[1] = 0.551537;
-	// // init_orbital(orbital, e);
-	// // for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// ic[0] = 0.0, ic[1] = 100.;
+	//near the 1:1 stable fp in the rigid case
+	ic[0] = M_PI; ic[1] = 0.551537;
+	init_orbital(orbital, e);
+	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
 	// ic[0] = 0.0, ic[1] = 0.1;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	// orbit_map(ic, system, analysis);
+	orbit_map(ic, system, analysis);
+
+	seed[0] = M_PI; seed[1] = 0.551537;
+
+	WRONG DIMENSION!!!
+
+	SOH FALTA ACERTAR O EVOLVE N CYCLES 2D BY MAKING
+	IT A POINTER TO A FUNCTION AND WRITTING REAL EVOLVE 
+	N CYCLES ON SPIN ORBIT
 
 	// draw_orbit_map(system);
 
