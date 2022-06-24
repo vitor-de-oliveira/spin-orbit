@@ -129,6 +129,12 @@ int time_series(dynsys system,
 int multiple_time_series(dynsys system,
                         anlsis analysis);
 
+int multiple_time_series_delta_theta_dot(dynsys system,
+										anlsis analysis);
+
+int multiple_time_series_delta_theta(dynsys system,
+									anlsis analysis);
+
 double dist_from_ref(double x[2],
                     double ref[2]);
 
@@ -158,6 +164,10 @@ int draw_time_series_union_e(dynsys system);
 int draw_time_series_union_K(dynsys system);
 
 int draw_multiple_time_series(dynsys system);
+
+int draw_multiple_time_series_delta_theta(dynsys system);
+
+int draw_multiple_time_series_delta_theta_dot(dynsys system);
 
 int draw_basin_of_attraction(double ref[][2], int ref_period,
                             dynsys system, anlsis analysis);
