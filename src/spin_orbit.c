@@ -1225,51 +1225,122 @@ int basin_of_attraction(double ref[][2], int ref_period, dynsys system,
 	return 0;
 }
 
-int print_periodic_orbit(perorb po,
-                         dynsys system)
+int evolve_n_cycles_po  (double y0[2],
+						 int n,
+                         dynsys system,
+                         anlsis analysis)
 {
-    // create output folder if it does not exist
+    double t = 0;
+	double y[system.dim], orbital[4];
+	double *par = (double *)system.params;
+	double e = par[1];
+
+	copy (y, y0, 2);
+
+	if (system.dim == 6)
+	{
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++)
+		{
+			y[i+2] = orbital[i];
+		}
+	}
+
+    // loop over cycles
+	for (int i = 0; i < n; i++)
+	{
+		evolve_cycle(y, &t, system, analysis);
+	
+		// check if orbit diverges
+		for (int j = 0; j < system.dim; j++)
+		{
+			if (fabs(y[j]) > analysis.evolve_box_size)
+			{
+                printf("Warning: evolve periodic orbit failed\n");
+				printf("box limit reached\n");
+				printf("y[%d] = %1.10e\n", j, y[j]);
+				exit(2);
+			}
+		}
+	}
+
+	copy (y0, y, 2);
+
+	return 0;
+}
+
+int periodic_orbit	(perorb *po,
+                     dynsys system,
+                     anlsis analysis)
+{
+	// create output folder if it does not exist
 	struct stat st = {0};
 	if (stat("output/periodic_orbit", &st) == -1)
     {
 		mkdir("output/periodic_orbit", 0700);
 	}
 
-	double *par = (double *)system.params;
-	double gamma = par[0];
-	double e = par[1];
-	double K = par[6];
+	FILE    *out;
+	char    filename[200];
+	double 	t = 0;
+    double 	y[system.dim], orbital[4];
+	double 	orbit[(*po).period][2];
+	double 	*par = (double *)system.params;
+	double 	gamma = par[0];
+	double 	e = par[1];
+	double 	K = par[6];
+
+	dist_on_phase_space = &dist_from_ref;
+	evolve_n_cycles = &evolve_n_cycles_po;
+
+	calculate_periodic_orbit_ic(po, system, analysis);
+
+    copy(y, (*po).initial_condition, 2);
+
+	if (system.dim == 6)
+	{
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++)
+		{
+			y[i+2] = orbital[i];
+		}
+	}
+
+    for (int i = 0; i < (*po).period; i++)
+    {
+		copy(orbit[i], y, 2);
+        evolve_cycle(y, &t, system, analysis);
+    }
 
     // finds the index for the smallest theta value
     // inside the periodic orbit to use as a reference
     // on the file name
     int index_theta_min = 0;
-    for (int i = 1; i < po.period; i++)
+    for (int i = 1; i < (*po).period; i++)
     {
-        if(po.orbit[i][0] < po.orbit[i-1][0])
+        if(angle_mod(orbit[i][0]) < angle_mod(orbit[i-1][0]))
         {
             index_theta_min = i;
         }
     }
 
-    // prepare and open exit files 
-	FILE    *out;
-	char    filename[200];
+	(*po).initial_condition[0] = angle_mod(orbit[index_theta_min][0]);
+	(*po).initial_condition[1] = orbit[index_theta_min][1];
 
 	// indexed file
-	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat", 
-            gamma, e, system.name, K, po.orbit[index_theta_min][0], po.orbit[index_theta_min][1], po.period);
+	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ic_%1.3f_%1.3f_period_%d.dat", 
+            gamma, e, system.name, K, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1], (*po).period);
 	out = fopen(filename, "w");
 
-    for (int i = 0; i < po.period; i++)
+    for (int i = 0; i < (*po).period; i++)
     {
         fprintf(out, "%1.10e %1.10e\n", 
-            po.orbit[i][0], po.orbit[i][1]);
+            angle_mod(orbit[i][0]), orbit[i][1]);
     }
 
     fclose(out);
 
-    return 0;
+	return 0;
 }
 
 int draw_orbit_map(dynsys system)
@@ -1624,15 +1695,6 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 	double e = par[1];
 	double K = par[6];
 
-    int index_theta_min = 0;
-    for (int i = 1; i < po.period; i++)
-    {
-        if(po.orbit[i][0] < po.orbit[i-1][0])
-        {
-            index_theta_min = i;
-        }
-    }
-
 	printf("Drawing periodic orbit of period %d on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
 		po.period, system.name, gamma, e, K);
 
@@ -1652,8 +1714,8 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 	fprintf(gnuplotPipe, 
 		"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f K = %1.5f\"\n", 
 		system.name, gamma, e, K);
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d.dat' w p pt 7 ps 1.5 palette notitle",
-		gamma, e, gamma, e, system.name, K, po.orbit[index_theta_min][0], po.orbit[index_theta_min][1], po.period);
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ic_%1.3f_%1.3f_period_%d.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
+		gamma, e, gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");

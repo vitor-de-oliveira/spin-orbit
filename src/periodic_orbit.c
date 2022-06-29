@@ -16,26 +16,46 @@ void jacobian_periodic_orbit(double **J,
     // approximate 1st col. of jacobian matrix
     x_plus[0] = po.initial_condition[0] + 0.5 * dx;
     x_plus[1] = po.initial_condition[1];
-    evolve_n_cycles (po.period, x_plus, system, analysis);
+    evolve_n_cycles(x_plus, po.period, system, analysis);
 
     x_minus[0] = po.initial_condition[0] - 0.5 * dx;
     x_minus[1] = po.initial_condition[1];
-    evolve_n_cycles (po.period, x_minus, system, analysis);
+    evolve_n_cycles(x_minus, po.period, system, analysis);
 
     J[0][0] = (x_plus[0] - x_minus[0]) / dx;
     J[1][0] = (x_plus[1] - x_minus[1]) / dx;
 
+    // for (int i = 0; i < 2; i++)
+    // {
+    //     printf("x_plus[%d] = %1.10e x_minus[%d] = %1.10e\n", 
+    //            i, x_plus[i], i, x_minus[i]);
+    // }
+
     // approximate 2nd col. of jacobian matrix
     x_plus[0] = po.initial_condition[0];
     x_plus[1] = po.initial_condition[1] + 0.5 * dx;
-    evolve_n_cycles (po.period, x_plus, system, analysis);
+    evolve_n_cycles(x_plus, po.period, system, analysis);
 
     x_minus[0] = po.initial_condition[0];
     x_minus[1] = po.initial_condition[1] - 0.5 * dx;
-    evolve_n_cycles (po.period, x_minus, system, analysis);
+    evolve_n_cycles(x_minus, po.period, system, analysis);
 
     J[0][1] = (x_plus[0] - x_minus[0]) / dx;
     J[1][1] = (x_plus[1] - x_minus[1]) / dx;
+
+    // for (int i = 0; i < 2; i++)
+    // {
+    //     printf("x_plus[%d] = %1.10e x_minus[%d] = %1.10e\n", 
+    //            i, x_plus[i], i, x_minus[i]);
+    // }
+
+    // for (int i = 0; i < 2; i++)
+    // {
+    //     for (int j = 0; j < 2; j++)
+    //     {
+    //         printf("J[%d][%d] = %1.10e\n", i, j, J[i][j]);
+    //     }
+    // }
 
     // free memory
     dealloc_1d_double(&x);
@@ -44,19 +64,21 @@ void jacobian_periodic_orbit(double **J,
 }
 
 void minimization_step  (double *x,
+                         double *err,
                          double lamb,
                          perorb po,
                          dynsys system, 
                          anlsis analysis)
 {
     double *y, *rhs, *dx, *ic;
-    double **M, **Jt, **J;
+    double **M, **M_inv, **Jt, **J;
 
     alloc_1d_double(&y, 2);
     alloc_1d_double(&dx, 2);
     alloc_1d_double(&rhs, 2);
     alloc_1d_double(&ic, 2);
     alloc_2d_double(&M, 2, 2);
+    alloc_2d_double(&M_inv, 2, 2);
     alloc_2d_double(&J, 2, 2);
     alloc_2d_double(&Jt, 2, 2);
 
@@ -64,36 +86,49 @@ void minimization_step  (double *x,
 
     // functional jacobian
     J[0][0] -= 1.0; J[1][1] -= 1.0;
-    square_matrix_tranpose_2d(Jt, J, 2);
+    square_matrix_transpose_2d(Jt, J, 2);
     square_matrix_product_2d(M, Jt, J, 2);
     M[0][0] *= (1.0+lamb); M[1][1] *= (1.0+lamb);
 
     // right hand side vector
     copy(ic, po.initial_condition, 2);
-    evolve_n_cycles (po.period, po.initial_condition,
-                    system, analysis);
+    evolve_n_cycles(ic, po.period, system, analysis);
     linear_combination(y, 1.0, po.initial_condition, -1.0, ic, 2);
+    // printf("y[0] = %1.5e y[1] = %1.5e\n", y[0], y[1]);
+    y[0] = angle_mod(y[0]);
+    // printf("y[0] = %1.5e y[1] = %1.5e\n", y[0], y[1]);
     square_matrix_product_vector(rhs, Jt, y, 2);
-    gauss_solve (M, dx, rhs, 2);
+    // gauss_solve (dx, M, rhs, 2);
+    square_2d_matrix_inverse(M_inv, M);
+    square_matrix_product_vector(dx, M_inv, rhs, 2);
+
+    // printf("dx[0] = %1.5e\n", dx[0]);
+    // printf("dx[1] = %1.5e\n", dx[1]);
 
     // new point
     linear_combination(x, 1.0, po.initial_condition, 1.0, dx, 2);
+    x[0] = angle_mod(x[0]);
+
+    // new error
+    copy(ic, x, 2);
+    evolve_n_cycles(ic, po.period, system, analysis);
+    *err = dist_on_phase_space(ic, x);
 
     dealloc_1d_double(&y);
     dealloc_1d_double(&dx);
     dealloc_1d_double(&rhs);
     dealloc_1d_double(&ic);
     dealloc_2d_double(&M, 2);
+    dealloc_2d_double(&M_inv, 2);
     dealloc_2d_double(&J, 2);
     dealloc_2d_double(&Jt, 2);
 }
 
-int periodic_orbit  (double seed[2],
-                     perorb po,
-                     dynsys system, 
-                     anlsis analysis)
+int calculate_periodic_orbit_ic(perorb *po,
+                                dynsys system, 
+                                anlsis analysis)
 {
-    if (po.period > 100)
+    if ((*po).period > 100)
     {
         printf("Warning: cannot calculate\n");
         printf("a periodic orbit with this period.\n");
@@ -105,52 +140,52 @@ int periodic_orbit  (double seed[2],
     double *x1, *x2;
 
     // Levenberg-Marquardt parameters
-    r = 0.5;
+    r = 2.0;
     lamb = 0.01;
 
     // iteration parameters
-    tol = 1e-14;
-    max_steps = 100;
+    tol = 1e-13;
+    max_steps = 1000;
 
     // dynamical memory allocation 
     alloc_1d_double(&x1, 2);
     alloc_1d_double(&x2, 2);
 
     // error of the seed
-    printf("seed for initial condition = (%1.15e  %1.15e)\n",
-            seed[0], seed[1]);
-    copy (po.initial_condition, seed, 2);
-    evolve_n_cycles (po.period, po.initial_condition, system, 
-                     analysis);
-    err = dist(po.initial_condition, seed, 2);
+    printf("seed for initial condition = (%1.5e  %1.5e)\n",
+            (*po).seed[0], (*po).seed[1]);
+    copy ((*po).initial_condition, (*po).seed, 2);
+    evolve_n_cycles((*po).initial_condition, (*po).period, 
+                    system, analysis);
+    err = dist_on_phase_space((*po).initial_condition, (*po).seed);
     printf("seed error = |M^%d(seed)-seed| = %1.5e\n", 
-            po.period, err);
+            (*po).period, err);
 
     // fixed point calculation 
     printf("Starting periodic orbit calculation\n");
 
-    copy (po.initial_condition, seed, 2);
+    copy ((*po).initial_condition, (*po).seed, 2);
     count = 0;
     while (err > tol && count < max_steps)
     {
         printf ("step = %d err = %1.5e lamb = %f\n",
                 count, err, lamb);
 
-        minimization_step(x1, lamb, po, system, analysis);
-        err1 = dist(x1, po.initial_condition, 2);
+        minimization_step(x1, &err1, lamb, *po, system, analysis);
 
-        minimization_step(x2, r * lamb, po, system, analysis);
-        err2 = dist(x2, po.initial_condition, 2);
+        minimization_step(x2, &err2, r * lamb, *po, system, analysis);
+
+        printf("err1 = %1.5e err2 = %1.5e\n", err1, err2);
 
         if (err1 < err && err1 < err2)
         {
             err = err1;
-            copy (po.initial_condition, x1, 2);
+            copy ((*po).initial_condition, x1, 2);
         }
         else if (err2 < err && err2 < err1)
         {
             err = err2;
-            copy (po.initial_condition, x2, 2);
+            copy ((*po).initial_condition, x2, 2);
             r *= lamb;
         }
         else if (err2 < err1)
@@ -170,21 +205,21 @@ int periodic_orbit  (double seed[2],
         printf("method didn't converge\n");
 	    printf("max. count reached during fixed point search\n");
         printf("approx. initial condition = (%1.15e  %1.15e)\n", 
-                po.initial_condition[0], po.initial_condition[1]);
+                (*po).initial_condition[0], (*po).initial_condition[1]);
         printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n", 
-                po.period, err);
+                (*po).period, err);
+        exit(2);
     }
     else
     {
-        printf("periodic orbit of period %d found after %d steps\n", po.period, count);
+        printf("periodic orbit of period %d found after %d steps\n", (*po).period, count);
         printf("initial condition = (%1.15e  %1.15e)\n", 
-                po.initial_condition[0], po.initial_condition[1]);
+                (*po).initial_condition[0], (*po).initial_condition[1]);
         printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n",
-                po.period, err);
+                (*po).period, err);
     }
 
-    // save values on perorb
-    fills_periodic_orbit(po, system, analysis);
+    // printf("%1.5e\n", (*po).initial_condition[1]);
 
     dealloc_1d_double(&x1);
     dealloc_1d_double(&x2);
@@ -192,53 +227,7 @@ int periodic_orbit  (double seed[2],
     return 0;
 }
 
-int fills_periodic_orbit(perorb po,
-                         dynsys system, 
-                         anlsis analysis)
-{
-    double t = 0;
-    double y[2];
-
-    copy(y, po.initial_condition, 2);
-
-    for (int i = 0; i < po.period; i++)
-    {
-        copy(po.orbit[i], y, 2);
-        evolve_cycle(y, &t, system, analysis);
-    }
-
-    return 0;
-}
-
-int evolve_n_cycles (int    n,
-                     double *y,
-                     dynsys system,
-                     anlsis analysis)
-{
-    double t = 0;
-
-    // loop over cycles
-	for (int i = 0; i < n; i++)
-	{
-		evolve_cycle(y, &t, system, analysis);
-	
-		// check if orbit diverges
-		for (int j = 0; j < system.dim; j++)
-		{
-			if (fabs(y[j]) > analysis.evolve_box_size)
-			{
-                printf("Warning: evolve n cycles failed\n");
-				printf("box limit reached\n");
-				printf("y[%d] = %1.10e\n", j, y[j]);
-				exit(2);
-			}
-		}
-	}
-
-	return 0;
-}
-
-void gauss_solve (double **A, double *x, double *b, int dim)
+void gauss_solve (double *x, double **A, double *b, int dim)
 {
     double temp;
 
@@ -247,9 +236,10 @@ void gauss_solve (double **A, double *x, double *b, int dim)
     double** Ab; // augmented matrix
     Ab = malloc (dim * sizeof(double*));
 
+    alloc_2d_double(&Ab, dim, dim + 1);
+
     for (int i = 0; i < dim; i++)
     {
-        Ab[i] = malloc ((dim + 1) * sizeof(double));
         for (int j = 0; j < dim; j++)
         {
             Ab[i][j] = A[i][j];
@@ -306,4 +296,6 @@ void gauss_solve (double **A, double *x, double *b, int dim)
             x[i] = temp;
         }
     }
+
+    dealloc_2d_double(&Ab, dim);
 }

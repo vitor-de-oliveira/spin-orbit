@@ -18,8 +18,8 @@
 // I have set a limit of 100 for the orbit period
 typedef struct PerOrb{
     int     period;
+    double  seed[2];
     double  initial_condition[2];
-    double  *orbit[2];
 } perorb;
 
 // numerically approximate jacobian on a periodic orbit
@@ -30,38 +30,37 @@ void jacobian_periodic_orbit(double **J,
 
 // minimization step for Levenberg-Marquardt method
 void minimization_step  (double *x,
+                         double *err,
                          double lamb,
                          perorb po,
                          dynsys system, 
                          anlsis analysis);
 
-// calculates the periodic orbit
-int periodic_orbit  (double seed[2],
-                     perorb po,
-                     dynsys system, 
-                     anlsis analysis);
-
-// fills in orbit
-int fills_periodic_orbit(perorb po,
-                         dynsys system, 
-                         anlsis analysis);
+// calculates the periodic orbit's IC
+int calculate_periodic_orbit_ic(perorb *po,
+                                dynsys system, 
+                                anlsis analysis);
 
 /**
- * additional dynamical systems functions
-**/
-
-// evolves an initial condition for n cycles
-// considers t = 0
-int evolve_n_cycles (int    n,
-                     double *y,
-                     dynsys system,
-                     anlsis analysis);
-
-/**
- * additional mathematical functions
+ * mathematical functions
 **/
 
 // solves Ax = b for x using Gaussian elimination
-void gauss_solve (double **A, double *x, double *b, int dim);
+void gauss_solve (double *x, double **A, double *b, int dim);
+
+/**
+ * additional dynamical systems functions
+ * to be linked with external functions
+**/
+
+// distance between points on 2d phase space
+double (*dist_on_phase_space)  (double x[2], 
+                                double y[2]);
+
+// evolves an initial condition over n cycles
+int (*evolve_n_cycles)   (double y0[2],
+                          int n,
+                          dynsys system,
+                          anlsis analysis);
 
 #endif

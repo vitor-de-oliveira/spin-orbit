@@ -233,14 +233,36 @@ void square_matrix_product_2d(double **mp, double **m1, double **m2, int dim)
 	}
 }
 
-void square_matrix_tranpose_2d(double **mt, double **m, int dim)
+void square_matrix_transpose_2d(double **mt, double **m, int dim)
 {
 	for (int i = 0; i < dim; i++)
 	{
 		for (int j = 0; j < dim; j++)
 		{
-			mt[j][i] = m[i][j];
+			mt[i][j] = m[j][i];
 		}
+	}
+}
+
+double square_2d_matrix_determinant(double **m)
+{
+	return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+}
+
+void square_2d_matrix_inverse(double **inv, double **m)
+{
+	double det = square_2d_matrix_determinant(m);
+	if (det == 0)
+	{
+		printf("Warning: cant invert matrix\n");
+		exit(3);
+	}
+	else
+	{
+		inv[0][0] = m[1][1] / det;
+		inv[0][1] = -1.0 * m[0][1] / det;
+		inv[1][0] = -1.0 * m[1][0] / det;
+		inv[1][1] = m[0][0] / det;
 	}
 }
 

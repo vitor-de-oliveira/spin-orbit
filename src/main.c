@@ -43,7 +43,9 @@ int main(int argc, char **argv)
 
 	anlsis analysis;
 
-	double orbital[4], seed[2];
+	perorb po;
+
+	double orbital[4];
 
 	/********************* Some values **********************/
 
@@ -67,36 +69,40 @@ int main(int argc, char **argv)
 	double ic[system.dim];
 
 	gamma = (.89 * .89) / 3.;
-	e = 0.1; // e = 0.1;
+	e = 0.140; // e = 0.1;
 	m_secondary = 0.;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 	a = 1.0;
 	K = 1e-2;
 
-	analysis.number_of_cycles = 1e2; //1e3 6e3
+	analysis.number_of_cycles = 5e2; //1e3 6e3
 	analysis.cycle_period = 2.0 * M_PI; // 1e-3
 	analysis.evolve_box_size = 1e6;
 	analysis.evolve_basin_eps = 1e-1;
 
 	// ic[0] = 0.0, ic[1] = 100.;
 	//near the 1:1 stable fp in the rigid case
-	ic[0] = M_PI; ic[1] = 0.551537;
-	init_orbital(orbital, e);
-	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-
-	// ic[0] = 0.0, ic[1] = 0.1;
+	// ic[0] = M_PI; ic[1] = 0.551537;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+
+	// ic[0] = 0.0, ic[1] = 0.1;
+	// ic[0] = 0.0; ic[1] = 0.551537;
+	// ic[0] = M_PI; ic[1] = 0.551537;
+	ic[0] = -2.46555; ic[1] = 1.36287;
+	copy(po.seed, ic, 2);
+	init_orbital(orbital, e);
+	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	orbit_map(ic, system, analysis);
 
-	seed[0] = M_PI; seed[1] = 0.551537;
+	po.period = 4;
+	// po.seed[0] = 0.0; po.seed[1] = 0.551537;
+	periodic_orbit(&po, system, analysis);
 
-	WRONG DIMENSION!!!
+	draw_periodic_orbit_on_phase_space (po, system);
 
-	SOH FALTA ACERTAR O EVOLVE N CYCLES 2D BY MAKING
-	IT A POINTER TO A FUNCTION AND WRITTING REAL EVOLVE 
-	N CYCLES ON SPIN ORBIT
+	// printf("%1.5e\n", po.initial_condition[1]);
 
 	// draw_orbit_map(system);
 

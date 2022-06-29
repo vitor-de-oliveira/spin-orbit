@@ -146,9 +146,17 @@ int basin_of_attraction (double ref[][2], int ref_period,
  * periodic orbit
 **/
 
-// prints periodic orbit on exit file
-int print_periodic_orbit(perorb po,
-                         dynsys system);
+// evolves an initial condition for n cycles
+int evolve_n_cycles_po  (double y0[2],
+                         int n,
+                         dynsys system,
+                         anlsis analysis);
+
+// calculates periodic orbit 
+// and prints it on an exit file
+int periodic_orbit	(perorb *po,
+                     dynsys system,
+                     anlsis analysis);
 
 /**
  * Gnuplot pipe

@@ -1,5 +1,9 @@
 - improve resonance calculation for periodic orbits
 
+- when the resonance is being calculated for p.o.same
+use it as a reference to identify data file names. along with
+stability more along the way
+
 - maybe change argument of basin of attraction function to
 a member of periodic orbit structure. Also do this to evolve_basin
 
