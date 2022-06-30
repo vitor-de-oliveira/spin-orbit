@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 	a = 1.0;
-	K = 1e-2;
+	K = 1e-3;
 
 	analysis.number_of_cycles = 5e3; //1e3 6e3
 	analysis.cycle_period = 2.0 * M_PI; // 1e-3
@@ -84,24 +84,25 @@ int main(int argc, char **argv)
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	ic[0] = 0.0, ic[1] = 1000.4;
-	init_orbital(orbital, e);
-	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	orbit_map(ic, system, analysis);
+	// ic[0] = 0.0, ic[1] = 1000.4;
+	// init_orbital(orbital, e);
+	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// orbit_map(ic, system, analysis);
 
-	// draw_orbit_map(system);
+	// // draw_orbit_map(system);
 
-	draw_orbit_on_phase_space(system);
+	// draw_orbit_on_phase_space(system);
 
 	// multiple_time_series(system, analysis);
 
 	// draw_multiple_time_series(system);
 
-	// multiple_time_series_delta_theta_dot(system, analysis);
+	analysis.time_series_delta = 10.0;
+	multiple_time_series_delta_theta_dot(system, analysis);
 
 	// multiple_time_series_delta_theta(system, analysis);
 
-	// draw_multiple_time_series_delta_theta_dot(system);
+	draw_multiple_time_series_delta_theta_dot(system, analysis);
 
 	// draw_multiple_time_series_delta_theta(system);
 
