@@ -177,15 +177,15 @@ int main(int argc, char **argv)
 	a = 1.0;
  	K = 1e-2;
 
-	analysis.number_of_cycles = 1e3; //1e3
+	analysis.number_of_cycles = 2e3; //1e3
 	analysis.cycle_period = 2.0 * M_PI;
-	analysis.grid_resolution = 50;
+	analysis.grid_resolution = 400; //600
 	analysis.grid_coordinate_min = -M_PI;
 	analysis.grid_coordinate_max = M_PI;
 	analysis.grid_velocity_min = 0.0;
 	analysis.grid_velocity_max = 3.0;
 	analysis.evolve_box_size = 1e6;
-	analysis.evolve_basin_eps = 1e-1;
+	analysis.evolve_basin_eps = 1e-3;
 
 	// ref[0][0] = 0.0; ref[0][1] = 0.551540; // e = 0.1
 	// ref[1][0] = M_PI; ref[1][1] = 0.551540; // e = 0.1
@@ -197,7 +197,7 @@ int main(int argc, char **argv)
 	ref[1][0] = 5.633238998250718e-01; 	ref[1][1] = 1.467273372265798e+00;
 	ref[2][0] = -6.646192119783194e-01; ref[2][1] = 1.356998968090035e+00;
 	ref[3][0] = -2.552302112530043e+00; ref[3][1] = 1.444362559384576e+00;
-  	// basin_of_attraction (ref, ref_period, system, analysis);
+  	basin_of_attraction (ref, ref_period, system, analysis);
 	draw_basin_of_attraction (ref, ref_period, system, analysis);
 
   /******************** Stop clock ***********************/

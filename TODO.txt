@@ -1,5 +1,12 @@
 - improve resonance calculation for periodic orbits
 
+- add a criteruim for the basin which measures if the orbit stays close 
+to the attractor for a sufficient ammount of time. 100 cycles maybe. 
+Put this criterium along with the convergence criterium to stabilish that a
+given orbit has ideed converged.
+Put also an alert somehow if any of the orbits conrged in the maximum sim time
+that means that I did not choose a time long enough
+
 - maybe change argument of basin of attraction function to
 a member of periodic orbit structure. Also do this to evolve_basin
 
