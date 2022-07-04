@@ -25,12 +25,6 @@ void jacobian_periodic_orbit(double **J,
     J[0][0] = (x_plus[0] - x_minus[0]) / dx;
     J[1][0] = (x_plus[1] - x_minus[1]) / dx;
 
-    // for (int i = 0; i < 2; i++)
-    // {
-    //     printf("x_plus[%d] = %1.10e x_minus[%d] = %1.10e\n", 
-    //            i, x_plus[i], i, x_minus[i]);
-    // }
-
     // approximate 2nd col. of jacobian matrix
     x_plus[0] = po.initial_condition[0];
     x_plus[1] = po.initial_condition[1] + 0.5 * dx;
@@ -42,20 +36,6 @@ void jacobian_periodic_orbit(double **J,
 
     J[0][1] = (x_plus[0] - x_minus[0]) / dx;
     J[1][1] = (x_plus[1] - x_minus[1]) / dx;
-
-    // for (int i = 0; i < 2; i++)
-    // {
-    //     printf("x_plus[%d] = %1.10e x_minus[%d] = %1.10e\n", 
-    //            i, x_plus[i], i, x_minus[i]);
-    // }
-
-    // for (int i = 0; i < 2; i++)
-    // {
-    //     for (int j = 0; j < 2; j++)
-    //     {
-    //         printf("J[%d][%d] = %1.10e\n", i, j, J[i][j]);
-    //     }
-    // }
 
     // free memory
     dealloc_1d_double(&x);
@@ -94,16 +74,11 @@ void minimization_step  (double *x,
     copy(ic, po.initial_condition, 2);
     evolve_n_cycles(ic, po.period, system, analysis);
     linear_combination(y, 1.0, po.initial_condition, -1.0, ic, 2);
-    // printf("y[0] = %1.5e y[1] = %1.5e\n", y[0], y[1]);
     y[0] = angle_mod(y[0]);
-    // printf("y[0] = %1.5e y[1] = %1.5e\n", y[0], y[1]);
     square_matrix_product_vector(rhs, Jt, y, 2);
     // gauss_solve (dx, M, rhs, 2);
     square_2d_matrix_inverse(M_inv, M);
     square_matrix_product_vector(dx, M_inv, rhs, 2);
-
-    // printf("dx[0] = %1.5e\n", dx[0]);
-    // printf("dx[1] = %1.5e\n", dx[1]);
 
     // new point
     linear_combination(x, 1.0, po.initial_condition, 1.0, dx, 2);
@@ -218,8 +193,6 @@ int calculate_periodic_orbit_ic(perorb *po,
         printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n",
                 (*po).period, err);
     }
-
-    // printf("%1.5e\n", (*po).initial_condition[1]);
 
     dealloc_1d_double(&x1);
     dealloc_1d_double(&x2);

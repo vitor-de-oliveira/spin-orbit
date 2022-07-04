@@ -88,21 +88,16 @@ int main(int argc, char **argv)
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
 	// ic[0] = 0.0, ic[1] = 0.1;
-	// ic[0] = 0.0; ic[1] = 0.551537;
-	// ic[0] = M_PI; ic[1] = 0.551537;
-	ic[0] = -2.46555; ic[1] = 1.36287;
-	copy(po.seed, ic, 2);
-	init_orbital(orbital, e);
-	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	orbit_map(ic, system, analysis);
+	// init_orbital(orbital, e);
+	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// orbit_map(ic, system, analysis);
 
-	po.period = 4;
+	po.period = 3;
 	// po.seed[0] = 0.0; po.seed[1] = 0.551537;
+	po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
 	periodic_orbit(&po, system, analysis);
 
 	draw_periodic_orbit_on_phase_space (po, system);
-
-	// printf("%1.5e\n", po.initial_condition[1]);
 
 	// draw_orbit_map(system);
 

@@ -1328,8 +1328,8 @@ int periodic_orbit	(perorb *po,
 	(*po).initial_condition[1] = orbit[index_theta_min][1];
 
 	// indexed file
-	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ic_%1.3f_%1.3f_period_%d.dat", 
-            gamma, e, system.name, K, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1], (*po).period);
+	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
+            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
 	out = fopen(filename, "w");
 
     for (int i = 0; i < (*po).period; i++)
@@ -1703,8 +1703,8 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/periodic_orbit/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
-		gamma, e, system.name, K);
+		"set output \"output/periodic_orbit/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
+		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -1714,8 +1714,8 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 	fprintf(gnuplotPipe, 
 		"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f K = %1.5f\"\n", 
 		system.name, gamma, e, K);
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ic_%1.3f_%1.3f_period_%d.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
-		gamma, e, gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period);
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
+		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");

@@ -472,47 +472,48 @@ int main(int argc, char **argv)
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	// // system = system_linear_average;
+	system = system_rigid;
+	// system = system_linear_average;
 
-	// gamma = (.89 * .89) / 3.;
-	// e = 0.140; // e = 0.1;
-	// m_secondary = 0.0;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
- 	// K = 1e-2;
+	gamma = (.89 * .89) / 3.;
+	e = 0.140; // e = 0.1;
+	m_secondary = 0.0;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+ 	K = 1e-2;
 
-	// analysis.nc = 20, analysis.nv = 20; //nc = 3, nv = 50;
-	// analysis.number_of_cycles = 1e3; //1e3 2e3
-	// analysis.cycle_period = 2.0 * M_PI;
-	// analysis.coordinate_min = -2.61584; // 0.0 M_PI
-	// analysis.coordinate_max = -2.53924; // M_PI 2.0* M_PI
-	// analysis.velocity_min = 1.41818;
-	// analysis.velocity_max = 1.49319;
+	analysis.nc = 20, analysis.nv = 20; //nc = 3, nv = 50;
+	analysis.number_of_cycles = 1e3; //1e3 2e3
+	analysis.cycle_period = 2.0 * M_PI;
+	analysis.coordinate_min = -0.01; // 0.0 M_PI
+	analysis.coordinate_max = 0.01; // M_PI 2.0* M_PI
+	analysis.velocity_min = 0.45;
+	analysis.velocity_max = 0.48;
+	analysis.evolve_box_size = 1e6;
 
-	// test_phase_space(system, analysis);
+	test_phase_space(system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	system = system_linear_average;
-	double ic[system.dim];
+	// // system = system_rigid;
+	// system = system_linear_average;
+	// double ic[system.dim];
 
-	gamma = (.89 * .89) / 3.;
-	e = 0.140; // e = 0.1;
-	m_secondary = 0.;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
-	K = 1e-2;
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.140; // e = 0.1;
+	// m_secondary = 0.;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+	// K = 1e-2;
 
-	analysis.number_of_cycles = 1e5; //1e3 6e3
-	analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	// analysis.number_of_cycles = 1e5; //1e3 6e3
+	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
 
-	test_time_series(system, analysis);
+	// test_time_series(system, analysis);
 
 	/******************** Stop clock ***********************/
 

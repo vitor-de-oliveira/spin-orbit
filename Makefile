@@ -25,6 +25,7 @@ TARGET_TEST = TEST
 
 DEPENDENCIES_TEST =	dynamical_system.c \
 					aux_vmo.c \
+					periodic_orbit.c \
 					spin_orbit.c \
 					test_spin_orbit.c
 
