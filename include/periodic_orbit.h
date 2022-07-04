@@ -15,7 +15,6 @@
 #include "aux_vmo.h"
 #include "dynamical_system.h"
 
-// I have set a limit of 100 for the orbit period
 typedef struct PerOrb{
     int     period;
     double  seed[2];
