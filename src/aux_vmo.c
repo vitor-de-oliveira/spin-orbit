@@ -189,13 +189,12 @@ int identity_matrix_array_form(double *x, int arr_first_index, int order)
 	return 0;
 }
 
-int lin_comb(double *x, double lamb, double *y, double *z, int dim)
+void linear_combination(double *v, double a, double *x, double b, double *y, int dim)
 {
 	for (int i = 0; i < dim; i++)
 	{
-		x[i] = lamb * y[i] + z[i];
+		v[i] = a * x[i] + b * y[i];
 	}
-	return 0;
 }
 
 int lin_comb_vec(double *x, double *lamb, double *y, double *z, int dim)
@@ -207,19 +206,64 @@ int lin_comb_vec(double *x, double *lamb, double *y, double *z, int dim)
 	return 0;
 }
 
-int transpose_2d_square_matrix(double **m, int dim)
+void square_matrix_product_vector(double *mx, double **m, double *x, int dim)
 {
-	double temp;
+	for (int i = 0; i < dim; i++)
+	{
+		mx[i] = 0.0;
+		for (int j = 0; j < dim; j++)
+		{
+			mx[i] += m[i][j] * x[j];
+		}
+    }
+}
+
+void square_matrix_product_2d(double **mp, double **m1, double **m2, int dim)
+{
 	for (int i = 0; i < dim; i++)
 	{
 		for (int j = 0; j < dim; j++)
 		{
-			temp = m[i][j];
-			m[i][j] = m[j][i];
-			m[j][i] = temp;
+			mp[i][j] = 0.0;
+			for (int k = 0; k < dim; k++)
+			{
+				mp[i][j] += m1[i][k] * m2[k][j];
+			}
 		}
 	}
-	return 0;
+}
+
+void square_matrix_transpose_2d(double **mt, double **m, int dim)
+{
+	for (int i = 0; i < dim; i++)
+	{
+		for (int j = 0; j < dim; j++)
+		{
+			mt[i][j] = m[j][i];
+		}
+	}
+}
+
+double square_2d_matrix_determinant(double **m)
+{
+	return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+}
+
+void square_2d_matrix_inverse(double **inv, double **m)
+{
+	double det = square_2d_matrix_determinant(m);
+	if (det == 0)
+	{
+		printf("Warning: cant invert matrix\n");
+		exit(3);
+	}
+	else
+	{
+		inv[0][0] = m[1][1] / det;
+		inv[0][1] = -1.0 * m[0][1] / det;
+		inv[1][0] = -1.0 * m[1][0] / det;
+		inv[1][1] = m[0][0] / det;
+	}
 }
 
 int alloc_1d_double(double **x, int n)

@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <omp.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -54,6 +53,7 @@ typedef struct AnlSis{
 	double grid_velocity_max;
     double evolve_box_size;     // maximum size of a variable
     double evolve_basin_eps;    // distance from reference for which we say an orbit converged
+    double time_series_delta;
 } anlsis;
 
 int evolve_cycle(double *y, double *t,

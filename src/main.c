@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include "dynamical_system.h"
+#include "periodic_orbit.h"
 #include "spin_orbit.h"
 
 int main(int argc, char **argv)
@@ -42,6 +43,8 @@ int main(int argc, char **argv)
 
 	anlsis analysis;
 
+	perorb po;
+
 	double orbital[4];
 
 	/********************* Some values **********************/
@@ -61,33 +64,40 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// // system = system_rigid;
+	system = system_rigid;
 	// system = system_linear_average;
-	// double ic[system.dim];
+	double ic[system.dim];
 
-	// gamma = (.89 * .89) / 3.;
-	// e = 0.140; // e = 0.1;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-2;
+	gamma = (.89 * .89) / 3.;
+	e = 0.140; // e = 0.1;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
 
-	// analysis.number_of_cycles = 1e4; //1e3 6e3
-	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
-	// analysis.evolve_box_size = 1e6;
-	// analysis.evolve_basin_eps = 1e-1;
+	analysis.number_of_cycles = 5e2; //1e3 6e3
+	analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	analysis.evolve_box_size = 1e6;
+	analysis.evolve_basin_eps = 1e-1;
 
-	// // ic[0] = 0.0, ic[1] = 100.;
-	// // // //near the 1:1 stable fp in the rigid case
-	// // // ic[0] = M_PI; ic[1] = 0.551537;
-	// // init_orbital(orbital, e);
-	// // for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// ic[0] = 0.0, ic[1] = 100.;
+	//near the 1:1 stable fp in the rigid case
+	// ic[0] = M_PI; ic[1] = 0.551537;
+	// init_orbital(orbital, e);
+	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	// ic[0] = 0.0, ic[1] = 1000.;
+	// ic[0] = 0.0, ic[1] = 0.1;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
+
+	po.period = 3;
+	// po.seed[0] = 0.0; po.seed[1] = 0.551537;
+	po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
+	periodic_orbit(&po, system, analysis);
+
+	draw_periodic_orbit_on_phase_space (po, system);
 
 	// draw_orbit_map(system);
 
@@ -96,6 +106,15 @@ int main(int argc, char **argv)
 	// multiple_time_series(system, analysis);
 
 	// draw_multiple_time_series(system);
+
+	analysis.time_series_delta = 10.0;
+	multiple_time_series_delta_theta_dot(system, analysis);
+
+	// multiple_time_series_delta_theta(system, analysis);
+
+	draw_multiple_time_series_delta_theta_dot(system, analysis);
+
+	// draw_multiple_time_series_delta_theta(system);
 
 	// time_series(system, analysis);
 
@@ -165,40 +184,40 @@ int main(int argc, char **argv)
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_linear_average;
-	int ref_period = 4;
-	double ref[ref_period][2];
+	// system = system_linear_average;
+	// int ref_period = 4;
+	// double ref[ref_period][2];
 
-	gamma = (.89 * .89) / 3.;
-	e = 0.140; //0.1
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-2;
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.140; //0.1
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
 
-	analysis.number_of_cycles = 2e3; //1e3
-	analysis.cycle_period = 2.0 * M_PI;
-	analysis.grid_resolution = 400; //600
-	analysis.grid_coordinate_min = -M_PI;
-	analysis.grid_coordinate_max = M_PI;
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 3.0;
-	analysis.evolve_box_size = 1e6;
-	analysis.evolve_basin_eps = 1e-3;
+	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.grid_resolution = 50;
+	// analysis.grid_coordinate_min = -M_PI;
+	// analysis.grid_coordinate_max = M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
+	// analysis.evolve_box_size = 1e6;
+	// analysis.evolve_basin_eps = 1e-1;
 
-	// ref[0][0] = 0.0; ref[0][1] = 0.551540; // e = 0.1
-	// ref[1][0] = M_PI; ref[1][1] = 0.551540; // e = 0.1
-	// ref[0][0] = 0.0; ref[0][1] = 1.0; // e = 0.0
-	// ref[1][0] = M_PI; ref[1][1] = 1.0; // e = 0.0
-	// ref[0][0] = 0.0; ref[0][1] = 0.47055; // e = 0.140 res 1 / 1 (conservative)
-	// e = 0.140 period 4 attractor
-	ref[0][0] = 2.505345504734883e+00; 	ref[0][1] = 1.380383468328994e+00; 
-	ref[1][0] = 5.633238998250718e-01; 	ref[1][1] = 1.467273372265798e+00;
-	ref[2][0] = -6.646192119783194e-01; ref[2][1] = 1.356998968090035e+00;
-	ref[3][0] = -2.552302112530043e+00; ref[3][1] = 1.444362559384576e+00;
-  	basin_of_attraction (ref, ref_period, system, analysis);
-	draw_basin_of_attraction (ref, ref_period, system, analysis);
+	// // ref[0][0] = 0.0; ref[0][1] = 0.551540; // e = 0.1
+	// // ref[1][0] = M_PI; ref[1][1] = 0.551540; // e = 0.1
+	// // ref[0][0] = 0.0; ref[0][1] = 1.0; // e = 0.0
+	// // ref[1][0] = M_PI; ref[1][1] = 1.0; // e = 0.0
+	// // ref[0][0] = 0.0; ref[0][1] = 0.47055; // e = 0.140 res 1 / 1 (conservative)
+	// // e = 0.140 period 4 attractor
+	// ref[0][0] = 2.505345504734883e+00; 	ref[0][1] = 1.380383468328994e+00; 
+	// ref[1][0] = 5.633238998250718e-01; 	ref[1][1] = 1.467273372265798e+00;
+	// ref[2][0] = -6.646192119783194e-01; ref[2][1] = 1.356998968090035e+00;
+	// ref[3][0] = -2.552302112530043e+00; ref[3][1] = 1.444362559384576e+00;
+  	// // basin_of_attraction (ref, ref_period, system, analysis);
+	// draw_basin_of_attraction (ref, ref_period, system, analysis);
 
   /******************** Stop clock ***********************/
 

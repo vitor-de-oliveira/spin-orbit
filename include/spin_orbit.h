@@ -2,6 +2,7 @@
 #define SPIN_ORB_H
 
 #include <math.h>
+#include <omp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,8 +10,9 @@
 
 #include <gsl/gsl_roots.h>
 
-#include "dynamical_system.h"
 #include "aux_vmo.h"
+#include "dynamical_system.h"
+#include "periodic_orbit.h"
 
 /**
  * vector fields and jacobians related 
@@ -116,8 +118,8 @@ int init_orbital(double y[4],
 **/
 
 int orbit_map (double *ic,
-                    dynsys system,
-                    anlsis analysis);
+               dynsys system,
+               anlsis analysis);
 
 int phase_space (dynsys system,
                 anlsis analysis);
@@ -127,6 +129,12 @@ int time_series(dynsys system,
 
 int multiple_time_series(dynsys system,
                         anlsis analysis);
+
+int multiple_time_series_delta_theta_dot(dynsys system,
+										anlsis analysis);
+
+int multiple_time_series_delta_theta(dynsys system,
+									anlsis analysis);
 
 double dist_from_ref(double x[2],
                     double ref[2]);
@@ -139,6 +147,22 @@ int evolve_basin(double *ic, double ref[][2],
 int basin_of_attraction (double ref[][2], int ref_period,
                         dynsys system,
                         anlsis analysis);
+
+/**
+ * periodic orbit
+**/
+
+// evolves an initial condition for n cycles
+int evolve_n_cycles_po  (double y0[2],
+                         int n,
+                         dynsys system,
+                         anlsis analysis);
+
+// calculates periodic orbit 
+// and prints it on an exit file
+int periodic_orbit	(perorb *po,
+                     dynsys system,
+                     anlsis analysis);
 
 /**
  * Gnuplot pipe
@@ -158,7 +182,16 @@ int draw_time_series_union_K(dynsys system);
 
 int draw_multiple_time_series(dynsys system);
 
+int draw_multiple_time_series_delta_theta_dot(dynsys system,
+                                              anlsis analysis);
+
+int draw_multiple_time_series_delta_theta   (dynsys system,
+                                             anlsis analysis);
+
 int draw_basin_of_attraction(double ref[][2], int ref_period,
                             dynsys system, anlsis analysis);
+
+int draw_periodic_orbit_on_phase_space  (perorb po,
+                                         dynsys system);
 
 #endif

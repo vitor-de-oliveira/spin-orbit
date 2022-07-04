@@ -918,42 +918,200 @@ int multiple_time_series(dynsys system,
 
 	// declare variables
 	int orbit_size;
-	double res_mean;
 	double **orbit;
 	double ic[system.dim], orb[4];
 
-	for (int i = 0; i < 20; i++)
+	#pragma omp parallel private(orbit_size, orbit, ic, orb)
 	{
-		if (i < 10)
+
+	#pragma omp for
+		for (int i = 0; i < 20; i++)
 		{
-			ic[0] = 0.0, ic[1] = 10. + 10. * (double)(i);
+			if (i < 10)
+			{
+				ic[0] = 0.0; ic[1] = 10. + 10. * (double)(i);
+			}
+			else
+			{
+				ic[0] = 0.0; ic[1] = 100. + 100. * (double)(i-10);
+			}
+
+			if (system.dim == 6)
+			{
+				init_orbital(orb, e);
+				for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
+			}
+
+			// evolve system
+			evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+			#pragma omp critical
+			{
+				for (int j = 0; j < orbit_size; j++)
+				{
+					fprintf(out, "%d %1.15e\n", 
+							j, orbit[j][1]);
+				}
+				fprintf(out, "\n");
+			}
+
+			// free memory
+			dealloc_2d_double(&orbit, analysis.number_of_cycles);
+		
 		}
-		else
-		{
-			ic[0] = 0.0, ic[1] = 100. + 100. * (double)(i-10);
-		}
 
-		if (system.dim == 6)
-		{
-			init_orbital(orb, e);
-			for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
-		}
-
-		// evolve system
-		evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
-
-		for (int j = 0; j < orbit_size; j++)
-		{
-			fprintf(out, "%d %1.15e\n", 
-					j, orbit[j][1]);
-		}
-
-		fprintf(out, "\n");
-
-		// free memory
-		dealloc_2d_double(&orbit, analysis.number_of_cycles);
+	} // end pragma
 	
+	// close files
+	fclose(out);
+
+	printf("Data written in output/time_series/ folder\n");
+
+	return 0;
+}
+
+int multiple_time_series_delta_theta_dot(dynsys system,
+										anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/time_series", &st) == -1) {
+		mkdir("output/time_series", 0700);
 	}
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files 
+	FILE *out;
+	char	filename[100];
+
+	// indexed file
+	sprintf(filename, "output/time_series/multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_delta_%1.2f.dat", 
+				e, K, analysis.time_series_delta);
+	out = fopen(filename, "w");
+
+	// declare variables
+	int orbit_size;
+	double **orbit;
+	double ic[system.dim], orb[4];
+
+	#pragma omp parallel private(orbit_size, orbit, ic, orb)
+	{
+
+	#pragma omp for
+		// for (int i = 0; i < 20; i++)
+		// {
+		// 	ic[0] = 0.0; ic[1] = 999.0 + 0.1 * (double)(i);
+		for (int i = -10; i <= 10; i++) 
+		{
+			printf("Calculating time series number %d\n", i + 11);
+
+			ic[0] = 0.0;
+			ic[1] = 1000.0 + analysis.time_series_delta * (double)(i);
+
+			if (system.dim == 6)
+			{
+				init_orbital(orb, e);
+				for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
+			}
+
+			// evolve system
+			evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+			#pragma omp critical
+			{
+				for (int j = 0; j < orbit_size; j++)
+				{
+					fprintf(out, "%d %1.15e\n", 
+							j, orbit[j][1]);
+				}
+				fprintf(out, "\n\n");
+			}
+
+			// free memory
+			dealloc_2d_double(&orbit, analysis.number_of_cycles);
+		}
+
+	} // end pragma
+
+	// close files
+	fclose(out);
+
+	printf("Data written in output/time_series/ folder\n");
+
+	return 0;
+}
+
+int multiple_time_series_delta_theta(dynsys system,
+									anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/time_series", &st) == -1) {
+		mkdir("output/time_series", 0700);
+	}
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files 
+	FILE *out;
+	char	filename[100];
+
+	// indexed file
+	sprintf(filename, "output/time_series/multiple_time_series_delta_theta_e_%1.3f_K_%1.5f_delta_%1.2f.dat", 
+				e, K, analysis.time_series_delta);
+	out = fopen(filename, "w");
+
+	// declare variables
+	int orbit_size;
+	double **orbit;
+	double ic[system.dim], orb[4];
+
+	#pragma omp parallel private(orbit_size, orbit, ic, orb)
+	{
+
+	#pragma omp for
+		// for (int i = 0; i < 20; i++)
+		// {
+		// 	ic[0] = 0.0 + 0.01 * (double)(i); ic[1] = 1000.0;
+		for (int i = 0; i <= 20; i++) 
+		{
+			printf("Calculating time series number %d\n", i + 11);
+
+			ic[0] = 0.0 + analysis.time_series_delta * (double)(i);
+			ic[1] = 1000.0;
+
+			if (system.dim == 6)
+			{
+				init_orbital(orb, e);
+				for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
+			}
+
+			// evolve system
+			evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+			#pragma omp critical
+			{
+				for (int j = 0; j < orbit_size; j++)
+				{
+					fprintf(out, "%d %1.15e\n", 
+							j, orbit[j][1]);
+				}
+				fprintf(out, "\n\n");
+			}
+
+			// free memory
+			dealloc_2d_double(&orbit, analysis.number_of_cycles);
+		
+		}
+
+	} // end pragma
 
 	// close files
 	fclose(out);
@@ -1221,6 +1379,124 @@ int basin_of_attraction(double ref[][2], int ref_period, dynsys system,
 					analysis.grid_resolution);
 
 	printf("Data written in output/basin_of_attraction/\n");
+
+	return 0;
+}
+
+int evolve_n_cycles_po  (double y0[2],
+						 int n,
+                         dynsys system,
+                         anlsis analysis)
+{
+    double t = 0;
+	double y[system.dim], orbital[4];
+	double *par = (double *)system.params;
+	double e = par[1];
+
+	copy (y, y0, 2);
+
+	if (system.dim == 6)
+	{
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++)
+		{
+			y[i+2] = orbital[i];
+		}
+	}
+
+    // loop over cycles
+	for (int i = 0; i < n; i++)
+	{
+		evolve_cycle(y, &t, system, analysis);
+	
+		// check if orbit diverges
+		for (int j = 0; j < system.dim; j++)
+		{
+			if (fabs(y[j]) > analysis.evolve_box_size)
+			{
+                printf("Warning: evolve periodic orbit failed\n");
+				printf("box limit reached\n");
+				printf("y[%d] = %1.10e\n", j, y[j]);
+				exit(2);
+			}
+		}
+	}
+
+	copy (y0, y, 2);
+
+	return 0;
+}
+
+int periodic_orbit	(perorb *po,
+                     dynsys system,
+                     anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/periodic_orbit", &st) == -1)
+    {
+		mkdir("output/periodic_orbit", 0700);
+	}
+
+	FILE    *out;
+	char    filename[200];
+	double 	t = 0;
+    double 	y[system.dim], orbital[4];
+	double 	orbit[(*po).period][2];
+	double 	*par = (double *)system.params;
+	double 	gamma = par[0];
+	double 	e = par[1];
+	double 	K = par[6];
+
+	dist_on_phase_space = &dist_from_ref;
+	evolve_n_cycles = &evolve_n_cycles_po;
+
+	calculate_periodic_orbit_ic(po, system, analysis);
+
+    copy(y, (*po).initial_condition, 2);
+
+	if (system.dim == 6)
+	{
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++)
+		{
+			y[i+2] = orbital[i];
+		}
+	}
+
+    for (int i = 0; i < (*po).period; i++)
+    {
+		copy(orbit[i], y, 2);
+        evolve_cycle(y, &t, system, analysis);
+    }
+
+    // finds the index for the smallest theta value
+    // inside the periodic orbit to use as a reference
+    // on the file name
+    int index_theta_min = 0;
+    for (int i = 1; i < (*po).period; i++)
+    {
+        if(angle_mod(orbit[i][0]) < angle_mod(orbit[i-1][0]))
+        {
+            index_theta_min = i;
+        }
+    }
+
+	(*po).initial_condition[0] = angle_mod(orbit[index_theta_min][0]);
+	(*po).initial_condition[1] = orbit[index_theta_min][1];
+
+	// indexed file
+	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
+            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
+	out = fopen(filename, "w");
+
+    for (int i = 0; i < (*po).period; i++)
+    {
+        fprintf(out, "%1.10e %1.10e\n", 
+            angle_mod(orbit[i][0]), orbit[i][1]);
+    }
+
+    fclose(out);
 
 	return 0;
 }
@@ -1502,6 +1778,72 @@ int draw_multiple_time_series(dynsys system)
 	return 0;
 }
 
+int draw_multiple_time_series_delta_theta_dot	(dynsys system,
+												 anlsis analysis)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing multiple time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_delta_%1.2f.png\"\n", e, K, analysis.time_series_delta);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set yrange [0.01:1000] \n");
+	// fprintf(gnuplotPipe, "set xrange [0.0:50] \n");
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set key title \"e = %1.3f K = %1.5f delta = %1.2f\" box opaque top right width 2\n", e, K, analysis.time_series_delta);
+	fprintf(gnuplotPipe, "plot 'multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_delta_%1.2f.dat' u 1:2:-2 w l lc var lw 2 notitle", e, K, analysis.time_series_delta);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_multiple_time_series_delta_theta   (dynsys system,
+                                             anlsis analysis)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing multiple time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_multiple_time_series_delta_theta_e_%1.3f_K_%1.5f_delta_%1.2f.png\"\n", e, K, analysis.time_series_delta);
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set key title \"e = %1.3f K = %1.5f delta = %1.2f\" box opaque top right width 2\n", e, K, analysis.time_series_delta);
+	fprintf(gnuplotPipe, "plot 'multiple_time_series_delta_theta_e_%1.3f_K_%1.5f_delta_%1.2f.dat' u 1:2:-2 w l lc var lw 2 notitle", e, K, analysis.time_series_delta);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
 int draw_basin_of_attraction(double ref[][2], int ref_period,
                             dynsys system, anlsis analysis)
 {
@@ -1568,3 +1910,41 @@ int draw_basin_of_attraction(double ref[][2], int ref_period,
 	return 0;
 }
 
+int draw_periodic_orbit_on_phase_space  (perorb po,
+                                         dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing periodic orbit of period %d on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		po.period, system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/periodic_orbit/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
+		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f K = %1.5f\"\n", 
+		system.name, gamma, e, K);
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
+		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/orbit/\n");
+
+	return 0;
+}

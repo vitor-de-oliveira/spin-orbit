@@ -1,17 +1,27 @@
 - improve resonance calculation for periodic orbits
 
-- add a criteruim for the basin which measures if the orbit stays close 
+- add a criterium for the basin which measures if the orbit stays close 
 to the attractor for a sufficient ammount of time. 100 cycles maybe. 
 Put this criterium along with the convergence criterium to stabilish that a
 given orbit has ideed converged.
 Put also an alert somehow if any of the orbits conrged in the maximum sim time
 that means that I did not choose a time long enough
 
+- when the resonance is being calculated for p.o.same
+use it as a reference to identify data file names. along with
+stability more along the way
+
 - maybe change argument of basin of attraction function to
 a member of periodic orbit structure. Also do this to evolve_basin
 
 - move resonance calculation from trace 
 orbit to future periodic orbit function
+
+- I have to put initial condition info on orbit!!
+ then change the draw orbit on phase space stuff
+
+- move time series to tests. Or rather, transform time series
+to a drawing of orbits only
 
 - maybe use a different software than gnuplot to fit histogram and fit cuvers
  perhaps matlab or python. No caso de python, criar um projeto
