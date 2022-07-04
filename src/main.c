@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include "dynamical_system.h"
+#include "periodic_orbit.h"
 #include "spin_orbit.h"
 
 int main(int argc, char **argv)
@@ -42,6 +43,8 @@ int main(int argc, char **argv)
 
 	anlsis analysis;
 
+	perorb po;
+
 	double orbital[4];
 
 	/********************* Some values **********************/
@@ -61,8 +64,8 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	system = system_linear_average;
+	system = system_rigid;
+	// system = system_linear_average;
 	double ic[system.dim];
 
 	gamma = (.89 * .89) / 3.;
@@ -71,25 +74,32 @@ int main(int argc, char **argv)
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 	a = 1.0;
-	K = 1e-3;
+	K = 1e-2;
 
-	analysis.number_of_cycles = 5e3; //1e3 6e3
+	analysis.number_of_cycles = 5e2; //1e3 6e3
 	analysis.cycle_period = 2.0 * M_PI; // 1e-3
 	analysis.evolve_box_size = 1e6;
 	analysis.evolve_basin_eps = 1e-1;
 
 	// ic[0] = 0.0, ic[1] = 100.;
-	// // //near the 1:1 stable fp in the rigid case
-	// // ic[0] = M_PI; ic[1] = 0.551537;
+	//near the 1:1 stable fp in the rigid case
+	// ic[0] = M_PI; ic[1] = 0.551537;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	// ic[0] = 0.0, ic[1] = 1000.4;
+	// ic[0] = 0.0, ic[1] = 0.1;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
 
-	// // draw_orbit_map(system);
+	po.period = 3;
+	// po.seed[0] = 0.0; po.seed[1] = 0.551537;
+	po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
+	periodic_orbit(&po, system, analysis);
+
+	draw_periodic_orbit_on_phase_space (po, system);
+
+	// draw_orbit_map(system);
 
 	// draw_orbit_on_phase_space(system);
 

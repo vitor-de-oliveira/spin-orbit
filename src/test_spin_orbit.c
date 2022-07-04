@@ -1,724 +1,724 @@
 #include "test_spin_orbit.h"
 
-int basin_of_attraction_no_opt	(double *ref, dynsys system, 
-								anlsis analysis)
-{
-	// little warning
-	if (strcmp(system.name, "two_body") == 0)
-	{
-		printf("Warning: cant draw basins\n");
-		printf("for two-body system\n");
-		exit(2);
-	}
+// int basin_of_attraction_no_opt	(double *ref, dynsys system, 
+// 								anlsis analysis)
+// {
+// 	// little warning
+// 	if (strcmp(system.name, "two_body") == 0)
+// 	{
+// 		printf("Warning: cant draw basins\n");
+// 		printf("for two-body system\n");
+// 		exit(2);
+// 	}
 
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
-	}
+// 	// create output folder if it does not exist
+// 	struct stat st = {0};
+// 	if (stat("output", &st) == -1) {
+// 		mkdir("output", 0700);
+// 	}
 
-	// declare variables
-	FILE 	*out_boa, *out_ref;
-	double y[system.dim];
-	double coordinate, velocity;
-	int orbit_fw_size;
-	double **orbit_fw;
-	double *par = (double *)system.params;
-	double e = par[1];
-	double rot_ini[2];
-	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
-	int basin_counter = 0;
-	int grid[2];
-	double basin[2];
-	int **basin_matrix, **control_matrix;
-	double **time_matrix;
-	alloc_2d_int(&basin_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_int(&control_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_double(&time_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		for (int j = 0; j < analysis.grid_resolution; j++)
-		{
-			basin_matrix[i][j] = 0;
-			control_matrix[i][j] = 0;
-			time_matrix[i][j] = NAN;
-		}
-	}
-	bool converged;
+// 	// declare variables
+// 	FILE 	*out_boa, *out_ref;
+// 	double y[system.dim];
+// 	double coordinate, velocity;
+// 	int orbit_fw_size;
+// 	double **orbit_fw;
+// 	double *par = (double *)system.params;
+// 	double e = par[1];
+// 	double rot_ini[2];
+// 	double orb[4], orb_ini[4];
+// 	init_orbital(orb_ini, e);
+// 	int basin_counter = 0;
+// 	int grid[2];
+// 	double basin[2];
+// 	int **basin_matrix, **control_matrix;
+// 	double **time_matrix;
+// 	alloc_2d_int(&basin_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	alloc_2d_int(&control_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	alloc_2d_double(&time_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		for (int j = 0; j < analysis.grid_resolution; j++)
+// 		{
+// 			basin_matrix[i][j] = 0;
+// 			control_matrix[i][j] = 0;
+// 			time_matrix[i][j] = NAN;
+// 		}
+// 	}
+// 	bool converged;
 
-	// open exit files
-	out_boa = fopen("output/basin_no_opt.dat", "w");
-	out_ref = fopen("output/basin_ref_no_opt.dat", "w");
+// 	// open exit files
+// 	out_boa = fopen("output/basin_no_opt.dat", "w");
+// 	out_ref = fopen("output/basin_ref_no_opt.dat", "w");
 
-	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
+// 	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
 
-	// loop over coordinate values
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		// print progress on coordinate
-		printf("Calculating set %d of %d\n", 
-					i + 1, analysis.grid_resolution);
+// 	// loop over coordinate values
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		// print progress on coordinate
+// 		printf("Calculating set %d of %d\n", 
+// 					i + 1, analysis.grid_resolution);
 
-		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+// 		omp_set_dynamic(0);     // Explicitly disable dynamic teams
+// 		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
 
-		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
-				orbit_fw_size, orbit_fw, converged) shared(basin_matrix, \
-				control_matrix)
-		{
+// 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
+// 				orbit_fw_size, orbit_fw, converged) shared(basin_matrix, \
+// 				control_matrix)
+// 		{
 
-		#pragma omp for
-			// loop over velocity values
-			for (int j = 0; j < analysis.grid_resolution; j++)
-			{
-				// print progress on velocity
-				printf("Calculating subset %d of %d\n", 
-							j + 1, analysis.grid_resolution);
+// 		#pragma omp for
+// 			// loop over velocity values
+// 			for (int j = 0; j < analysis.grid_resolution; j++)
+// 			{
+// 				// print progress on velocity
+// 				printf("Calculating subset %d of %d\n", 
+// 							j + 1, analysis.grid_resolution);
 
-				if (control_matrix[i][j] == 0)
-				{
-					grid[0] = i;
-					grid[1] = j;
+// 				if (control_matrix[i][j] == 0)
+// 				{
+// 					grid[0] = i;
+// 					grid[1] = j;
 
-					grid_to_double(grid, rot_ini, analysis);
+// 					grid_to_double(grid, rot_ini, analysis);
 
-					copy(y, rot_ini, 2);
+// 					copy(y, rot_ini, 2);
 
-					if (system.dim == 6)
-					{
-						for (int k = 0; k < 4; k++)
-						{
-							y[k+2] = orb_ini[k];
-						}
-					}
+// 					if (system.dim == 6)
+// 					{
+// 						for (int k = 0; k < 4; k++)
+// 						{
+// 							y[k+2] = orb_ini[k];
+// 						}
+// 					}
 
-					converged = false;
+// 					converged = false;
 
-					// calculate forward integration
-					evolve_basin(y, ref, &converged,
-						&orbit_fw, &orbit_fw_size,
-						system, analysis);
+// 					// calculate forward integration
+// 					evolve_basin(y, ref, &converged,
+// 						&orbit_fw, &orbit_fw_size,
+// 						system, analysis);
 
-					if(converged == true)
-					{
-						basin_matrix[i][j] = 1;
-						control_matrix[i][j] = 1;
-						time_matrix[i][j] = (double)(orbit_fw_size);
-						basin_counter++;
-					}
-					else
-					{
-						control_matrix[i][j] = -1;
-					}
+// 					if(converged == true)
+// 					{
+// 						basin_matrix[i][j] = 1;
+// 						control_matrix[i][j] = 1;
+// 						time_matrix[i][j] = (double)(orbit_fw_size);
+// 						basin_counter++;
+// 					}
+// 					else
+// 					{
+// 						control_matrix[i][j] = -1;
+// 					}
 
-					// free memory
-					dealloc_2d_double(&orbit_fw, 
-							analysis.number_of_cycles);
-				}
+// 					// free memory
+// 					dealloc_2d_double(&orbit_fw, 
+// 							analysis.number_of_cycles);
+// 				}
 			
-			}
-		} // end pragma
+// 			}
+// 		} // end pragma
 
-		// new line on terminal
-		printf("\n");
-	}
+// 		// new line on terminal
+// 		printf("\n");
+// 	}
 
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		for (int j = 0; j < analysis.grid_resolution; j++)
-		{
-			grid[0] = i;
-			grid[1] = j;
-			grid_to_double(grid, basin, analysis);
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		for (int j = 0; j < analysis.grid_resolution; j++)
+// 		{
+// 			grid[0] = i;
+// 			grid[1] = j;
+// 			grid_to_double(grid, basin, analysis);
 
-			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
-				basin[0], basin[1], 
-				basin_matrix[grid[0]][grid[1]],
-				time_matrix[grid[0]][grid[1]]);
-		}
-		fprintf(out_boa, "\n");
-	}
+// 			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
+// 				basin[0], basin[1], 
+// 				basin_matrix[grid[0]][grid[1]],
+// 				time_matrix[grid[0]][grid[1]]);
+// 		}
+// 		fprintf(out_boa, "\n");
+// 	}
 
-	printf("Basin counter = %d\n", basin_counter);
+// 	printf("Basin counter = %d\n", basin_counter);
 
-	// close exit files
-	fclose(out_boa);
-	fclose(out_ref);
+// 	// close exit files
+// 	fclose(out_boa);
+// 	fclose(out_ref);
 
-	dealloc_2d_int(&basin_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_int(&basin_matrix, 
+// 					analysis.grid_resolution);
 
-	dealloc_2d_int(&control_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_int(&control_matrix, 
+// 					analysis.grid_resolution);
 
-	dealloc_2d_double(&time_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_double(&time_matrix, 
+// 					analysis.grid_resolution);
 
-	printf("Data written in output folder\n");
+// 	printf("Data written in output folder\n");
 
-	return 0;
-}
+// 	return 0;
+// }
 
-int basin_of_attraction_no_grid(double *ref, dynsys system, 
-						anlsis analysis)
-{
-	// little warning
-	if (strcmp(system.name, "two_body") == 0)
-	{
-		printf("Warning: cant draw basins\n");
-		printf("for two-body system\n");
-		exit(2);
-	}
+// int basin_of_attraction_no_grid(double *ref, dynsys system, 
+// 						anlsis analysis)
+// {
+// 	// little warning
+// 	if (strcmp(system.name, "two_body") == 0)
+// 	{
+// 		printf("Warning: cant draw basins\n");
+// 		printf("for two-body system\n");
+// 		exit(2);
+// 	}
 
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
-	}
+// 	// create output folder if it does not exist
+// 	struct stat st = {0};
+// 	if (stat("output", &st) == -1) {
+// 		mkdir("output", 0700);
+// 	}
 
-	// declare variables
-	FILE 	*out_boa, *out_ref;
-	double y[system.dim];
-	double coordinate, velocity;
-	int orbit_fw_size;
-	double **orbit_fw;
-	double *par = (double *)system.params;
-	double e = par[1];
-	double rot_ini[2];
-	int grid[2];
-	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
-	int basin_counter = 0;
+// 	// declare variables
+// 	FILE 	*out_boa, *out_ref;
+// 	double y[system.dim];
+// 	double coordinate, velocity;
+// 	int orbit_fw_size;
+// 	double **orbit_fw;
+// 	double *par = (double *)system.params;
+// 	double e = par[1];
+// 	double rot_ini[2];
+// 	int grid[2];
+// 	double orb[4], orb_ini[4];
+// 	init_orbital(orb_ini, e);
+// 	int basin_counter = 0;
 
-	bool converged;
+// 	bool converged;
 
-	// open exit files
-	out_boa = fopen("output/basin_no_grid.dat", "w");
-	out_ref = fopen("output/basin_ref_no_grid.dat", "w");
+// 	// open exit files
+// 	out_boa = fopen("output/basin_no_grid.dat", "w");
+// 	out_ref = fopen("output/basin_ref_no_grid.dat", "w");
 
-	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
+// 	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
 
-	// loop over coordinate values
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		// print progress on coordinate
-		printf("Calculating set %d of %d\n", 
-					i + 1, analysis.grid_resolution);
+// 	// loop over coordinate values
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		// print progress on coordinate
+// 		printf("Calculating set %d of %d\n", 
+// 					i + 1, analysis.grid_resolution);
 
-		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+// 		omp_set_dynamic(0);     // Explicitly disable dynamic teams
+// 		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
 
-		#pragma omp parallel private(y, rot_ini, grid, \
-				orbit_fw_size, orbit_fw, converged)
-		{
+// 		#pragma omp parallel private(y, rot_ini, grid, \
+// 				orbit_fw_size, orbit_fw, converged)
+// 		{
 
-		#pragma omp for
-			// loop over velocity values
-			for (int j = 0; j < analysis.grid_resolution; j++)
-			{
-				// print progress on velocity
-				printf("Calculating subset %d of %d\n", 
-							j + 1, analysis.grid_resolution);
+// 		#pragma omp for
+// 			// loop over velocity values
+// 			for (int j = 0; j < analysis.grid_resolution; j++)
+// 			{
+// 				// print progress on velocity
+// 				printf("Calculating subset %d of %d\n", 
+// 							j + 1, analysis.grid_resolution);
 
-					grid[0] = i;
-					grid[1] = j;
+// 					grid[0] = i;
+// 					grid[1] = j;
 
-					grid_to_double(grid, rot_ini, analysis);
+// 					grid_to_double(grid, rot_ini, analysis);
 
-					copy(y, rot_ini, 2);
+// 					copy(y, rot_ini, 2);
 
-					if (system.dim == 6)
-					{
-						for (int k = 0; k < 4; k++)
-						{
-							y[k+2] = orb_ini[k];
-						}
-					}
+// 					if (system.dim == 6)
+// 					{
+// 						for (int k = 0; k < 4; k++)
+// 						{
+// 							y[k+2] = orb_ini[k];
+// 						}
+// 					}
 
-					converged = false;
+// 					converged = false;
 
-					// calculate forward integration
-					evolve_basin(y, ref, &converged,
-						&orbit_fw, &orbit_fw_size,
-						system, analysis);
+// 					// calculate forward integration
+// 					evolve_basin(y, ref, &converged,
+// 						&orbit_fw, &orbit_fw_size,
+// 						system, analysis);
 
-					if(converged == true)
-					{
-						#pragma omp critical
-						{
-							fprintf(out_boa, "%1.5e %1.5e %d\n",
-								rot_ini[0], rot_ini[1], orbit_fw_size);
-							basin_counter++;
-							// for (int k = 0; k < orbit_fw_size; k++)
-							// {
-							// 	fprintf(out_boa, "%1.5e %1.5e %d\n", 
-							// 		angle_mod(orbit_fw[k][0]),
-							// 		orbit_fw[k][1],
-							// 		orbit_fw_size - 1 - k);
-							// }
-						}
+// 					if(converged == true)
+// 					{
+// 						#pragma omp critical
+// 						{
+// 							fprintf(out_boa, "%1.5e %1.5e %d\n",
+// 								rot_ini[0], rot_ini[1], orbit_fw_size);
+// 							basin_counter++;
+// 							// for (int k = 0; k < orbit_fw_size; k++)
+// 							// {
+// 							// 	fprintf(out_boa, "%1.5e %1.5e %d\n", 
+// 							// 		angle_mod(orbit_fw[k][0]),
+// 							// 		orbit_fw[k][1],
+// 							// 		orbit_fw_size - 1 - k);
+// 							// }
+// 						}
 
-					}
+// 					}
 
-					// free memory
-					dealloc_2d_double(&orbit_fw, 
-							analysis.number_of_cycles);
+// 					// free memory
+// 					dealloc_2d_double(&orbit_fw, 
+// 							analysis.number_of_cycles);
 			
-			}
-		} // end pragma
+// 			}
+// 		} // end pragma
 
-		fprintf(out_boa, "\n");
+// 		fprintf(out_boa, "\n");
 
-		// new line on terminal
-		printf("\n");
-	}
+// 		// new line on terminal
+// 		printf("\n");
+// 	}
 
-	printf("Basin counter = %d\n", basin_counter);
+// 	printf("Basin counter = %d\n", basin_counter);
 
-	// close exit files
-	fclose(out_boa);
-	fclose(out_ref);
+// 	// close exit files
+// 	fclose(out_boa);
+// 	fclose(out_ref);
 
-	printf("Data written in output folder\n");
+// 	printf("Data written in output folder\n");
 
-	return 0;
-}
+// 	return 0;
+// }
 
-int basin_of_attraction_no_omp	(double *ref, dynsys system, 
-								anlsis analysis)
-{
-	// little warning
-	if (strcmp(system.name, "two_body") == 0)
-	{
-		printf("Warning: cant draw basins\n");
-		printf("for two-body system\n");
-		exit(2);
-	}
+// int basin_of_attraction_no_omp	(double *ref, dynsys system, 
+// 								anlsis analysis)
+// {
+// 	// little warning
+// 	if (strcmp(system.name, "two_body") == 0)
+// 	{
+// 		printf("Warning: cant draw basins\n");
+// 		printf("for two-body system\n");
+// 		exit(2);
+// 	}
 
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
-	}
+// 	// create output folder if it does not exist
+// 	struct stat st = {0};
+// 	if (stat("output", &st) == -1) {
+// 		mkdir("output", 0700);
+// 	}
 
-	// declare variables
-	FILE 	*out_boa, *out_ref;
-	double y[system.dim];
-	double coordinate, velocity;
-	int orbit_fw_size;
-	double **orbit_fw;
-	double *par = (double *)system.params;
-	double e = par[1];
-	double rot_ini[2];
-	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
-	int basin_counter = 0;
-	int grid[2];
-	double basin[2];
-	int **basin_matrix, **control_matrix;
-	double **time_matrix;
-	alloc_2d_int(&basin_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_int(&control_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_double(&time_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		for (int j = 0; j < analysis.grid_resolution; j++)
-		{
-			basin_matrix[i][j] = 0;
-			control_matrix[i][j] = 0;
-			time_matrix[i][j] = NAN;
-		}
-	}
-	bool converged;
+// 	// declare variables
+// 	FILE 	*out_boa, *out_ref;
+// 	double y[system.dim];
+// 	double coordinate, velocity;
+// 	int orbit_fw_size;
+// 	double **orbit_fw;
+// 	double *par = (double *)system.params;
+// 	double e = par[1];
+// 	double rot_ini[2];
+// 	double orb[4], orb_ini[4];
+// 	init_orbital(orb_ini, e);
+// 	int basin_counter = 0;
+// 	int grid[2];
+// 	double basin[2];
+// 	int **basin_matrix, **control_matrix;
+// 	double **time_matrix;
+// 	alloc_2d_int(&basin_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	alloc_2d_int(&control_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	alloc_2d_double(&time_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		for (int j = 0; j < analysis.grid_resolution; j++)
+// 		{
+// 			basin_matrix[i][j] = 0;
+// 			control_matrix[i][j] = 0;
+// 			time_matrix[i][j] = NAN;
+// 		}
+// 	}
+// 	bool converged;
 
-	// open exit files
-	out_boa = fopen("output/basin_no_omp.dat", "w");
-	out_ref = fopen("output/basin_ref_no_omp.dat", "w");
+// 	// open exit files
+// 	out_boa = fopen("output/basin_no_omp.dat", "w");
+// 	out_ref = fopen("output/basin_ref_no_omp.dat", "w");
 
-	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
+// 	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
 
-	// loop over coordinate values
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		// print progress on coordinate
-		printf("Calculating set %d of %d\n", 
-					i + 1, analysis.grid_resolution);
+// 	// loop over coordinate values
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		// print progress on coordinate
+// 		printf("Calculating set %d of %d\n", 
+// 					i + 1, analysis.grid_resolution);
 
-			// loop over velocity values
-			for (int j = 0; j < analysis.grid_resolution; j++)
-			{
-				// print progress on velocity
-				printf("Calculating subset %d of %d\n", 
-							j + 1, analysis.grid_resolution);
+// 			// loop over velocity values
+// 			for (int j = 0; j < analysis.grid_resolution; j++)
+// 			{
+// 				// print progress on velocity
+// 				printf("Calculating subset %d of %d\n", 
+// 							j + 1, analysis.grid_resolution);
 
-				if (control_matrix[i][j] == 0)
-				{
-					grid[0] = i;
-					grid[1] = j;
+// 				if (control_matrix[i][j] == 0)
+// 				{
+// 					grid[0] = i;
+// 					grid[1] = j;
 
-					grid_to_double(grid, rot_ini, analysis);
+// 					grid_to_double(grid, rot_ini, analysis);
 
-					copy(y, rot_ini, 2);
+// 					copy(y, rot_ini, 2);
 
-					if (system.dim == 6)
-					{
-						for (int k = 0; k < 4; k++)
-						{
-							y[k+2] = orb_ini[k];
-						}
-					}
+// 					if (system.dim == 6)
+// 					{
+// 						for (int k = 0; k < 4; k++)
+// 						{
+// 							y[k+2] = orb_ini[k];
+// 						}
+// 					}
 
-					converged = false;
+// 					converged = false;
 
-					// calculate forward integration
-					evolve_basin(y, ref, &converged,
-						&orbit_fw, &orbit_fw_size,
-						system, analysis);
+// 					// calculate forward integration
+// 					evolve_basin(y, ref, &converged,
+// 						&orbit_fw, &orbit_fw_size,
+// 						system, analysis);
 
-					if(converged == true)
-					{
-						basin_matrix[i][j] = 1;
-						control_matrix[i][j] = 1;
-						time_matrix[i][j] = (double)(orbit_fw_size);
-						basin_counter++;
+// 					if(converged == true)
+// 					{
+// 						basin_matrix[i][j] = 1;
+// 						control_matrix[i][j] = 1;
+// 						time_matrix[i][j] = (double)(orbit_fw_size);
+// 						basin_counter++;
 
-						for (int k = 1; k < orbit_fw_size; k++)
-						{
-							// basin[0] = angle_mod_pos(orbit_fw[k][0]);
-							// basin[0] = fmod(orbit_fw[k][0], M_PI);
-							basin[0] = angle_mod(orbit_fw[k][0]);
-							basin[1] = orbit_fw[k][1];
-							double_to_grid(grid, basin, analysis);
-							if (grid[0] >= 0 && 
-								grid[0] < analysis.grid_resolution && 
-								grid[1] >= 0 && 
-								grid[1] < analysis.grid_resolution)
-							{
-								if (control_matrix[grid[0]][grid[1]] == 0)
-								{
-									basin_matrix[grid[0]][grid[1]] = 1;
-									control_matrix[grid[0]][grid[1]] = 1;
-									time_matrix[grid[0]][grid[1]] = 
-										(double)(orbit_fw_size - k);
-									basin_counter++;
-								}
-							}
-						}
-					}
-					else
-					{
-						control_matrix[i][j] = -1;
-					}
+// 						for (int k = 1; k < orbit_fw_size; k++)
+// 						{
+// 							// basin[0] = angle_mod_pos(orbit_fw[k][0]);
+// 							// basin[0] = fmod(orbit_fw[k][0], M_PI);
+// 							basin[0] = angle_mod(orbit_fw[k][0]);
+// 							basin[1] = orbit_fw[k][1];
+// 							double_to_grid(grid, basin, analysis);
+// 							if (grid[0] >= 0 && 
+// 								grid[0] < analysis.grid_resolution && 
+// 								grid[1] >= 0 && 
+// 								grid[1] < analysis.grid_resolution)
+// 							{
+// 								if (control_matrix[grid[0]][grid[1]] == 0)
+// 								{
+// 									basin_matrix[grid[0]][grid[1]] = 1;
+// 									control_matrix[grid[0]][grid[1]] = 1;
+// 									time_matrix[grid[0]][grid[1]] = 
+// 										(double)(orbit_fw_size - k);
+// 									basin_counter++;
+// 								}
+// 							}
+// 						}
+// 					}
+// 					else
+// 					{
+// 						control_matrix[i][j] = -1;
+// 					}
 
-					// free memory
-					dealloc_2d_double(&orbit_fw, 
-							analysis.number_of_cycles);
-				}
+// 					// free memory
+// 					dealloc_2d_double(&orbit_fw, 
+// 							analysis.number_of_cycles);
+// 				}
 			
-			}
+// 			}
 
-		// new line on terminal
-		printf("\n");
-	}
+// 		// new line on terminal
+// 		printf("\n");
+// 	}
 
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		for (int j = 0; j < analysis.grid_resolution; j++)
-		{
-			grid[0] = i;
-			grid[1] = j;
-			grid_to_double(grid, basin, analysis);
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		for (int j = 0; j < analysis.grid_resolution; j++)
+// 		{
+// 			grid[0] = i;
+// 			grid[1] = j;
+// 			grid_to_double(grid, basin, analysis);
 
-			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
-				basin[0], basin[1], 
-				basin_matrix[grid[0]][grid[1]],
-				time_matrix[grid[0]][grid[1]]);
-		}
-		fprintf(out_boa, "\n");
-	}
+// 			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
+// 				basin[0], basin[1], 
+// 				basin_matrix[grid[0]][grid[1]],
+// 				time_matrix[grid[0]][grid[1]]);
+// 		}
+// 		fprintf(out_boa, "\n");
+// 	}
 
-	printf("Basin counter = %d\n", basin_counter);
+// 	printf("Basin counter = %d\n", basin_counter);
 
-	// close exit files
-	fclose(out_boa);
-	fclose(out_ref);
+// 	// close exit files
+// 	fclose(out_boa);
+// 	fclose(out_ref);
 
-	dealloc_2d_int(&basin_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_int(&basin_matrix, 
+// 					analysis.grid_resolution);
 
-	dealloc_2d_int(&control_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_int(&control_matrix, 
+// 					analysis.grid_resolution);
 
-	dealloc_2d_double(&time_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_double(&time_matrix, 
+// 					analysis.grid_resolution);
 
-	printf("Data written in output folder\n");
+// 	printf("Data written in output folder\n");
 
-	return 0;
-}
+// 	return 0;
+// }
 
-int basin_of_attraction_no_opt_no_omp	(double *ref,
-							dynsys system, anlsis analysis)
-{
-	// little warning
-	if (strcmp(system.name, "two_body") == 0)
-	{
-		printf("Warning: cant draw basins\n");
-		printf("for two-body system\n");
-		exit(2);
-	}
+// int basin_of_attraction_no_opt_no_omp	(double *ref,
+// 							dynsys system, anlsis analysis)
+// {
+// 	// little warning
+// 	if (strcmp(system.name, "two_body") == 0)
+// 	{
+// 		printf("Warning: cant draw basins\n");
+// 		printf("for two-body system\n");
+// 		exit(2);
+// 	}
 
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
-	}
+// 	// create output folder if it does not exist
+// 	struct stat st = {0};
+// 	if (stat("output", &st) == -1) {
+// 		mkdir("output", 0700);
+// 	}
 
-	// declare variables
-	FILE 	*out_boa, *out_ref;
-	double y[system.dim];
-	double coordinate, velocity;
-	int orbit_fw_size;
-	double **orbit_fw;
-	double *par = (double *)system.params;
-	double e = par[1];
-	double rot_ini[2];
-	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
-	int basin_counter = 0;
-	int grid[2];
-	double basin[2];
-	int **basin_matrix, **control_matrix;
-	double **time_matrix;
-	alloc_2d_int(&basin_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_int(&control_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	alloc_2d_double(&time_matrix, 
-		analysis.grid_resolution, analysis.grid_resolution);
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		for (int j = 0; j < analysis.grid_resolution; j++)
-		{
-			basin_matrix[i][j] = 0;
-			control_matrix[i][j] = 0;
-			time_matrix[i][j] = NAN;
-		}
-	}
-	bool converged;
+// 	// declare variables
+// 	FILE 	*out_boa, *out_ref;
+// 	double y[system.dim];
+// 	double coordinate, velocity;
+// 	int orbit_fw_size;
+// 	double **orbit_fw;
+// 	double *par = (double *)system.params;
+// 	double e = par[1];
+// 	double rot_ini[2];
+// 	double orb[4], orb_ini[4];
+// 	init_orbital(orb_ini, e);
+// 	int basin_counter = 0;
+// 	int grid[2];
+// 	double basin[2];
+// 	int **basin_matrix, **control_matrix;
+// 	double **time_matrix;
+// 	alloc_2d_int(&basin_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	alloc_2d_int(&control_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	alloc_2d_double(&time_matrix, 
+// 		analysis.grid_resolution, analysis.grid_resolution);
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		for (int j = 0; j < analysis.grid_resolution; j++)
+// 		{
+// 			basin_matrix[i][j] = 0;
+// 			control_matrix[i][j] = 0;
+// 			time_matrix[i][j] = NAN;
+// 		}
+// 	}
+// 	bool converged;
 
-	// open exit files
-	out_boa = fopen("output/basin_no_opt_no_omp.dat", "w");
-	out_ref = fopen("output/basin_ref_no_opt_no_omp.dat", "w");
+// 	// open exit files
+// 	out_boa = fopen("output/basin_no_opt_no_omp.dat", "w");
+// 	out_ref = fopen("output/basin_ref_no_opt_no_omp.dat", "w");
 
-	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
+// 	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
 
-	// loop over coordinate values
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		// print progress on coordinate
-		printf("Calculating set %d of %d\n", 
-					i + 1, analysis.grid_resolution);
+// 	// loop over coordinate values
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		// print progress on coordinate
+// 		printf("Calculating set %d of %d\n", 
+// 					i + 1, analysis.grid_resolution);
 
-			// loop over velocity values
-			for (int j = 0; j < analysis.grid_resolution; j++)
-			{
-				// print progress on velocity
-				printf("Calculating subset %d of %d\n", 
-							j + 1, analysis.grid_resolution);
+// 			// loop over velocity values
+// 			for (int j = 0; j < analysis.grid_resolution; j++)
+// 			{
+// 				// print progress on velocity
+// 				printf("Calculating subset %d of %d\n", 
+// 							j + 1, analysis.grid_resolution);
 
-				if (control_matrix[i][j] == 0)
-				{
-					grid[0] = i;
-					grid[1] = j;
+// 				if (control_matrix[i][j] == 0)
+// 				{
+// 					grid[0] = i;
+// 					grid[1] = j;
 
-					grid_to_double(grid, rot_ini, analysis);
+// 					grid_to_double(grid, rot_ini, analysis);
 
-					copy(y, rot_ini, 2);
+// 					copy(y, rot_ini, 2);
 
-					if (system.dim == 6)
-					{
-						for (int k = 0; k < 4; k++)
-						{
-							y[k+2] = orb_ini[k];
-						}
-					}
+// 					if (system.dim == 6)
+// 					{
+// 						for (int k = 0; k < 4; k++)
+// 						{
+// 							y[k+2] = orb_ini[k];
+// 						}
+// 					}
 
-					converged = false;
+// 					converged = false;
 
-					// calculate forward integration
-					evolve_basin(y, ref, &converged,
-						&orbit_fw, &orbit_fw_size,
-						system, analysis);
+// 					// calculate forward integration
+// 					evolve_basin(y, ref, &converged,
+// 						&orbit_fw, &orbit_fw_size,
+// 						system, analysis);
 
-					if(converged == true)
-					{
-						basin_matrix[i][j] = 1;
-						control_matrix[i][j] = 1;
-						time_matrix[i][j] = (double)(orbit_fw_size);
-						basin_counter++;
-					}
-					else
-					{
-						control_matrix[i][j] = -1;
-					}
+// 					if(converged == true)
+// 					{
+// 						basin_matrix[i][j] = 1;
+// 						control_matrix[i][j] = 1;
+// 						time_matrix[i][j] = (double)(orbit_fw_size);
+// 						basin_counter++;
+// 					}
+// 					else
+// 					{
+// 						control_matrix[i][j] = -1;
+// 					}
 
-					// free memory
-					dealloc_2d_double(&orbit_fw, 
-							analysis.number_of_cycles);
-				}
+// 					// free memory
+// 					dealloc_2d_double(&orbit_fw, 
+// 							analysis.number_of_cycles);
+// 				}
 			
-			}
+// 			}
 
-		// new line on terminal
-		printf("\n");
-	}
+// 		// new line on terminal
+// 		printf("\n");
+// 	}
 
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		for (int j = 0; j < analysis.grid_resolution; j++)
-		{
-			grid[0] = i;
-			grid[1] = j;
-			grid_to_double(grid, basin, analysis);
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		for (int j = 0; j < analysis.grid_resolution; j++)
+// 		{
+// 			grid[0] = i;
+// 			grid[1] = j;
+// 			grid_to_double(grid, basin, analysis);
 
-			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
-				basin[0], basin[1], 
-				basin_matrix[grid[0]][grid[1]],
-				time_matrix[grid[0]][grid[1]]);
-		}
-		fprintf(out_boa, "\n");
-	}
+// 			fprintf(out_boa, "%1.5f %1.5f %d %1.10e\n", 
+// 				basin[0], basin[1], 
+// 				basin_matrix[grid[0]][grid[1]],
+// 				time_matrix[grid[0]][grid[1]]);
+// 		}
+// 		fprintf(out_boa, "\n");
+// 	}
 
-	printf("Basin counter = %d\n", basin_counter);
+// 	printf("Basin counter = %d\n", basin_counter);
 
-	// close exit files
-	fclose(out_boa);
-	fclose(out_ref);
+// 	// close exit files
+// 	fclose(out_boa);
+// 	fclose(out_ref);
 
-	dealloc_2d_int(&basin_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_int(&basin_matrix, 
+// 					analysis.grid_resolution);
 
-	dealloc_2d_int(&control_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_int(&control_matrix, 
+// 					analysis.grid_resolution);
 
-	dealloc_2d_double(&time_matrix, 
-					analysis.grid_resolution);
+// 	dealloc_2d_double(&time_matrix, 
+// 					analysis.grid_resolution);
 
-	printf("Data written in output folder\n");
+// 	printf("Data written in output folder\n");
 
-	return 0;
-}
+// 	return 0;
+// }
 
-int basin_of_attraction_no_grid_no_omp(double *ref,
-					dynsys system, anlsis analysis)
-{
-	// little warning
-	if (strcmp(system.name, "two_body") == 0)
-	{
-		printf("Warning: cant draw basins\n");
-		printf("for two-body system\n");
-		exit(2);
-	}
+// int basin_of_attraction_no_grid_no_omp(double *ref,
+// 					dynsys system, anlsis analysis)
+// {
+// 	// little warning
+// 	if (strcmp(system.name, "two_body") == 0)
+// 	{
+// 		printf("Warning: cant draw basins\n");
+// 		printf("for two-body system\n");
+// 		exit(2);
+// 	}
 
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output", &st) == -1) {
-		mkdir("output", 0700);
-	}
+// 	// create output folder if it does not exist
+// 	struct stat st = {0};
+// 	if (stat("output", &st) == -1) {
+// 		mkdir("output", 0700);
+// 	}
 
-	// declare variables
-	FILE 	*out_boa, *out_ref;
-	double y[system.dim];
-	double coordinate, velocity;
-	int orbit_fw_size;
-	double **orbit_fw;
-	double *par = (double *)system.params;
-	double e = par[1];
-	double rot_ini[2];
-	int grid[2];
-	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
-	int basin_counter = 0;
+// 	// declare variables
+// 	FILE 	*out_boa, *out_ref;
+// 	double y[system.dim];
+// 	double coordinate, velocity;
+// 	int orbit_fw_size;
+// 	double **orbit_fw;
+// 	double *par = (double *)system.params;
+// 	double e = par[1];
+// 	double rot_ini[2];
+// 	int grid[2];
+// 	double orb[4], orb_ini[4];
+// 	init_orbital(orb_ini, e);
+// 	int basin_counter = 0;
 
-	bool converged;
+// 	bool converged;
 
-	// open exit files
-	out_boa = fopen("output/basin_no_grid_no_omp.dat", "w");
-	out_ref = fopen("output/basin_ref_no_grid_no_omp.dat", "w");
+// 	// open exit files
+// 	out_boa = fopen("output/basin_no_grid_no_omp.dat", "w");
+// 	out_ref = fopen("output/basin_ref_no_grid_no_omp.dat", "w");
 
-	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
+// 	fprintf(out_ref, "%1.15e %1.15e\n", ref[0], ref[1]);		
 
-	// loop over coordinate values
-	for (int i = 0; i < analysis.grid_resolution; i++)
-	{
-		// print progress on coordinate
-		printf("Calculating set %d of %d\n", 
-					i + 1, analysis.grid_resolution);
+// 	// loop over coordinate values
+// 	for (int i = 0; i < analysis.grid_resolution; i++)
+// 	{
+// 		// print progress on coordinate
+// 		printf("Calculating set %d of %d\n", 
+// 					i + 1, analysis.grid_resolution);
 
-			// loop over velocity values
-			for (int j = 0; j < analysis.grid_resolution; j++)
-			{
-				// print progress on velocity
-				printf("Calculating subset %d of %d\n", 
-							j + 1, analysis.grid_resolution);
+// 			// loop over velocity values
+// 			for (int j = 0; j < analysis.grid_resolution; j++)
+// 			{
+// 				// print progress on velocity
+// 				printf("Calculating subset %d of %d\n", 
+// 							j + 1, analysis.grid_resolution);
 
-					grid[0] = i;
-					grid[1] = j;
+// 					grid[0] = i;
+// 					grid[1] = j;
 
-					grid_to_double(grid, rot_ini, analysis);
+// 					grid_to_double(grid, rot_ini, analysis);
 
-					copy(y, rot_ini, 2);
+// 					copy(y, rot_ini, 2);
 
-					if (system.dim == 6)
-					{
-						for (int k = 0; k < 4; k++)
-						{
-							y[k+2] = orb_ini[k];
-						}
-					}
+// 					if (system.dim == 6)
+// 					{
+// 						for (int k = 0; k < 4; k++)
+// 						{
+// 							y[k+2] = orb_ini[k];
+// 						}
+// 					}
 
-					converged = false;
+// 					converged = false;
 
-					// calculate forward integration
-					evolve_basin(y, ref, &converged,
-						&orbit_fw, &orbit_fw_size,
-						system, analysis);
+// 					// calculate forward integration
+// 					evolve_basin(y, ref, &converged,
+// 						&orbit_fw, &orbit_fw_size,
+// 						system, analysis);
 
-					if(converged == true)
-					{
-						fprintf(out_boa, "%1.5e %1.5e\n",
-							rot_ini[0], rot_ini[1]);
-						basin_counter++;
-					}
+// 					if(converged == true)
+// 					{
+// 						fprintf(out_boa, "%1.5e %1.5e\n",
+// 							rot_ini[0], rot_ini[1]);
+// 						basin_counter++;
+// 					}
 
-					// free memory
-					dealloc_2d_double(&orbit_fw, 
-							analysis.number_of_cycles);
+// 					// free memory
+// 					dealloc_2d_double(&orbit_fw, 
+// 							analysis.number_of_cycles);
 			
-			}
+// 			}
 
-		// new line on terminal
-		printf("\n");
-	}
+// 		// new line on terminal
+// 		printf("\n");
+// 	}
 
-	printf("Basin counter = %d\n", basin_counter);
+// 	printf("Basin counter = %d\n", basin_counter);
 
-	// close exit files
-	fclose(out_boa);
-	fclose(out_ref);
+// 	// close exit files
+// 	fclose(out_boa);
+// 	fclose(out_ref);
 
-	printf("Data written in output folder\n");
+// 	printf("Data written in output folder\n");
 
-	return 0;
-}
+// 	return 0;
+// }
 
 int test_phase_space(dynsys system, anlsis analysis)
 {
@@ -916,7 +916,7 @@ int test_phase_space(dynsys system, anlsis analysis)
 	fclose(out_orb_ang_mom_err);
 	fclose(out_vis_viva_err);
 
-	printf("Data written in output folder\n");
+	printf("Data written in output/test folder\n");
 
 	return 0;
 }

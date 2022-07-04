@@ -74,19 +74,29 @@ int greatest_common_divisor (int n1, int n2);
 // arr_first_index
 int identity_matrix_array_form(double *x, int arr_first_index, int order);
 
-// defines x as a linear combination of y and z
-// where x, y and z are arrays of dimension dim
-// and lamb is a constant parameter
-int lin_comb(double *x, double lamb, double *y, double *z, int dim);
+// v = a * x + b * y
+void linear_combination(double *v, double a, double *x, double b, double *y, int dim);
 
 // defines x as a linear combination of y and z
 // where x, y, z and lamb are arrays of dimension dim
 int lin_comb_vec(double *x, double *lamb, double *y, double *z, int dim);
 
-// transposes a real two-dimensional square matrix
-// of size dim by dim
-int transpose_2d_square_matrix(double **m, int dim);
+// mx = m * x
+void square_matrix_product_vector(double *mx, double **m, double *x, int dim);
 
+// returns the product of two two-dimensional
+// real square matrices of size dim by dim
+void square_matrix_product_2d(double **mp, double **m1, double **m2, int dim);
+
+// returns the transpose of a real two-dimensional 
+// square matrix of size dim by dim
+void square_matrix_transpose_2d(double **mt, double **m, int dim);
+
+// returns the determinant of a 2d matrix
+double square_2d_matrix_determinant(double **m);
+
+// returns the inverse of a 2d matrix
+void square_2d_matrix_inverse(double **inv, double **m);
 /**************************** memory handling *********************************/
 
 // allocates memory for one-dimensional double array x of size n
