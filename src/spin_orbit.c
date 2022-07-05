@@ -1448,8 +1448,8 @@ int periodic_orbit	(perorb *po,
 	double 	e = par[1];
 	double 	K = par[6];
 
-	dist_on_phase_space = &dist_from_ref;
-	evolve_n_cycles = &evolve_n_cycles_po;
+	(*po).dist_on_phase_space = &dist_from_ref;
+	(*po).evolve_n_cycles = &evolve_n_cycles_po;
 
 	calculate_periodic_orbit_ic(po, system, analysis);
 
@@ -1944,7 +1944,7 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");
-	printf("Data written in output/orbit/\n");
+	printf("Data written in output/periodic_orbit/\n");
 
 	return 0;
 }

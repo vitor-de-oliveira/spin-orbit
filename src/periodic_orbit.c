@@ -16,11 +16,11 @@ void jacobian_periodic_orbit(double **J,
     // approximate 1st col. of jacobian matrix
     x_plus[0] = po.initial_condition[0] + 0.5 * dx;
     x_plus[1] = po.initial_condition[1];
-    evolve_n_cycles(x_plus, po.period, system, analysis);
+    po.evolve_n_cycles(x_plus, po.period, system, analysis);
 
     x_minus[0] = po.initial_condition[0] - 0.5 * dx;
     x_minus[1] = po.initial_condition[1];
-    evolve_n_cycles(x_minus, po.period, system, analysis);
+    po.evolve_n_cycles(x_minus, po.period, system, analysis);
 
     J[0][0] = (x_plus[0] - x_minus[0]) / dx;
     J[1][0] = (x_plus[1] - x_minus[1]) / dx;
@@ -28,11 +28,11 @@ void jacobian_periodic_orbit(double **J,
     // approximate 2nd col. of jacobian matrix
     x_plus[0] = po.initial_condition[0];
     x_plus[1] = po.initial_condition[1] + 0.5 * dx;
-    evolve_n_cycles(x_plus, po.period, system, analysis);
+    po.evolve_n_cycles(x_plus, po.period, system, analysis);
 
     x_minus[0] = po.initial_condition[0];
     x_minus[1] = po.initial_condition[1] - 0.5 * dx;
-    evolve_n_cycles(x_minus, po.period, system, analysis);
+    po.evolve_n_cycles(x_minus, po.period, system, analysis);
 
     J[0][1] = (x_plus[0] - x_minus[0]) / dx;
     J[1][1] = (x_plus[1] - x_minus[1]) / dx;
@@ -72,7 +72,7 @@ void minimization_step  (double *x,
 
     // right hand side vector
     copy(ic, po.initial_condition, 2);
-    evolve_n_cycles(ic, po.period, system, analysis);
+    po.evolve_n_cycles(ic, po.period, system, analysis);
     linear_combination(y, 1.0, po.initial_condition, -1.0, ic, 2);
     y[0] = angle_mod(y[0]);
     square_matrix_product_vector(rhs, Jt, y, 2);
@@ -86,8 +86,8 @@ void minimization_step  (double *x,
 
     // new error
     copy(ic, x, 2);
-    evolve_n_cycles(ic, po.period, system, analysis);
-    *err = dist_on_phase_space(ic, x);
+    po.evolve_n_cycles(ic, po.period, system, analysis);
+    *err = po.dist_on_phase_space(ic, x);
 
     dealloc_1d_double(&y);
     dealloc_1d_double(&dx);
@@ -130,9 +130,9 @@ int calculate_periodic_orbit_ic(perorb *po,
     printf("seed for initial condition = (%1.5e  %1.5e)\n",
             (*po).seed[0], (*po).seed[1]);
     copy ((*po).initial_condition, (*po).seed, 2);
-    evolve_n_cycles((*po).initial_condition, (*po).period, 
+    (*po).evolve_n_cycles((*po).initial_condition, (*po).period, 
                     system, analysis);
-    err = dist_on_phase_space((*po).initial_condition, (*po).seed);
+    err = (*po).dist_on_phase_space((*po).initial_condition, (*po).seed);
     printf("seed error = |M^%d(seed)-seed| = %1.5e\n", 
             (*po).period, err);
 
