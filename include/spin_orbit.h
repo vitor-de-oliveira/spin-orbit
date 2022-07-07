@@ -137,7 +137,7 @@ int multiple_time_series_delta_theta(dynsys system,
 									anlsis analysis);
 
 double dist_from_ref(double x[2],
-                    double ref[2]);
+                     double ref[2]);
 
 int evolve_basin(double *ic, double ref[][2], 
                 int ref_period, bool *converged,
@@ -151,6 +151,13 @@ int basin_of_attraction (double ref[][2], int ref_period,
 /**
  * periodic orbit
 **/
+
+// search the phase space for a resonance
+// of orbital period given by analysis.number_of_cycles
+int look_for_resonance	(int orbital_period,
+                         int number_of_spins,
+                         dynsys system, 
+						 anlsis analysis);
 
 // evolves an initial condition for n cycles
 int evolve_n_cycles_po  (double y0[2],

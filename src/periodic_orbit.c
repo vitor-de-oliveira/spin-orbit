@@ -103,13 +103,6 @@ int calculate_periodic_orbit_ic(perorb *po,
                                 dynsys system, 
                                 anlsis analysis)
 {
-    if ((*po).period > 100)
-    {
-        printf("Warning: cannot calculate\n");
-        printf("a periodic orbit with this period.\n");
-        exit(2);
-    }
-
     int count, max_steps;
     double r, lamb, err, err1, err2, tol;
     double *x1, *x2;
@@ -119,7 +112,7 @@ int calculate_periodic_orbit_ic(perorb *po,
     lamb = 0.01;
 
     // iteration parameters
-    tol = 1e-13;
+    tol = 1e-12;
     max_steps = 1000;
 
     // dynamical memory allocation 

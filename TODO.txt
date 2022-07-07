@@ -1,3 +1,10 @@
+- remove reference to K from everything that concerns the
+rigid case
+
+- acertar quando o periodo da po é na verdade menor
+do que o dado. Por exemplo, o metodo acha ponto fixo
+quando procura po de periodo 2. Diferenciar. Não sei como.
+
 - improve resonance calculation for periodic orbits
 
 - add a criterium for the basin which measures if the orbit stays close 

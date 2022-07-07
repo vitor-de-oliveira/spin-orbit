@@ -1,5 +1,27 @@
 #include "dynamical_system.h"
 
+anlsis copy_anlsis(anlsis analysis)
+{
+	anlsis cp_anlsis;
+	cp_anlsis.nc = analysis.nc;
+	cp_anlsis.nv = analysis.nv;
+    cp_anlsis.grid_resolution = analysis.grid_resolution;
+	cp_anlsis.number_of_cycles = analysis.number_of_cycles;
+	cp_anlsis.cycle_period = analysis.cycle_period;
+	cp_anlsis.coordinate_min = analysis.coordinate_min;
+	cp_anlsis.coordinate_max = analysis.coordinate_max;
+	cp_anlsis.velocity_min = analysis.velocity_min;
+	cp_anlsis.velocity_max = analysis.velocity_max;
+    cp_anlsis.grid_coordinate_min = analysis.grid_coordinate_min;
+	cp_anlsis.grid_coordinate_max = analysis.grid_coordinate_max;
+	cp_anlsis.grid_velocity_min = analysis.grid_velocity_min;
+	cp_anlsis.grid_velocity_max = analysis.grid_velocity_max;
+    cp_anlsis.evolve_box_size = analysis.evolve_box_size;
+    cp_anlsis.evolve_basin_eps = analysis.evolve_basin_eps;
+    cp_anlsis.time_series_delta = analysis.time_series_delta;
+	return cp_anlsis;
+}
+
 int evolve_cycle(double *y, double *t,
 				 dynsys system, anlsis analysis)
 {
@@ -83,6 +105,8 @@ int evolve_orbit(double *ic, double ***orbit, int *orbit_size,
 			{
 				printf("Warning: box limit reached\n");
 				printf("y[%d] = %1.10e\n", j, y[j]);
+				printf("Box size = %1.2e\n", 
+						analysis.evolve_box_size);
 				goto out;
 			}
 		}

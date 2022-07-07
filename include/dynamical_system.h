@@ -56,6 +56,8 @@ typedef struct AnlSis{
     double time_series_delta;
 } anlsis;
 
+anlsis copy_anlsis(anlsis analysis);
+
 int evolve_cycle(double *y, double *t,
                 dynsys system, anlsis analysis);
 
