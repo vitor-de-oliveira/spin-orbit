@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
 
-	po.period = 2; 
+	po.period = 4; 
 	// po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
 	// po.seed[0] = 0.0; po.seed[1] = 2.32185; // e = 0.1 SFP 2/1 resonance  
 	// po.seed[0] = -1.56892; po.seed[1] = 0.868688; // e = 0.1 period 2 SPO 1/2 resonance 
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	// po.seed[0] = 1.35558; po.seed[1] =  1.08285; // e = 0.1 UPO 2/2
 	// po.seed[0] = 1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
 	// po.seed[0] = 0.0; po.seed[1] =  2.72177; // e = 0.1 SPO 5/2
-	po.seed[0] = -1.34924; po.seed[1] =  1.33002; // e = 0.1 ?
+	po.seed[0] = -1.57079; po.seed[1] =  1.95929; // e = 0.1 ?
 	// po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
 	// po.seed[0] = 0.7; po.seed[1] = 1.1; // e = 0.2 ?
 	periodic_orbit(&po, system, analysis);

@@ -1568,7 +1568,7 @@ int periodic_orbit	(perorb *po,
 		mkdir("output/periodic_orbit", 0700);
 	}
 
-	FILE    *out;
+	FILE    *out_orb, *out_orb_res;
 	char    filename[200];
 	double 	t = 0;
     double 	y[system.dim], orbital[4];
@@ -1577,6 +1577,8 @@ int periodic_orbit	(perorb *po,
 	double 	gamma = par[0];
 	double 	e = par[1];
 	double 	K = par[6];
+	double number_of_spins;
+	double one_period_angular_diff;
 
 	(*po).dist_on_phase_space = &dist_from_ref;
 	(*po).evolve_n_cycles = &evolve_n_cycles_po;
@@ -1618,19 +1620,13 @@ int periodic_orbit	(perorb *po,
 	// indexed file
 	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
             gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
-	out = fopen(filename, "w");
+	out_orb = fopen(filename, "w");
 
     for (int i = 0; i < (*po).period; i++)
     {
-        fprintf(out, "%1.10e %1.10e\n", 
+        fprintf(out_orb, "%1.10e %1.10e\n", 
             angle_mod(orbit[i][0]), orbit[i][1]);
     }
-
-    fclose(out);
-
-	FILE	*out_orb_res;
-	double number_of_spins;
-	double one_period_angular_diff;
 
 	sprintf(filename, "output/periodic_orbit/periodic_orbit_resonance_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
             gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
@@ -1642,6 +1638,19 @@ int periodic_orbit	(perorb *po,
 
 	number_of_spins = one_period_angular_diff / (2.*M_PI);
 
+	(*po).winding_number_numerator = (int) round(number_of_spins);
+	(*po).winding_number_denominator = (*po).period;
+
+	fprintf(out_orb_res, "Orbit:\n\n");
+
+	for (int i = 0; i < (*po).period; i++)
+    {
+        fprintf(out_orb_res, "%1.5e %1.5e\n", 
+            angle_mod(orbit[i][0]), orbit[i][1]);
+    }
+
+	fprintf(out_orb_res, "\n\n");
+
 	fprintf(out_orb_res, "Orbit period:\n\n%d\n\n\n", 
 		(*po).period);
 
@@ -1652,8 +1661,10 @@ int periodic_orbit	(perorb *po,
 		number_of_spins);
 
 	fprintf(out_orb_res, "Resonance:\n\n%d / %d\n\n\n", 
-		(int) round(number_of_spins), (*po).period);
+		(*po).winding_number_numerator, 
+		(*po).winding_number_denominator);
 
+    fclose(out_orb);
 	fclose(out_orb_res);
 
 	return 0;
@@ -2094,9 +2105,18 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 	fprintf(gnuplotPipe, "set xrange[-3.1416:3.1416]\n");
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
-	fprintf(gnuplotPipe, 
-		"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f K = %1.5f\"\n", 
-		system.name, gamma, e, K);
+	if(system.name == "rigid")
+	{
+		fprintf(gnuplotPipe, 
+			"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f. Resonance = %d / %d\"\n", 
+			system.name, gamma, e, po.winding_number_numerator, po.winding_number_denominator);
+	}
+	else
+	{
+		fprintf(gnuplotPipe, 
+			"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f K = %1.5f. Resonance = %d / %d\"\n", 
+			system.name, gamma, e, K, po.winding_number_numerator, po.winding_number_denominator);
+	}
 	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
 		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
 	fclose(gnuplotPipe);
