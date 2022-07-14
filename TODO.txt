@@ -1,38 +1,41 @@
+- calculate p.o stability and put it in the data file name
+
+- track bifurcations of the p.o.s on k and e
+
+- Maybe use Monte-Carlos for time series of high velocity i.c.s
+
+- Fix backward integration on phase space. See how it is written in
+the look for resonance function. See if this problem
+appears in other places.
+
+- improve look for resonance function in spin orbit.
+It does not work very well. Maybe put it on tests
+
 - remove reference to K from everything that concerns the
-rigid case
+rigid case. Maybe add a type to the field to differentiate it between
+conservative and dissipative and use it to improve the data file names
+and figure labels
 
 - acertar quando o periodo da po é na verdade menor
 do que o dado. Por exemplo, o metodo acha ponto fixo
 quando procura po de periodo 2. Diferenciar. Não sei como.
 
-- improve resonance calculation for periodic orbits
-
 - add a criterium for the basin which measures if the orbit stays close 
 to the attractor for a sufficient ammount of time. 100 cycles maybe. 
 Put this criterium along with the convergence criterium to stabilish that a
 given orbit has ideed converged.
-Put also an alert somehow if any of the orbits conrged in the maximum sim time
-that means that I did not choose a time long enough
 
-- when the resonance is being calculated for p.o.same
-use it as a reference to identify data file names. along with
-stability more along the way
+- write a python lib to analyse the histogram of convergence times, in
+order to find tendences and to see if the sim time is big enough
 
 - maybe change argument of basin of attraction function to
-a member of periodic orbit structure. Also do this to evolve_basin
+a member of periodic orbit structure. Also do this to evolve_basin.
+Or maybe just calculate the p.o and sent it to the function
 
-- move resonance calculation from trace 
-orbit to future periodic orbit function
-
-- I have to put initial condition info on orbit!!
- then change the draw orbit on phase space stuff
+- Organize tests
 
 - move time series to tests. Or rather, transform time series
 to a drawing of orbits only
-
-- maybe use a different software than gnuplot to fit histogram and fit cuvers
- perhaps matlab or python. No caso de python, criar um projeto
- aqui dentro chamado python_tools
 
 - talvez fazer uma pasta de figuras / exemplos e subir no github
 
@@ -41,6 +44,7 @@ to a drawing of orbits only
 - Use terminal eps in scripts and pipes (or both versions on pipe and script)
 
 - think of a good way to store the results. maybe dropbox or drive.
+or maybe move it all to the IF computer using anydesk
 
 - think of a good way to organize the data. config file
 along with another dir with figures and raw data.
@@ -48,7 +52,8 @@ Perhaps, due to the existence of a config file, just
 put the date on the file name.
 Maybe write a print_config_file function which would
 be called along with the gnuplot pipe. Include execution time
-somehow
+somehow. Tomaz gave a few tips on binaries formats but I found
+that to be too difficult
 
 - pesquisar e adicionar, se houver, a verificação no erro de 
 alguma grandeza que envolva a parte rotacional do problema
@@ -57,40 +62,24 @@ alguma grandeza que envolva a parte rotacional do problema
 
 - maybe remove two-body system
 
-- adaptar a parte orbital nas funcoes de traco de orbita
-e espaco de fases para quando for usar campos dissipativos
-pois eles nao vao se chamar rigid. Isto é, usar a dimensão
-
 - understand how the specific values to the moon (or any other)
 satellite comes into play in the initial conditions. There are
 also the masses. Alterar a funcao init_orbital em dynamical_systems
 de acordo. Olhar Murray chap 2
+
 - stabilish the right values for G and m. Como adimensionalizar
 as massas, tendo em mente que existe a parte orbital e a parte
 do spin e um usa a soma das massas e o outro a massa do primario
 A eq do artigo do wisdom é diferente da do projeto. Pela 3a lei
 de kepler, dá para mostrar que elas são idênticas, exceto pela 
 presença da massa do secundário
+
 - checar se o período deveria ser sempre 2pi e o eixo maior
 a igual a 1.
 
-- implement automan. Maybe put everything regarding automan in
-the same place and call it. Look at the UPO calculator in the
-Vitor-David folder in Dropbox. maybe upo_calc.h and manifolds.h
-and write somewhere that these are forks from automan.h. No 
-manifolds.h, colocar um check function para verificar se a 
-orbita passada para o programa representa uma orbita periodica
-para uma certa tolerancia
-
-- no futuro, mover as funções evolve_cycle e evolve_orbit
-para dentro da struct de analise no dynamical system e criar
-vetores de funções para  trace_orbit_map e draw_phase_space,
-as quais apontarão para funções definidas em libs externas
-como a spin_orbit.h. Isso deixará o programa bem mais geral.
-Nesse caso, será necessário entender ``this" em c
-
-- make modules for the program. Maybe using switch, maybe
-using the makefile itself
+- implement automan. No manifolds.h, colocar um check function 
+para verificar se a orbita passada para o programa representa 
+uma orbita periodica para uma certa tolerancia
 
 - Talvez, mais para frente, deixar o ponteiro params mais
 especifico para cada caso, associando quais valores entram
