@@ -88,28 +88,37 @@ int main(int argc, char **argv)
 	// // for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
 	// // ic[0] = 0.0, ic[1] = 0.1;
-	// ic[0] = 1.56704, ic[1] = 2.55510;
+	// ic[0] = 1.56704; ic[1] = 2.55510;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
 
-	po.period = 4; 
+	po.period = 2; 
 	// po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
 	// po.seed[0] = 0.0; po.seed[1] = 2.32185; // e = 0.1 SFP 2/1 resonance  
 	// po.seed[0] = -1.56892; po.seed[1] = 0.868688; // e = 0.1 period 2 SPO 1/2 resonance 
 	// po.seed[0] = 0.0; po.seed[1] = 1.87878; // e = 0.1 period 2 UPO 2/2 resonance
 	// po.seed[0] = -1.57310; po.seed[1] =  1.71059; // e = 0.1 UFP 2/1 resonance 
 	// po.seed[0] = -1.57246; po.seed[1] =  2.14877; // e = 0.1 UPO 5/2 resonance
-	// po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
+	po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
 	// po.seed[0] = 1.35558; po.seed[1] =  1.08285; // e = 0.1 UPO 2/2
 	// po.seed[0] = 1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
 	// po.seed[0] = 0.0; po.seed[1] =  2.72177; // e = 0.1 SPO 5/2
-	po.seed[0] = -1.57079; po.seed[1] =  1.95929; // e = 0.1 ?
+	// po.seed[0] = -1.57079; po.seed[1] =  1.95929; // e = 0.1 ?
 	// po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
 	// po.seed[0] = 0.7; po.seed[1] = 1.1; // e = 0.2 ?
 	periodic_orbit(&po, system, analysis);
 
-	draw_periodic_orbit_on_phase_space (po, system);
+	// draw_periodic_orbit_on_phase_space (po, system);
+
+	analysis.number_of_cycles = 5e4;
+	analysis.cycle_period = 1e-3;
+
+	ic[0] = po.initial_condition[0];
+	ic[1] = po.initial_condition[1];
+	init_orbital(orbital, e);
+	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	orbit_map(ic, system, analysis);
 
 	// analysis.number_of_cycles = 2;
 	// analysis.cycle_period = 2.0 * M_PI;

@@ -112,7 +112,7 @@ int calculate_periodic_orbit_ic(perorb *po,
     lamb = 0.01;
 
     // iteration parameters
-    tol = 1e-10;
+    tol = 1e-13;
     max_steps = 1000;
 
     // dynamical memory allocation 
