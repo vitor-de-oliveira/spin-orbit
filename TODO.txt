@@ -1,20 +1,20 @@
-- calculate p.o stability and put it in the data file name
+IMPORTANT STUFF
 
-- track bifurcations of the p.o.s on k and e
+- Fix backward integration on phase space and basin. 
+See how it is written in the look for resonance function.
+See if this problem anywhere else.
 
-- Maybe use Monte-Carlos for time series of high velocity i.c.s
-
-- Fix backward integration on phase space. See how it is written in
-the look for resonance function. See if this problem
-appears in other places.
-
-- improve look for resonance function in spin orbit.
-It does not work very well. Maybe put it on tests
+- test time series with and without openmp again.
+They have to be exactaly the same.
+See if the problem is related to the modification
+of the structure member
 
 - remove reference to K from everything that concerns the
 rigid case. Maybe add a type to the field to differentiate it between
 conservative and dissipative and use it to improve the data file names
 and figure labels
+
+- do not let p.o. calculation give NANs
 
 - acertar quando o periodo da po é na verdade menor
 do que o dado. Por exemplo, o metodo acha ponto fixo
@@ -25,61 +25,38 @@ to the attractor for a sufficient ammount of time. 100 cycles maybe.
 Put this criterium along with the convergence criterium to stabilish that a
 given orbit has ideed converged.
 
+- write a basin which keeps the temporal series thta, theta_dot and n 
+of the last ~100 cycles of every initial condition
+
+- Use terminal eps in scripts and pipes (or both versions on pipe and script)
+
+- fazer uma coluna de tempos multiplicado pelo passo no orbit
+
+- calculate p.o stability and put it in the data file name.
+
+ADITIONAL STUFF
+
+- improve look for resonance function in spin orbit.
+It does not work very well. Maybe put it on tests
+Run it again using stats e see if results keep changing or not
+
 - write a python lib to analyse the histogram of convergence times, in
 order to find tendences and to see if the sim time is big enough
 
-- maybe change argument of basin of attraction function to
-a member of periodic orbit structure. Also do this to evolve_basin.
-Or maybe just calculate the p.o and sent it to the function
-
-- Organize tests
+- Maybe use Monte-Carlos for time series of high velocity i.c.s
 
 - move time series to tests. Or rather, transform time series
 to a drawing of orbits only
 
-- talvez fazer uma pasta de figuras / exemplos e subir no github
+- Organize tests
 
-- Make an init for the parameters of Hyperion and so on
-
-- Use terminal eps in scripts and pipes (or both versions on pipe and script)
-
-- think of a good way to store the results. maybe dropbox or drive.
-or maybe move it all to the IF computer using anydesk
-
-- think of a good way to organize the data. config file
-along with another dir with figures and raw data.
-Perhaps, due to the existence of a config file, just
-put the date on the file name.
-Maybe write a print_config_file function which would
-be called along with the gnuplot pipe. Include execution time
-somehow. Tomaz gave a few tips on binaries formats but I found
-that to be too difficult
-
-- pesquisar e adicionar, se houver, a verificação no erro de 
-alguma grandeza que envolva a parte rotacional do problema
-
-- pegar os tempos reais no integrador? multiplicar pelo passo?
-
-- maybe remove two-body system
-
-- understand how the specific values to the moon (or any other)
-satellite comes into play in the initial conditions. There are
-also the masses. Alterar a funcao init_orbital em dynamical_systems
-de acordo. Olhar Murray chap 2
-
-- stabilish the right values for G and m. Como adimensionalizar
-as massas, tendo em mente que existe a parte orbital e a parte
-do spin e um usa a soma das massas e o outro a massa do primario
-A eq do artigo do wisdom é diferente da do projeto. Pela 3a lei
-de kepler, dá para mostrar que elas são idênticas, exceto pela 
-presença da massa do secundário
-
-- checar se o período deveria ser sempre 2pi e o eixo maior
-a igual a 1.
+- move two-body system to tests
 
 - implement automan. No manifolds.h, colocar um check function 
 para verificar se a orbita passada para o programa representa 
 uma orbita periodica para uma certa tolerancia
+
+FUTURE STUFF
 
 - Talvez, mais para frente, deixar o ponteiro params mais
 especifico para cada caso, associando quais valores entram
