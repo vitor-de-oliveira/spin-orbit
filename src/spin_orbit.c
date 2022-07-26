@@ -642,12 +642,17 @@ int phase_space(dynsys system, anlsis analysis)
 	out_vis_viva_err = fopen(filename, "w");
 
 	// declare variables
-	double y[system.dim], y0[system.dim];
+	double y[system.dim];
 	double coordinate, velocity;
 	int orbit_fw_size, orbit_bw_size;
 	double **orbit_fw, **orbit_bw;
 	double orb[4], orb_ini[4];
 	init_orbital(orb_ini, e);
+	anlsis analysis_fw, analysis_bw;
+
+	analysis_fw = copy_anlsis(analysis);
+	analysis_bw = copy_anlsis(analysis);
+	analysis_bw.cycle_period *= -1.0;
 
 	// loop over coordinate values
 	for (int i = 0; i < analysis.nc; i++)
@@ -658,7 +663,7 @@ int phase_space(dynsys system, anlsis analysis)
 		omp_set_dynamic(0);     // Explicitly disable dynamic teams
 		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
 
-		#pragma omp parallel private(y, y0, coordinate, velocity, \
+		#pragma omp parallel private(y, coordinate, velocity, \
 				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb)
 		{
 
@@ -705,18 +710,13 @@ int phase_space(dynsys system, anlsis analysis)
 					}
 				}
 
-				// keep IC for backward integration
-				copy(y0, y, system.dim);
-
 				// calculate forward integration
 				evolve_orbit(y, &orbit_fw, 
-					&orbit_fw_size, system, analysis);
+					&orbit_fw_size, system, analysis_fw);
 
 				// calculate backward integration
-				analysis.cycle_period *= -1.0;
-				evolve_orbit(y0, &orbit_bw, 
-					&orbit_bw_size, system, analysis);
-				analysis.cycle_period *= -1.0;
+				evolve_orbit(y, &orbit_bw, 
+					&orbit_bw_size, system, analysis_bw);
 
 				#pragma omp critical
 				{
@@ -1732,7 +1732,7 @@ int draw_phase_space(dynsys system)
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
-		"set key title \"gamma = %1.3f e = %1.3f\" box opaque top right width 2\n", 
+		"set key title \"~{/Symbol g}{0.5-} = %1.3f e = %1.3f\" box opaque top right width 2\n", 
 		gamma, e);
 	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle",
 		gamma, e);

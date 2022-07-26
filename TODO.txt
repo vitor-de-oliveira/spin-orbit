@@ -1,9 +1,5 @@
 IMPORTANT STUFF
 
-- Fix backward integration on phase space and basin. 
-See how it is written in the look for resonance function.
-See if this problem anywhere else.
-
 - test time series with and without openmp again.
 They have to be exactaly the same.
 See if the problem is related to the modification

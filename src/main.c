@@ -93,32 +93,32 @@ int main(int argc, char **argv)
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
 
-	po.period = 2; 
-	// po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
-	// po.seed[0] = 0.0; po.seed[1] = 2.32185; // e = 0.1 SFP 2/1 resonance  
-	// po.seed[0] = -1.56892; po.seed[1] = 0.868688; // e = 0.1 period 2 SPO 1/2 resonance 
-	// po.seed[0] = 0.0; po.seed[1] = 1.87878; // e = 0.1 period 2 UPO 2/2 resonance
-	// po.seed[0] = -1.57310; po.seed[1] =  1.71059; // e = 0.1 UFP 2/1 resonance 
-	// po.seed[0] = -1.57246; po.seed[1] =  2.14877; // e = 0.1 UPO 5/2 resonance
-	po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
-	// po.seed[0] = 1.35558; po.seed[1] =  1.08285; // e = 0.1 UPO 2/2
-	// po.seed[0] = 1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
-	// po.seed[0] = 0.0; po.seed[1] =  2.72177; // e = 0.1 SPO 5/2
-	// po.seed[0] = -1.57079; po.seed[1] =  1.95929; // e = 0.1 ?
-	// po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
-	// po.seed[0] = 0.7; po.seed[1] = 1.1; // e = 0.2 ?
-	periodic_orbit(&po, system, analysis);
+	// po.period = 2; 
+	// // po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
+	// // po.seed[0] = 0.0; po.seed[1] = 2.32185; // e = 0.1 SFP 2/1 resonance  
+	// // po.seed[0] = -1.56892; po.seed[1] = 0.868688; // e = 0.1 period 2 SPO 1/2 resonance 
+	// // po.seed[0] = 0.0; po.seed[1] = 1.87878; // e = 0.1 period 2 UPO 2/2 resonance
+	// // po.seed[0] = -1.57310; po.seed[1] =  1.71059; // e = 0.1 UFP 2/1 resonance 
+	// // po.seed[0] = -1.57246; po.seed[1] =  2.14877; // e = 0.1 UPO 5/2 resonance
+	// po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
+	// // po.seed[0] = 1.35558; po.seed[1] =  1.08285; // e = 0.1 UPO 2/2
+	// // po.seed[0] = 1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
+	// // po.seed[0] = 0.0; po.seed[1] =  2.72177; // e = 0.1 SPO 5/2
+	// // po.seed[0] = -1.57079; po.seed[1] =  1.95929; // e = 0.1 ?
+	// // po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
+	// // po.seed[0] = 0.7; po.seed[1] = 1.1; // e = 0.2 ?
+	// periodic_orbit(&po, system, analysis);
 
-	// draw_periodic_orbit_on_phase_space (po, system);
+	// // draw_periodic_orbit_on_phase_space (po, system);
 
-	analysis.number_of_cycles = 5e4;
-	analysis.cycle_period = 1e-3;
+	// analysis.number_of_cycles = 5e4;
+	// analysis.cycle_period = 1e-3;
 
-	ic[0] = po.initial_condition[0];
-	ic[1] = po.initial_condition[1];
-	init_orbital(orbital, e);
-	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	orbit_map(ic, system, analysis);
+	// ic[0] = po.initial_condition[0];
+	// ic[1] = po.initial_condition[1];
+	// init_orbital(orbital, e);
+	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// orbit_map(ic, system, analysis);
 
 	// analysis.number_of_cycles = 2;
 	// analysis.cycle_period = 2.0 * M_PI;
@@ -171,29 +171,29 @@ int main(int argc, char **argv)
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	// // system = system_linear_average;
+	system = system_rigid;
+	// system = system_linear_average;
 
-	// gamma = (.89 * .89) / 3.;
-	// e = 0.110; // e = 0.1;
-	// m_secondary = 0.0;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
- 	// K = 1e-2;
+	gamma = (.89 * .89) / 3.;
+	e = 0.110; // e = 0.1;
+	m_secondary = 0.0;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+ 	K = 1e-2;
 
-	// analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
-	// analysis.number_of_cycles = 2e3; //1e3
-	// analysis.cycle_period = 2.0 * M_PI;
-	// analysis.coordinate_min = 0.0; // M_PI
-	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
-	// analysis.velocity_min = 0.0;
-	// analysis.velocity_max = 3.0;
-	// analysis.evolve_box_size = 1e6;
-	// analysis.evolve_basin_eps = 1e-1;
+	analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
+	analysis.number_of_cycles = 2e3; //1e3
+	analysis.cycle_period = 2.0 * M_PI;
+	analysis.coordinate_min = 0.0; // M_PI
+	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	analysis.velocity_min = 0.0;
+	analysis.velocity_max = 3.0;
+	analysis.evolve_box_size = 1e6;
+	analysis.evolve_basin_eps = 1e-1;
 
-	// phase_space(system, analysis);
-	// draw_phase_space(system);
+	phase_space(system, analysis);
+	draw_phase_space(system);
 
 	// // for (e = 0.01; e < 0.205; e += 0.01)
 	// // {
