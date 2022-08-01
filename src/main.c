@@ -54,32 +54,37 @@ int main(int argc, char **argv)
 	 * m_secondary = 1.215e-2
 	**/
 
+	double e_moon = 0.0549;
+
 	/** Hyperion (Wisdom 1987)
 	 * e = 0.1 
 	 * gamma = (.89 * .89) / 3.
 	 * m_secondary = 0. (assuming for now)
 	**/
+
+	double e_hyperion = 0.1;
+	double gamma_hyperion = ((.89 * .89) / 3.); //~0.264
 	  
 	/////////////////////////////////////////////////////////
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_rigid;
-	// system = system_linear_average;
-	double ic[system.dim];
+	// system = system_rigid;
+	// // system = system_linear_average;
+	// double ic[system.dim];
 
-	gamma = (.89 * .89) / 3.;
-	e = 0.1; // e = 0.1;
-	m_secondary = 0.;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
-	K = 1e-3;
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1; // e = 0.1;
+	// m_secondary = 0.;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+	// K = 1e-3;
 
-	analysis.number_of_cycles = 1e3; //1e3 6e3
-	analysis.cycle_period = 2.0 * M_PI; // 1e-3
-	analysis.evolve_box_size = 1e8;
-	analysis.evolve_basin_eps = 1e-1;
+	// analysis.number_of_cycles = 1e3; //1e3 6e3
+	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	// analysis.evolve_box_size = 1e8;
+	// analysis.evolve_basin_eps = 1e-1;
 
 	// // ic[0] = 0.0, ic[1] = 100.;
 	// //near the 1:1 stable fp in the rigid case
@@ -192,25 +197,26 @@ int main(int argc, char **argv)
 	analysis.evolve_box_size = 1e6;
 	analysis.evolve_basin_eps = 1e-1;
 
-	phase_space(system, analysis);
-	draw_phase_space(system);
+	// phase_space(system, analysis);
+	// draw_phase_space(system);
 
-	// // for (e = 0.01; e < 0.205; e += 0.01)
-	// // {
-	// // 	// phase_space(system, analysis);
-	// // 	draw_phase_space(system);
-	// // }
+	gamma = gamma_hyperion;
 
-	// // double gamma_hyperion = ((.89 * .89) / 3.); //~0.264
-	// // double delta_gamma =  gamma_hyperion / 10.;
+	for (e = 0.0; e < 0.405; e += 0.01)
+	{
+		phase_space(system, analysis);
+		draw_phase_space(system);
+	}
 
-	// // for (gamma = 0.0; 
-	// // 	 gamma < gamma_hyperion * 2.;
-	// // 	 gamma += delta_gamma)
-	// // {
-	// // 	phase_space(system, analysis);
-	// // 	draw_phase_space(system);
-	// // }
+	e = e_hyperion;
+
+	for (gamma = 0.0; 
+		 gamma < gamma_hyperion * 2. + gamma_hyperion / 40.;
+		 gamma += gamma_hyperion / 20.)
+	{
+		phase_space(system, analysis);
+		draw_phase_space(system);
+	}
 
 	/////////////////////////////////////////////////////////
 	/*				Basin of attraction		   	           */
