@@ -176,86 +176,86 @@ int main(int argc, char **argv)
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_rigid;
-	// system = system_linear_average;
-
-	gamma = (.89 * .89) / 3.;
-	e = 0.110; // e = 0.1;
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-2;
-
-	analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
-	analysis.number_of_cycles = 2e3; //1e3
-	analysis.cycle_period = 2.0 * M_PI;
-	analysis.coordinate_min = 0.0; // M_PI
-	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
-	analysis.velocity_min = 0.0;
-	analysis.velocity_max = 3.0;
-	analysis.evolve_box_size = 1e6;
-	analysis.evolve_basin_eps = 1e-1;
-
-	// phase_space(system, analysis);
-	// draw_phase_space(system);
-
-	gamma = gamma_hyperion;
-
-	for (e = 0.0; e < 0.405; e += 0.01)
-	{
-		phase_space(system, analysis);
-		draw_phase_space(system);
-	}
-
-	e = e_hyperion;
-
-	for (gamma = 0.0; 
-		 gamma < gamma_hyperion * 2. + gamma_hyperion / 40.;
-		 gamma += gamma_hyperion / 20.)
-	{
-		phase_space(system, analysis);
-		draw_phase_space(system);
-	}
-
-	/////////////////////////////////////////////////////////
-	/*				Basin of attraction		   	           */
-	/////////////////////////////////////////////////////////
-
-	// system = system_linear_average;
-	// int ref_period = 4;
-	// double ref[ref_period][2];
+	// system = system_rigid;
+	// // system = system_linear_average;
 
 	// gamma = (.89 * .89) / 3.;
-	// e = 0.140; //0.1
+	// e = 0.110; // e = 0.1;
 	// m_secondary = 0.0;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 	// a = 1.0;
  	// K = 1e-2;
 
-	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
+	// analysis.number_of_cycles = 2e3; //1e3
 	// analysis.cycle_period = 2.0 * M_PI;
-	// analysis.grid_resolution = 50;
-	// analysis.grid_coordinate_min = -M_PI;
-	// analysis.grid_coordinate_max = M_PI;
-	// analysis.grid_velocity_min = 0.0;
-	// analysis.grid_velocity_max = 3.0;
+	// analysis.coordinate_min = 0.0; // M_PI
+	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	// analysis.velocity_min = 0.0;
+	// analysis.velocity_max = 3.0;
 	// analysis.evolve_box_size = 1e6;
 	// analysis.evolve_basin_eps = 1e-1;
 
-	// // ref[0][0] = 0.0; ref[0][1] = 0.551540; // e = 0.1
-	// // ref[1][0] = M_PI; ref[1][1] = 0.551540; // e = 0.1
-	// // ref[0][0] = 0.0; ref[0][1] = 1.0; // e = 0.0
-	// // ref[1][0] = M_PI; ref[1][1] = 1.0; // e = 0.0
-	// // ref[0][0] = 0.0; ref[0][1] = 0.47055; // e = 0.140 res 1 / 1 (conservative)
-	// // e = 0.140 period 4 attractor
+	// // phase_space(system, analysis);
+	// // draw_phase_space(system);
+
+	// gamma = gamma_hyperion;
+
+	// for (e = 0.0; e < 0.405; e += 0.01)
+	// {
+	// 	phase_space(system, analysis);
+	// 	draw_phase_space(system);
+	// }
+
+	// e = e_hyperion;
+
+	// for (gamma = 0.0; 
+	// 	 gamma < gamma_hyperion * 2. + gamma_hyperion / 40.;
+	// 	 gamma += gamma_hyperion / 20.)
+	// {
+	// 	phase_space(system, analysis);
+	// 	draw_phase_space(system);
+	// }
+
+	/////////////////////////////////////////////////////////
+	/*				Basin of attraction		   	           */
+	/////////////////////////////////////////////////////////
+
+	system = system_linear_average;
+	int ref_period = 1;
+	double ref[ref_period][2];
+
+	gamma = (.89 * .89) / 3.;
+	e = e_hyperion;
+	m_secondary = 0.0;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+ 	K = 1e-2;
+
+	analysis.number_of_cycles = 1e3; //1e3
+	analysis.cycle_period = 2.0 * M_PI;
+	analysis.grid_resolution = 600;
+	analysis.grid_coordinate_min = -M_PI;
+	analysis.grid_coordinate_max = M_PI;
+	analysis.grid_velocity_min = 0.0;
+	analysis.grid_velocity_max = 3.0;
+	analysis.evolve_box_size = 1e6;
+	analysis.evolve_basin_eps = 1e-1;
+
+	ref[0][0] = 0.0; ref[0][1] = 0.551540; // e = 0.1
+	// ref[1][0] = M_PI; ref[1][1] = 0.551540; // e = 0.1
+	// ref[0][0] = 0.0; ref[0][1] = 1.0; // e = 0.0
+	// ref[1][0] = M_PI; ref[1][1] = 1.0; // e = 0.0
+	// ref[0][0] = 0.0; ref[0][1] = 0.47055; // e = 0.140 res 1 / 1 (conservative)
+	// e = 0.140 period 4 attractor
 	// ref[0][0] = 2.505345504734883e+00; 	ref[0][1] = 1.380383468328994e+00; 
 	// ref[1][0] = 5.633238998250718e-01; 	ref[1][1] = 1.467273372265798e+00;
 	// ref[2][0] = -6.646192119783194e-01; ref[2][1] = 1.356998968090035e+00;
 	// ref[3][0] = -2.552302112530043e+00; ref[3][1] = 1.444362559384576e+00;
-  	// // basin_of_attraction (ref, ref_period, system, analysis);
-	// draw_basin_of_attraction (ref, ref_period, system, analysis);
+  	// basin_of_attraction (ref, ref_period, system, analysis);
+	draw_basin_of_attraction (ref, ref_period, system, analysis);
 
   /******************** Stop clock ***********************/
 
