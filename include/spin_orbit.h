@@ -177,7 +177,11 @@ int periodic_orbit	(perorb *po,
 
 int draw_orbit_map  (dynsys system);
 
-int draw_phase_space    (dynsys system);
+int draw_phase_space(dynsys system);
+
+int draw_phase_space_clean(dynsys system);
+
+int draw_phase_space_latex(dynsys system);
 
 int draw_orbit_on_phase_space(dynsys system);
 
@@ -185,7 +189,13 @@ int draw_time_series(dynsys system);
 
 int draw_time_series_union_e(dynsys system);
 
+int draw_time_series_union_e_latex(dynsys system);
+
+int draw_time_series_union_e_eps(dynsys system);
+
 int draw_time_series_union_K(dynsys system);
+
+int draw_time_series_union_K_latex(dynsys system);
 
 int draw_multiple_time_series(dynsys system);
 
@@ -198,7 +208,13 @@ int draw_multiple_time_series_delta_theta   (dynsys system,
 int draw_basin_of_attraction(double ref[][2], int ref_period,
                             dynsys system, anlsis analysis);
 
+int draw_basin_of_attraction_clean	(double ref[][2], int ref_period,
+                            		 dynsys system, anlsis analysis);
+
 int draw_periodic_orbit_on_phase_space  (perorb po,
                                          dynsys system);
+
+int draw_periodic_orbit_on_phase_space_clean(perorb po,
+                                         	 dynsys system);
 
 #endif

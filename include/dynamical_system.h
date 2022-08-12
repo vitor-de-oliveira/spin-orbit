@@ -37,6 +37,8 @@ typedef struct DynSys{
     void *params;
 } dynsys;
 
+dynsys copy_dynsys(dynsys system);
+
 // System analysis
 typedef struct AnlSis{
     int nc, nv;

@@ -1,5 +1,16 @@
 #include "dynamical_system.h"
 
+dynsys copy_dynsys(dynsys system)
+{
+	dynsys cp_system;
+	cp_system.name = system.name;
+	cp_system.field = system.field;
+	cp_system.jac = system.jac;
+	cp_system.dim = system.dim;
+	cp_system.params = system.params;
+	return cp_system;
+}
+
 anlsis copy_anlsis(anlsis analysis)
 {
 	anlsis cp_anlsis;

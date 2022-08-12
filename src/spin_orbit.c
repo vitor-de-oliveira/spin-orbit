@@ -1743,6 +1743,98 @@ int draw_phase_space(dynsys system)
 	return 0;
 }
 
+int draw_phase_space_clean(dynsys system)
+{
+
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/clean_figures", &st) == -1) {
+		mkdir("output/clean_figures", 0700);
+	}
+
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+
+	printf("Drawing phase space with gamma = %1.3f and e = %1.3f\n", 
+		gamma, e);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/phase_space\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/clean_figures/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
+	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set lmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set bmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set rmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set tmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set xtics format \" \"\n");
+	fprintf(gnuplotPipe, "set ytics format \" \"\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "unset title\n");
+	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle", gamma, e);
+	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle", gamma, e);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_phase_space_latex(dynsys system)
+{
+
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/tests", &st) == -1) {
+		mkdir("output/tests", 0700);
+	}
+
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+
+	printf("Drawing phase space with gamma = %1.3f and e = %1.3f\n", 
+		gamma, e);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/phase_space\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/tests/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
+	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,35\" \n");
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "unset title\n");
+	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"black\" notitle",
+	// 	gamma, e);
+	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle",
+	// 	gamma, e);
+	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle", gamma, e);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+
 int draw_orbit_on_phase_space(dynsys system)
 {
 	FILE *gnuplotPipe;
@@ -1848,19 +1940,108 @@ int draw_time_series_union_e(dynsys system)
 	}
 	fclose(gnuplotPipe);
 
+	// gnuplotPipe = popen("gnuplot -persistent", "w");
+	// fprintf(gnuplotPipe, "reset\n");
+	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	// fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	// fprintf(gnuplotPipe, 
+	// 	"set output \"output/time_series/fig_time_series_union_K_%1.5f_zoom.png\"\n", K);
+	// fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	// fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	// fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
+	// fprintf(gnuplotPipe, "set log y\n");
+	// fprintf(gnuplotPipe, "set xrange[0:120]\n");
+	// fprintf(gnuplotPipe, "set yrange[0.8:1000]\n");
+	// fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	// color = 1;
+	// e = 0.00;
+	// fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	// for (e = 0.02; e < 0.205; e += 0.02)
+	// {
+	// 	color++;
+	// 	fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	// }
+	// fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_time_series_union_e_latex(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double K = par[6];
+
+	int color;
+	double e;
+
+	printf("Drawing union of time series\n");
+
 	gnuplotPipe = popen("gnuplot -persistent", "w");
 	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 1000,1000 font \"fonts/cmr10.ttf,25\"\n");
+	fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,20\" \n");
 	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/time_series/fig_time_series_union_K_%1.5f_zoom.png\"\n", K);
+		"set output \"output/time_series/fig_time_series_union_K_%1.5f_latex.png\"\n", K);
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
 	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
+	fprintf(gnuplotPipe, "unset title\n");
+	fprintf(gnuplotPipe, "set key box lw 2 opaque\n");
+	fprintf(gnuplotPipe, "set xrange[0:200]\n");
+	// fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
 	fprintf(gnuplotPipe, "set log y\n");
-	fprintf(gnuplotPipe, "set xrange[0:120]\n");
-	fprintf(gnuplotPipe, "set yrange[0.8:1000]\n");
+	fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	color = 1;
+	e = 0.00;
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	for (e = 0.02; e < 0.205; e += 0.02)
+	{
+		color++;
+		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"e = %1.3f\"", e, K, color, e);
+	}
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_time_series_union_e_eps(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double K = par[6];
+
+	int color;
+	double e;
+
+	printf("Drawing union of time series\n");
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal postscript eps size 9.20,8.00 enhanced color font \"fonts/cmr10.ttf,50\" linewidth 2\n");
+	fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,40\" \n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_union_K_%1.5f_eps.eps\"\n", K);
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "unset title\n");
+	fprintf(gnuplotPipe, "set key box opaque\n");
+	fprintf(gnuplotPipe, "set xrange[0:200]\n");
+	// fprintf(gnuplotPipe, "set title \"K = %1.5f\"\n", K);
+	fprintf(gnuplotPipe, "set log y\n");
 	fprintf(gnuplotPipe, "set linetype cycle 20\n");
 	color = 1;
 	e = 0.00;
@@ -1899,6 +2080,50 @@ int draw_time_series_union_K(dynsys system)
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	fprintf(gnuplotPipe, "set title \"e = %1.3f\"\n", e);
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "set linetype cycle 20\n");
+	color = 1;
+	K = 0.01;
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"K = %1.3f\"", e, K, color, K);
+	for (K = 0.009; K > 0.00095; K -= 0.001)
+	{
+		color++;
+		fprintf(gnuplotPipe, ", 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 lc %d title \"K = %1.3f\"", e, K, color, K);
+	}
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_time_series_union_K_latex(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+
+	int color;
+	double K;
+
+	printf("Drawing union of time series\n");
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 1000,1000 font \"fonts/cmr10.ttf,25\"\n");
+	fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,20\" \n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_union_e_%1.3f_latex.png\"\n", e);
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "unset title\n");
+	fprintf(gnuplotPipe, "set key box lw 2 opaque\n");
+	// fprintf(gnuplotPipe, "set title \"e = %1.3f\"\n", e);
 	fprintf(gnuplotPipe, "set log y\n");
 	fprintf(gnuplotPipe, "set linetype cycle 20\n");
 	color = 1;
@@ -2079,6 +2304,84 @@ int draw_basin_of_attraction(double ref[][2], int ref_period,
 	return 0;
 }
 
+int draw_basin_of_attraction_clean	(double ref[][2], int ref_period,
+                            		 dynsys system, anlsis analysis)
+{
+
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/clean_figures", &st) == -1) {
+		mkdir("output/clean_figures", 0700);
+	}
+
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f and reference theta = %1.3f theta_dot = %1.3f with period = %d\n", 
+		system.name, gamma, e, K, ref[0][0], ref[0][1], ref_period);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/clean_figures/fig_basin_of_attraction_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set lmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set bmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set rmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set tmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set xtics format \" \"\n");
+	fprintf(gnuplotPipe, "set ytics format \" \"\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "unset title\n");
+	fprintf(gnuplotPipe, "unset colorbox\n");
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/clean_figures/\n");
+
+	printf("Drawing convergence times of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f and reference theta = %1.3f theta_dot = %1.3f with period = %d\n", 
+		system.name, gamma, e, K, ref[0][0], ref[0][1], ref_period);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/clean_figures/fig_convergence_times_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "set terminal pngcairo size 2400,2000 font \"fonts/cmr10.ttf,50\"\n");
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set lmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set bmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set tmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set xtics format \" \"\n");
+	fprintf(gnuplotPipe, "set ytics format \" \"\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "unset title\n");
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/clean_figures/\n");
+
+	return 0;
+}
+
 int draw_periodic_orbit_on_phase_space  (perorb po,
                                          dynsys system)
 {
@@ -2118,6 +2421,57 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 			system.name, gamma, e, K, po.winding_number_numerator, po.winding_number_denominator);
 	}
 	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
+		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/periodic_orbit/\n");
+
+	return 0;
+}
+
+int draw_periodic_orbit_on_phase_space_clean(perorb po,
+                                         	 dynsys system)
+{
+
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/clean_figures", &st) == -1) {
+		mkdir("output/clean_figures", 0700);
+	}
+
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing periodic orbit of period %d on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		po.period, system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/clean_figures/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
+		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set lmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set bmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set rmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set tmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1416:3.1416]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set xtics format \" \"\n");
+	fprintf(gnuplotPipe, "set ytics format \" \"\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "unset title\n");
+	// fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 4 lc rgb \"black\" notitle",
+	// 	gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 5 lc rgb \"black\" notitle",
 		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
 	fclose(gnuplotPipe);
 
