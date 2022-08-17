@@ -890,6 +890,8 @@ int multiple_time_series(dynsys system,
 	#pragma omp for
 		for (int i = 0; i < 20; i++)
 		{
+			printf("Calculating set %d of %d\n", i, 20);
+
 			if (i < 10)
 			{
 				ic[0] = 0.0; ic[1] = 10. + 10. * (double)(i);
@@ -1873,6 +1875,45 @@ int draw_orbit_on_phase_space(dynsys system)
 	return 0;
 }
 
+int draw_orbit_on_phase_space_latex(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing orbit on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 2200,2000 font \"fonts/cmr10.ttf,50\"\n");
+		fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,35\" \n");
+	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/orbit/fig_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_latex.png\"\n", 
+		gamma, e, system.name, K);
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "unset title\n");
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle ,'orbit/orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 3 palette notitle", 
+		gamma, e, gamma, e, system.name, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/orbit/\n");
+
+	return 0;
+}
+
 int draw_time_series(dynsys system)
 {
 	FILE *gnuplotPipe;
@@ -1892,12 +1933,49 @@ int draw_time_series(dynsys system)
 	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set xrange [60:200] \n");
-	fprintf(gnuplotPipe, "set yrange [0.5:2] \n");
+	// fprintf(gnuplotPipe, "set xrange [60:200] \n");
+	// fprintf(gnuplotPipe, "set yrange [0.5:2] \n");
 	fprintf(gnuplotPipe, "set log y\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
 		"set key title \"e = %1.3f K = %1.5f\" box opaque top right width 2\n", e, K);
+	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 notitle", e, K);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int draw_time_series_latex(dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 1000,1000 font \"fonts/cmr10.ttf,25\"\n");
+	fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,20\" \n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_time_series_e_%1.3f_K_%1.5f_latex.png\"\n", e, K);
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "unset title\n");
+	// fprintf(gnuplotPipe, "set xrange [60:200] \n");
+	// fprintf(gnuplotPipe, "set yrange [0.5:2] \n");
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	// fprintf(gnuplotPipe, 
+	// 	"set key title \"e = %1.3f K = %1.5f\" box opaque top right width 2\n", e, K);
 	fprintf(gnuplotPipe, "plot 'time_series_e_%1.3f_K_%1.5f.dat' u 1:2 w l lw 2 notitle", e, K);
 	fclose(gnuplotPipe);
 
@@ -2205,6 +2283,43 @@ int draw_multiple_time_series_delta_theta_dot	(dynsys system,
 
 	return 0;
 }
+
+int draw_multiple_time_series_delta_theta_dot_latex	(dynsys system,
+												 	 anlsis analysis)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing multiple time series with e = %1.3f and K = %1.5f\n", e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 1000,1000 font \"fonts/cmr10.ttf,25\"\n");
+	fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,20\" \n");
+	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/time_series/fig_multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_delta_%1.2f_latex.png\"\n", e, K, analysis.time_series_delta);
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "unset title\n");
+	fprintf(gnuplotPipe, "set yrange [0.01:1000] \n");
+	// fprintf(gnuplotPipe, "set xrange [0.0:50] \n");
+	fprintf(gnuplotPipe, "set log y\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "plot 'multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_delta_%1.2f.dat' u 1:2:-2 w l lc var lw 2 notitle", e, K, analysis.time_series_delta);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
 
 int draw_multiple_time_series_delta_theta   (dynsys system,
                                              anlsis analysis)

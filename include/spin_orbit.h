@@ -185,7 +185,11 @@ int draw_phase_space_latex(dynsys system);
 
 int draw_orbit_on_phase_space(dynsys system);
 
+int draw_orbit_on_phase_space_latex(dynsys system);
+
 int draw_time_series(dynsys system);
+
+int draw_time_series_latex(dynsys system);
 
 int draw_time_series_union_e(dynsys system);
 
@@ -201,6 +205,9 @@ int draw_multiple_time_series(dynsys system);
 
 int draw_multiple_time_series_delta_theta_dot(dynsys system,
                                               anlsis analysis);
+
+int draw_multiple_time_series_delta_theta_dot_latex(dynsys system,
+                                                    anlsis analysis);
 
 int draw_multiple_time_series_delta_theta   (dynsys system,
                                              anlsis analysis);

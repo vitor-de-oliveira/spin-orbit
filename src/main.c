@@ -69,33 +69,33 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// // system = system_rigid;
-	// system = system_linear_average;
-	// double ic[system.dim];
+	// system = system_rigid;
+	system = system_linear_average;
+	double ic[system.dim];
 
-	// gamma = (.89 * .89) / 3.;
-	// e = 0.1; // e = 0.1;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-2;
+	gamma = (.89 * .89) / 3.;
+	e = 0.14; // e = 0.1;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
 
-	// analysis.number_of_cycles = 1e3; //1e3 6e3
-	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
-	// analysis.evolve_box_size = 1e8;
-	// analysis.evolve_basin_eps = 1e-1;
+	analysis.number_of_cycles = 2e3; //1e3 6e3
+	analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	analysis.evolve_box_size = 1e8;
+	analysis.evolve_basin_eps = 1e-1;
 
-	// // ic[0] = 0.0, ic[1] = 100.;
-	// //near the 1:1 stable fp in the rigid case
+	// ic[0] = 0.0, ic[1] = 1000.;
+	// // // near the 1:1 stable fp in the rigid case
 	// // ic[0] = M_PI; ic[1] = 0.551537;
-	// // init_orbital(orbital, e);
-	// // for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-
-	// // ic[0] = 0.0, ic[1] = 0.1;
-	// ic[0] = 1.56704; ic[1] = 2.55510;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+
+	// // // ic[0] = 0.0, ic[1] = 0.1;
+	// // ic[0] = 1.56704; ic[1] = 2.55510;
+	// // init_orbital(orbital, e);
+	// // for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
 
 	// po.period = 1;
@@ -140,6 +140,7 @@ int main(int argc, char **argv)
 	// draw_orbit_map(system);
 
 	// draw_orbit_on_phase_space(system);
+	draw_orbit_on_phase_space_latex(system);
 
 	// multiple_time_series(system, analysis);
 
@@ -151,12 +152,14 @@ int main(int argc, char **argv)
 	// // multiple_time_series_delta_theta(system, analysis);
 
 	// draw_multiple_time_series_delta_theta_dot(system, analysis);
+	// draw_multiple_time_series_delta_theta_dot_latex(system, analysis);
 
 	// draw_multiple_time_series_delta_theta(system);
 
 	// time_series(system, analysis);
 
-	// draw_time_series(system);
+	// // draw_time_series(system);
+	// draw_time_series_latex(system);
 
 	// analysis.number_of_cycles = 2e2;
 	// for (e = 0.00; e < 0.205; e += 0.01)
@@ -181,31 +184,31 @@ int main(int argc, char **argv)
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_rigid;
-	// system = system_linear_average;
+	// system = system_rigid;
+	// // system = system_linear_average;
 
-	gamma = (.89 * .89) / 3.;
-	e = 0.1; // e = 0.1;
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-2;
+	// gamma = (.89 * .89) / 3.;
+	// e = 0.1; // e = 0.1;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
 
-	analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
-	analysis.number_of_cycles = 2e3; //1e3
-	analysis.cycle_period = 2.0 * M_PI;
-	analysis.coordinate_min = 0.0; // M_PI
-	analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
-	analysis.velocity_min = 0.0;
-	analysis.velocity_max = 3.0;
-	analysis.evolve_box_size = 1e6;
-	analysis.evolve_basin_eps = 1e-1;
+	// analysis.nc = 3, analysis.nv = 50; //nc = 3, nv = 50;
+	// analysis.number_of_cycles = 2e3; //1e3
+	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.coordinate_min = 0.0; // M_PI
+	// analysis.coordinate_max = M_PI; // M_PI 2.0* M_PI
+	// analysis.velocity_min = 0.0;
+	// analysis.velocity_max = 3.0;
+	// analysis.evolve_box_size = 1e6;
+	// analysis.evolve_basin_eps = 1e-1;
 
-	e = 0.14;
-	// phase_space(system, analysis);
-	// draw_phase_space(system);
-	draw_phase_space_latex(system);
+	// e = 0.14;
+	// // phase_space(system, analysis);
+	// // draw_phase_space(system);
+	// draw_phase_space_latex(system);
 
 	// gamma = gamma_hyperion;
 
