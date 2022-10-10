@@ -276,10 +276,51 @@ int jacobian_rigid_kepler(double t, const double y[],
 int field_linear(double t, const double y[], 
 				double f[], void *params)
 {
-	printf("linear field not implemented yet\n");
-	exit(2);
+	(void)t;
 
-	return 0;
+	double *par = (double *)params;
+
+	double gamma 		= par[0];
+	double e 			= par[1];
+	double m_primary 	= par[2]; 
+	double m_secondary 	= par[3];
+	double G 			= par[4];
+	double a			= par[5];
+	double K			= par[6];
+
+	double total_mass = m_primary + m_secondary;
+
+    double r = sqrt((y[2] * y[2]) + (y[3] * y[3]));
+    double f_e = atan2(y[3], y[2]);
+
+	double aux = (-3.0/2.0) * gamma * G * m_primary;
+	double r_cube = r * r * r;
+
+	double a_over_r = a / r;
+	double aux_2 = pow(a_over_r, 6.0);
+	
+	double n = 1.0;
+	double f_dot = a_over_r * a_over_r * n * sqrt(1.0 - (e * e));
+
+	double L = aux_2;
+	double N = aux_2 * f_dot;
+
+	// y[0] = theta
+	// y[1] = theta_dot
+	// y[2] = x
+	// y[3] = y
+	// y[4] = x_dot
+	// y[5] = y_dot
+
+	f[0] = y[1];
+	f[1] = aux * sin(2.0 * (y[0] - f_e)) / r_cube 
+			- K * (L * y[1] - N);
+	f[2] = y[4];
+	f[3] = y[5];
+	f[4] = -1.0 * G * total_mass * y[2] / r_cube;
+	f[5] = -1.0 * G * total_mass * y[3] / r_cube;
+
+	return GSL_SUCCESS;
 }
 
 int field_linear_average(double t, const double y[], 
@@ -507,7 +548,7 @@ int init_orbital(double orb[4], double e)
 	orb[0] = x;
 	orb[1] = y;
 	orb[2] = x_dot;
-	orb[3] = y_dot;	
+	orb[3] = y_dot;
 
 	return 0;
 }
@@ -1672,6 +1713,175 @@ int periodic_orbit	(perorb *po,
 	return 0;
 }
 
+int linear_average_benchmark()
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/test", &st) == -1) {
+		mkdir("output/test", 0700);
+	}
+
+    double gamma;			// equatorial flattening
+    double e;				// eccentricity
+	double m_primary;		// mass of primary
+	double m_secondary;		// mass of secondary
+	double G;				// gravitational constant
+	double a;				// semimajor axis
+	double K;				// dissipation parameter
+
+	double *params[7] = {&gamma,
+						 &e,
+						 &m_primary,
+						 &m_secondary,
+						 &G,
+						 &a,
+						 &K};
+
+	anlsis analysis;
+
+	dynsys system = init_two_body(*params);
+
+	// gamma = ((.89 * .89) / 3.); //~0.264
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
+
+	analysis.number_of_cycles = 1e3;
+	analysis.cycle_period = 2.0 * M_PI * 1e-3;
+	analysis.evolve_box_size = 1e8;
+	analysis.evolve_basin_eps = 1e-1;
+
+	printf("Calculating orbit\n");
+
+	// prepare and open exit files 
+	FILE	*out, *out_avg, *out_num_avg, *out_avg_dist;
+	char	filename[150];
+
+	e = 0.2;
+
+	sprintf(filename, 
+		"output/test/benchmark_linear_e_%1.3f.dat", e);
+	out = fopen(filename, "w");
+	sprintf(filename, 
+		"output/test/benchmark_linear_average_e_%1.3f.dat", e);
+	out_avg = fopen(filename, "w");
+	sprintf(filename, 
+		"output/test/benchmark_linear_numerical_average_e_%1.3f.dat", e);
+	out_num_avg = fopen(filename, "w");
+	sprintf(filename, 
+		"output/test/benchmark_linear_average_distance.dat");
+	out_avg_dist = fopen(filename, "w");
+	
+	// declare variables
+	int orbit_size;
+	double **orbit;
+	double ic[4];
+	double e_2, e_4, e_6, L_avg, N_avg;
+	double L_num_avg, N_num_avg;
+	double r, a_over_r, aux_2, n, f_dot, L, N;
+	double distance_L, distance_N;
+
+	e_2 = e * e;
+	e_4 = e * e * e * e;
+	e_6 = e * e * e * e * e * e;
+	L_avg = (1.+3.*e_2+(3./8.)*e_4) / 
+			pow(1.-e_2,(9./2.));
+	N_avg = (1.+(15./2.)*e_2+(45./8.)*e_4+
+			(5./16.)*e_6) / pow(1.-e_2,6.);
+
+	init_orbital(ic, e);
+
+	// evolve system
+	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+	L_num_avg = 0.0;
+	N_num_avg = 0.0;
+	for (int i = 0; i < orbit_size; i++)
+	{
+		r = sqrt((orbit[i][2] * orbit[i][2]) + (orbit[i][3] * orbit[i][3]));
+		a_over_r = a / r;
+		aux_2 = pow(a_over_r, 6.0);
+		n = 1.0;
+		f_dot = a_over_r * a_over_r * n * sqrt(1.0 - (e * e));
+		L = aux_2;
+		N = aux_2 * f_dot;
+		L_num_avg += L;
+		N_num_avg += N;
+	}
+	L_num_avg /= (double) orbit_size;
+	N_num_avg /= (double) orbit_size;
+
+	for (int i = 0; i < orbit_size; i++)
+	{
+		r = sqrt((orbit[i][2] * orbit[i][2]) + (orbit[i][3] * orbit[i][3]));
+		a_over_r = a / r;
+		aux_2 = pow(a_over_r, 6.0);
+		n = 1.0;
+		f_dot = a_over_r * a_over_r * n * sqrt(1.0 - (e * e));
+		L = aux_2;
+		N = aux_2 * f_dot;
+		fprintf(out, "%1.10e %1.10e\n", L, N);
+		fprintf(out_avg, "%1.10e %1.10e\n", L_avg, N_avg);
+		fprintf(out_num_avg, "%1.10e %1.10e\n", L_num_avg, N_num_avg);
+	}
+
+	// free memory
+	dealloc_2d_double(&orbit, analysis.number_of_cycles);
+
+	for (e = 0.0; e < 0.201; e += 0.001)
+	{
+		printf("Calculating distance for e = %1.3e\n", e);
+	
+		init_orbital(ic, e);
+		evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+		L_num_avg = 0.0;
+		N_num_avg = 0.0;
+		for (int i = 0; i < orbit_size; i++)
+		{
+			r = sqrt((orbit[i][2] * orbit[i][2]) + (orbit[i][3] * orbit[i][3]));
+			a_over_r = a / r;
+			aux_2 = pow(a_over_r, 6.0);
+			n = 1.0;
+			f_dot = a_over_r * a_over_r * n * sqrt(1.0 - (e * e));
+			L = aux_2;
+			N = aux_2 * f_dot;
+			L_num_avg += L;
+			N_num_avg += N;
+		}
+		L_num_avg /= (double) orbit_size;
+		N_num_avg /= (double) orbit_size;
+		e_2 = e * e;
+		e_4 = e * e * e * e;
+		e_6 = e * e * e * e * e * e;
+		L_avg = (1.+3.*e_2+(3./8.)*e_4) / 
+				pow(1.-e_2,(9./2.));
+		N_avg = (1.+(15./2.)*e_2+(45./8.)*e_4+
+				(5./16.)*e_6) / pow(1.-e_2,6.);
+		distance_L = fabs(L_num_avg - L_avg);
+		distance_N = fabs(N_num_avg - N_avg);
+		fprintf(out_avg_dist, "%1.3e %1.10e %1.10e\n", 
+				e, distance_L, distance_N);
+
+		dealloc_2d_double(&orbit, analysis.number_of_cycles);
+		fprintf(out_avg_dist, "\n");
+	}
+
+	// close files
+	fclose(out);
+	fclose(out_avg);
+	fclose(out_num_avg);
+	fclose(out_avg_dist);
+
+	printf("Data written in output/test/\n");
+
+	return 0;
+
+	return 0;
+}
+
 int draw_orbit_map(dynsys system)
 {
 	FILE *gnuplotPipe;
@@ -1835,7 +2045,6 @@ int draw_phase_space_latex(dynsys system)
 
 	return 0;
 }
-
 
 int draw_orbit_on_phase_space(dynsys system)
 {

@@ -81,6 +81,9 @@ void linear_combination(double *v, double a, double *x, double b, double *y, int
 // where x, y, z and lamb are arrays of dimension dim
 int lin_comb_vec(double *x, double *lamb, double *y, double *z, int dim);
 
+// multiply the double x by itself n times
+double multiply_n_times(double x, int n);
+
 // mx = m * x
 void square_matrix_product_vector(double *mx, double **m, double *x, int dim);
 

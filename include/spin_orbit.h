@@ -172,6 +172,13 @@ int periodic_orbit	(perorb *po,
                      anlsis analysis);
 
 /**
+ * benchmark tests
+**/
+
+// comparison between field_linear and field_linar_average
+int linear_average_benchmark();
+
+/**
  * Gnuplot pipe
 **/
 

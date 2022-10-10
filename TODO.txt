@@ -5,6 +5,8 @@ They have to be exactaly the same.
 See if the problem is related to the modification
 of the structure member
 
+- maybe introduce n as a parameter
+
 - remove reference to K from everything that concerns the
 rigid case. Maybe add a type to the field to differentiate it between
 conservative and dissipative and use it to improve the data file names
@@ -31,6 +33,9 @@ of the last ~100 cycles of every initial condition
 - calculate p.o stability and put it in the data file name.
 
 ADITIONAL STUFF
+
+- maybe change f_e for f in all functions. Understand why I wrote it as f_e in 
+the first place
 
 - improve look for resonance function in spin orbit.
 It does not work very well. Maybe put it on tests

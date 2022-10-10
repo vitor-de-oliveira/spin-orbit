@@ -206,6 +206,16 @@ int lin_comb_vec(double *x, double *lamb, double *y, double *z, int dim)
 	return 0;
 }
 
+double multiply_n_times(double x, int n)
+{
+	double n_x = 1.0;
+	for (int i = 0; i < n; i++)
+	{
+		n_x *= x;
+	}
+	return n_x;
+}
+
 void square_matrix_product_vector(double *mx, double **m, double *x, int dim)
 {
 	for (int i = 0; i < dim; i++)
