@@ -454,13 +454,13 @@ double angular_momentum_two_body(double y[4])
 	return h;
 }
 
-double vis_viva_two_body(double y[4])
+double vis_viva_two_body(double y[4],
+                         dynsys system)
 {
+	double *par = (double *)system.params;
+	double a = par[5];
+	double T = par[7];
 	double n, mu, r, v, C;
-
-	double a = 1.0;
-
-	double T = 2.0 * M_PI;
 
 	n = 2.0 * M_PI / T;
 
@@ -785,8 +785,8 @@ int phase_space(dynsys system, anlsis analysis)
 									k, fabs(angular_momentum_two_body(orb)-
 									angular_momentum_two_body(orb_ini)));
 							fprintf(out_vis_viva_err, "%d %1.15e\n", 
-									k, fabs(vis_viva_two_body(orb)-
-									vis_viva_two_body(orb_ini)));
+									k, fabs(vis_viva_two_body(orb, system)-
+									vis_viva_two_body(orb_ini, system)));
 						}
 					}
 
@@ -810,8 +810,8 @@ int phase_space(dynsys system, anlsis analysis)
 									k, fabs(angular_momentum_two_body(orb)-
 									angular_momentum_two_body(orb_ini)));
 							fprintf(out_vis_viva_err, "%d %1.15e\n", 
-									k, fabs(vis_viva_two_body(orb)-
-									vis_viva_two_body(orb_ini)));
+									k, fabs(vis_viva_two_body(orb, system)-
+									vis_viva_two_body(orb_ini, system)));
 						}
 					}
 				} // end pragma omp critical
@@ -992,11 +992,11 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 
 	// prepare and open exit files 
 	FILE *out;
-	char	filename[100];
+	char	filename[200];
 
 	// indexed file
-	sprintf(filename, "output/time_series/multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_delta_%1.2f.dat", 
-				e, K, analysis.time_series_delta);
+	sprintf(filename, "output/time_series/multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_nic_%d_delta_%1.2f_system_%s.dat", 
+				e, K, analysis.number_of_time_series, analysis.time_series_delta, system.name);
 	out = fopen(filename, "w");
 
 	// declare variables
@@ -1008,10 +1008,7 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 	{
 
 	#pragma omp for
-		// for (int i = 0; i < 20; i++)
-		// {
-		// 	ic[0] = 0.0; ic[1] = 999.0 + 0.1 * (double)(i);
-		for (int i = -10; i <= 10; i++) 
+		for (int i = -analysis.number_of_time_series/2; i <= analysis.number_of_time_series/2; i++) 
 		{
 			printf("Calculating time series number %d\n", i + 11);
 
@@ -2468,14 +2465,14 @@ int draw_multiple_time_series_delta_theta_dot	(dynsys system,
 	double e = par[1];
 	double K = par[6];
 
-	printf("Drawing multiple time series with e = %1.3f and K = %1.5f\n", e, K);
+	printf("Drawing multiple time series for e = %1.3f K = %1.5f and system = %s\n", e, K, system.name);
 
 	gnuplotPipe = popen("gnuplot -persistent", "w");
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/time_series\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/time_series/fig_multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_delta_%1.2f.png\"\n", e, K, analysis.time_series_delta);
+		"set output \"output/time_series/fig_multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_nic_%d_delta_%1.2f_system_%s.png\"\n", e, K, analysis.number_of_time_series, analysis.time_series_delta, system.name);
 	fprintf(gnuplotPipe, "set xlabel \"n\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -2484,8 +2481,8 @@ int draw_multiple_time_series_delta_theta_dot	(dynsys system,
 	fprintf(gnuplotPipe, "set log y\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
-		"set key title \"e = %1.3f K = %1.5f delta = %1.2f\" box opaque top right width 2\n", e, K, analysis.time_series_delta);
-	fprintf(gnuplotPipe, "plot 'multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_delta_%1.2f.dat' u 1:2:-2 w l lc var lw 2 notitle", e, K, analysis.time_series_delta);
+		"set key title \"e = %1.3f  K = %1.5f  nic = %d  delta = %1.2f  system = %s\" box opaque top right\n", e, K, analysis.number_of_time_series, analysis.time_series_delta, system.name);
+	fprintf(gnuplotPipe, "plot 'multiple_time_series_delta_theta_dot_e_%1.3f_K_%1.5f_nic_%d_delta_%1.2f_system_%s.dat' u 1:2:-2 w l lc var lw 2 notitle", e, K, analysis.number_of_time_series, analysis.time_series_delta, system.name);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");

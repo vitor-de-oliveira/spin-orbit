@@ -25,14 +25,16 @@ int main(int argc, char **argv)
 	double G;				// gravitational constant
 	double a;				// semimajor axis
 	double K;				// dissipation parameter
+	double T;				// system period
 
-	double *params[7] = {&gamma,
+	double *params[8] = {&gamma,
 						 &e,
 						 &m_primary,
 						 &m_secondary,
 						 &G,
 						 &a,
-						 &K};
+						 &K,
+						 &T};
 
 	dynsys system;
 	dynsys system_two_body = init_two_body(*params);
@@ -70,17 +72,18 @@ int main(int argc, char **argv)
 	/////////////////////////////////////////////////////////
 
 	// system = system_rigid;
-	// system = system_linear_average;
+	system = system_linear_average;
 	// system = system_linear;
-	// double ic[system.dim];
+	double ic[system.dim];
 
-	// gamma = gamma_hyperion;
-	// e = e_hyperion;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-2;
+	gamma = gamma_hyperion;
+	e = e_hyperion;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
+	T = 2.0 * M_PI;
 
 	// analysis.number_of_cycles = 2e3; //1e3 6e3
 	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
@@ -143,18 +146,22 @@ int main(int argc, char **argv)
 	// draw_orbit_on_phase_space(system);
 	// draw_orbit_on_phase_space_latex(system);
 
+	analysis.number_of_cycles = 1e3; //1e3 6e3
+	analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	analysis.evolve_box_size = 1e8;
+	analysis.evolve_basin_eps = 1e-1;
+	analysis.number_of_time_series = 1000;
+	analysis.time_series_delta = 1e-1;
+
 	// multiple_time_series(system, analysis);
 
 	// draw_multiple_time_series(system);
 
-	// analysis.time_series_delta = 10.0;
-	// multiple_time_series_delta_theta_dot(system, analysis);
-
-	// // multiple_time_series_delta_theta(system, analysis);
-
-	// draw_multiple_time_series_delta_theta_dot(system, analysis);
+	multiple_time_series_delta_theta_dot(system, analysis);
+	draw_multiple_time_series_delta_theta_dot(system, analysis);
 	// draw_multiple_time_series_delta_theta_dot_latex(system, analysis);
 
+	// // multiple_time_series_delta_theta(system, analysis);
 	// draw_multiple_time_series_delta_theta(system);
 
 	// time_series(system, analysis);
@@ -275,7 +282,7 @@ int main(int argc, char **argv)
 	/*						Benchmark		   	           */
 	/////////////////////////////////////////////////////////
 
-	linear_average_benchmark();
+	// linear_average_benchmark();
 
 	/******************** Stop clock ***********************/
 
