@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	double ic[system.dim];
 
 	gamma = gamma_hyperion;
-	e = e_hyperion;
+	e = 0.140;
 	m_secondary = 0.;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -146,12 +146,12 @@ int main(int argc, char **argv)
 	// draw_orbit_on_phase_space(system);
 	// draw_orbit_on_phase_space_latex(system);
 
-	analysis.number_of_cycles = 1e3; //1e3 6e3
+	analysis.number_of_cycles = 4e3; //1e3 6e3
 	analysis.cycle_period = 2.0 * M_PI; // 1e-3
 	analysis.evolve_box_size = 1e8;
 	analysis.evolve_basin_eps = 1e-1;
-	analysis.number_of_time_series = 1000;
-	analysis.time_series_delta = 1e-1;
+	analysis.number_of_time_series = 20;
+	analysis.time_series_delta = 10;
 
 	// multiple_time_series(system, analysis);
 

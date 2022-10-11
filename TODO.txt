@@ -1,10 +1,5 @@
 IMPORTANT STUFF
 
-- test time series with and without openmp again.
-They have to be exactaly the same.
-See if the problem is related to the modification
-of the structure member
-
 - remove reference to K from everything that concerns the
 rigid case. Maybe add a type to the field to differentiate it between
 conservative and dissipative and use it to improve the data file names

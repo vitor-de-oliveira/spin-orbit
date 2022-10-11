@@ -1010,7 +1010,7 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 	#pragma omp for
 		for (int i = -analysis.number_of_time_series/2; i <= analysis.number_of_time_series/2; i++) 
 		{
-			printf("Calculating time series number %d\n", i + 11);
+			printf("Calculating time series number %d\n", i + 1 + analysis.number_of_time_series/2);
 
 			ic[0] = 0.0;
 			ic[1] = 1000.0 + analysis.time_series_delta * (double)(i);
