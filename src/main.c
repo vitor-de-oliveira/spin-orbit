@@ -71,19 +71,19 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_rigid;
-	system = system_linear_average;
-	// system = system_linear;
-	double ic[system.dim];
+	// // system = system_rigid;
+	// system = system_linear_average;
+	// // system = system_linear;
+	// double ic[system.dim];
 
-	gamma = gamma_hyperion;
-	e = 0.140;
-	m_secondary = 0.;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
-	K = 1e-2;
-	T = 2.0 * M_PI;
+	// gamma = gamma_hyperion;
+	// e = 0.140;
+	// m_secondary = 0.;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+	// K = 1e-2;
+	// T = 2.0 * M_PI;
 
 	// analysis.number_of_cycles = 2e3; //1e3 6e3
 	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
@@ -102,33 +102,56 @@ int main(int argc, char **argv)
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
 
-	// po.period = 1;
-	// po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
-	// // po.seed[0] = 0.0; po.seed[1] = 2.32185; // e = 0.1 SFP 2/1 resonance  
-	// // po.seed[0] = -1.56892; po.seed[1] = 0.868688; // e = 0.1 period 2 SPO 1/2 resonance 
-	// // po.seed[0] = 0.0; po.seed[1] = 1.87878; // e = 0.1 period 2 UPO 2/2 resonance
-	// // po.seed[0] = -1.57310; po.seed[1] =  1.71059; // e = 0.1 UFP 2/1 resonance 
-	// // po.seed[0] = -1.57246; po.seed[1] =  2.14877; // e = 0.1 UPO 5/2 resonance
-	// // po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
-	// // po.seed[0] = 1.35558; po.seed[1] =  1.08285; // e = 0.1 UPO 2/2
-	// // po.seed[0] = 1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
-	// // po.seed[0] = 0.0; po.seed[1] =  2.72177; // e = 0.1 SPO 5/2
-	// // po.seed[0] = -1.57079; po.seed[1] =  1.95929; // e = 0.1 SPO 9/4
-	// // po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
-	// // po.seed[0] = 0.7; po.seed[1] = 1.1; // e = 0.2 ?
-	// periodic_orbit(&po, system, analysis);
+	/////////////////////////////////////////////////////////
+	/*				   	Periodic Orbit		   	           */
+	/////////////////////////////////////////////////////////
 
-	// // draw_periodic_orbit_on_phase_space (po, system);
+	system = system_rigid;
+	// system = system_linear_average;
+	// system = system_linear;
+	double ic_po[system.dim];
+
+	gamma = gamma_hyperion;
+	e = 0.2;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
+	T = 2.0 * M_PI;
+
+	analysis.cycle_period = T;
+	analysis.evolve_box_size = 1e8;
+
+	po.period = 2;
+	// po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
+	// po.seed[0] = 0.0; po.seed[1] = 2.32185; // e = 0.1 SFP 2/1 resonance  
+	// po.seed[0] = -1.56892; po.seed[1] = 0.868688; // e = 0.1 period 2 SPO 1/2 resonance 
+	// po.seed[0] = 0.0; po.seed[1] = 1.87878; // e = 0.1 period 2 UPO 2/2 resonance
+	// po.seed[0] = -1.57310; po.seed[1] =  1.71059; // e = 0.1 UFP 2/1 resonance 
+	// po.seed[0] = -1.57246; po.seed[1] =  2.14877; // e = 0.1 UPO 5/2 resonance
+	// po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
+	// po.seed[0] = 1.35558; po.seed[1] =  1.08285; // e = 0.1 UPO 2/2
+	// po.seed[0] = 1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
+	// po.seed[0] = 0.0; po.seed[1] =  2.72177; // e = 0.1 SPO 5/2
+	// po.seed[0] = -1.57079; po.seed[1] =  1.95929; // e = 0.1 SPO 9/4
+	// po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
+	// po.seed[0] = 0.7; po.seed[1] = 1.1; // e = 0.2 ?
+	// po.seed[0] = 0.0; po.seed[1] = 0.380929; // e = 0.2 UFP 1/1 resonance
+	po.seed[0] = 0.0; po.seed[1] = 0.722967; // e = 0.2 SFP 2/2 resonance
+	periodic_orbit(&po, system, analysis);
+
+	// draw_periodic_orbit_on_phase_space (po, system);
 	// draw_periodic_orbit_on_phase_space_clean (po, system);
 
 	// analysis.number_of_cycles = 5e4;
 	// analysis.cycle_period = 1e-3;
 
-	// ic[0] = po.initial_condition[0];
-	// ic[1] = po.initial_condition[1];
+	// ic_po[0] = po.initial_condition[0];
+	// ic_po[1] = po.initial_condition[1];
 	// init_orbital(orbital, e);
-	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	// orbit_map(ic, system, analysis);
+	// for (int i = 0; i < 4; i++) ic_po[i+2] = orbital[i];
+	// orbit_map(ic_po, system, analysis);
 
 	// analysis.number_of_cycles = 2;
 	// analysis.cycle_period = 2.0 * M_PI;
@@ -146,19 +169,23 @@ int main(int argc, char **argv)
 	// draw_orbit_on_phase_space(system);
 	// draw_orbit_on_phase_space_latex(system);
 
-	analysis.number_of_cycles = 4e3; //1e3 6e3
-	analysis.cycle_period = 2.0 * M_PI; // 1e-3
-	analysis.evolve_box_size = 1e8;
-	analysis.evolve_basin_eps = 1e-1;
-	analysis.number_of_time_series = 20;
-	analysis.time_series_delta = 10;
+	/////////////////////////////////////////////////////////
+	/*				   		Time series		   	           */
+	/////////////////////////////////////////////////////////
+
+	// analysis.number_of_cycles = 4e3; //1e3 6e3
+	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	// analysis.evolve_box_size = 1e8;
+	// analysis.evolve_basin_eps = 1e-1;
+	// analysis.number_of_time_series = 20;
+	// analysis.time_series_delta = 10;
 
 	// multiple_time_series(system, analysis);
 
 	// draw_multiple_time_series(system);
 
-	multiple_time_series_delta_theta_dot(system, analysis);
-	draw_multiple_time_series_delta_theta_dot(system, analysis);
+	// multiple_time_series_delta_theta_dot(system, analysis);
+	// draw_multiple_time_series_delta_theta_dot(system, analysis);
 	// draw_multiple_time_series_delta_theta_dot_latex(system, analysis);
 
 	// // multiple_time_series_delta_theta(system, analysis);
@@ -242,41 +269,38 @@ int main(int argc, char **argv)
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_linear_average;
+	// // system = system_linear_average;
+	// system = system_linear;
 	// int ref_period = 1;
 	// double ref[ref_period][2];
 
-	// gamma = (.89 * .89) / 3.;
+	// gamma = gamma_hyperion;
 	// e = e_hyperion;
 	// m_secondary = 0.0;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 	// a = 1.0;
  	// K = 1e-2;
+	// T = 2.0 * M_PI;
 
 	// analysis.number_of_cycles = 1e3; //1e3
-	// analysis.cycle_period = 2.0 * M_PI;
+	// analysis.cycle_period = T;
 	// analysis.grid_resolution = 600;
 	// analysis.grid_coordinate_min = -M_PI;
 	// analysis.grid_coordinate_max = M_PI;
 	// analysis.grid_velocity_min = 0.0;
 	// analysis.grid_velocity_max = 3.0;
-	// analysis.evolve_box_size = 1e6;
+	// analysis.evolve_box_size = 1e8;
+	// analysis.evolve_basin_time_tol = 100;
 	// analysis.evolve_basin_eps = 1e-1;
 
-	// ref[0][0] = 0.0; ref[0][1] = 0.551540; // e = 0.1
-	// // ref[1][0] = M_PI; ref[1][1] = 0.551540; // e = 0.1
-	// // ref[0][0] = 0.0; ref[0][1] = 1.0; // e = 0.0
-	// // ref[1][0] = M_PI; ref[1][1] = 1.0; // e = 0.0
-	// // ref[0][0] = 0.0; ref[0][1] = 0.47055; // e = 0.140 res 1 / 1 (conservative)
-	// // e = 0.140 period 4 attractor
-	// // ref[0][0] = 2.505345	504734883e+00; 	ref[0][1] = 1.380383468328994e+00; 
-	// // ref[1][0] = 5.633238998250718e-01; 	ref[1][1] = 1.467273372265798e+00;
-	// // ref[2][0] = -6.646192119783194e-01; ref[2][1] = 1.356998968090035e+00;
-	// // ref[3][0] = -2.552302112530043e+00; ref[3][1] = 1.444362559384576e+00;
+	// po.period = 1;
+	// po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
+	// periodic_orbit(&po, system, analysis);
+	// ref[0][0] = po.initial_condition[0]; ref[0][1] = po.initial_condition[1];
   	// // basin_of_attraction (ref, ref_period, system, analysis);
-	// // draw_basin_of_attraction (ref, ref_period, system, analysis);
-	// draw_basin_of_attraction_clean (ref, ref_period, system, analysis);
+	// draw_basin_of_attraction (ref, ref_period, system, analysis);
+	// // draw_basin_of_attraction_clean (ref, ref_period, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */

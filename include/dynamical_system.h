@@ -54,6 +54,7 @@ typedef struct AnlSis{
 	double grid_velocity_min;
 	double grid_velocity_max;
     double evolve_box_size;     // maximum size of a variable
+    int evolve_basin_time_tol;  // time close to the reference for which we say an orbit converged
     double evolve_basin_eps;    // distance from reference for which we say an orbit converged
     int number_of_time_series;  // number of ICs for multiple time series
     double time_series_delta;   // distance between ICs for multiple time series

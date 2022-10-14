@@ -1,5 +1,12 @@
 IMPORTANT STUFF
 
+- implement histogram for times
+
+- talvez alterar o evolve_basin para que ele retorne apenas o resultado
+e o tempo da convergência. Não precisa, a principio, guardar a órbita inteira
+
+- talvez implementar o p.o. dentro do basin. talvez só o calculate p.o. ic
+
 - remove reference to K from everything that concerns the
 rigid case. Maybe add a type to the field to differentiate it between
 conservative and dissipative and use it to improve the data file names
@@ -16,7 +23,7 @@ to the attractor for a sufficient ammount of time. 100 cycles maybe.
 Put this criterium along with the convergence criterium to stabilish that a
 given orbit has ideed converged.
 
-- write a basin which keeps the temporal series thta, theta_dot and n 
+- write a basin which keeps the temporal series theta, theta_dot and n 
 of the last ~100 cycles of every initial condition
 
 - Use terminal eps in scripts and pipes (or both versions on pipe and script)

@@ -1145,6 +1145,8 @@ int evolve_basin(double *ic, double ref[][2], int ref_period, bool *converged,
                  dynsys system, anlsis analysis)
 {
 	// declare variables
+	bool is_close_to;
+	int close_time_counter;
 	double y[system.dim], rot[2];
 	double t = 0.0;
 
@@ -1166,19 +1168,35 @@ int evolve_basin(double *ic, double ref[][2], int ref_period, bool *converged,
 	// takes into consideration initial condition
 	int counter = 1;
 
+	close_time_counter = 0; // starts proximity counter
 	// orbit evolution
 	copy(y, ic, system.dim);
 	for (int i = 0; i < analysis.number_of_cycles; i++)
 	{
 		copy(rot, y, 2);
 
+		is_close_to = true;
 		for (int j = 0; j < ref_period; j++)
 		{
-			if(dist_from_ref(rot, ref[j]) < analysis.evolve_basin_eps)
+			if(dist_from_ref(rot, ref[j]) > analysis.evolve_basin_eps)
 			{
-				*converged = true;
-				goto out;
+				is_close_to = false;
 			}
+		}
+		
+		if (is_close_to == true)
+		{
+			close_time_counter++;
+		}
+		else
+		{
+			close_time_counter = 0;
+		}
+
+		if (close_time_counter > analysis.evolve_basin_time_tol)
+		{
+			*converged = true;
+			goto out;
 		}
 
 		evolve_cycle(y, &t, system, analysis);
@@ -1231,7 +1249,7 @@ int basin_of_attraction(double ref[][2], int ref_period, dynsys system,
 	double K = par[6];
 
 	// prepare and open exit files
-	FILE	*out_boa, *out_ref;
+	FILE	*out_boa, *out_ref, *out_size;
 	char	filename[200];
 
 	sprintf(filename, "output/basin_of_attraction/basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
@@ -1242,6 +1260,10 @@ int basin_of_attraction(double ref[][2], int ref_period, dynsys system,
 		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_ref = fopen(filename, "w");
 
+	sprintf(filename, "output/basin_of_attraction/basin_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	out_size = fopen(filename, "w");
+
 	// declare variables
 	double y[system.dim];
 	double coordinate, velocity;
@@ -1250,7 +1272,7 @@ int basin_of_attraction(double ref[][2], int ref_period, dynsys system,
 	double rot_ini[2];
 	double orb[4], orb_ini[4];
 	init_orbital(orb_ini, e);
-	int basin_counter = 0;
+	int basin_size = 0;
 	int grid[2];
 	double basin[2];
 	bool converged;
@@ -1331,7 +1353,7 @@ int basin_of_attraction(double ref[][2], int ref_period, dynsys system,
 						basin_matrix[i][j] = 1;
 						control_matrix[i][j] = 1;
 						time_matrix[i][j] = (double)(orbit_fw_size);
-						basin_counter++;
+						basin_size++;
 					}
 					else
 					{
@@ -1366,11 +1388,13 @@ int basin_of_attraction(double ref[][2], int ref_period, dynsys system,
 		fprintf(out_boa, "\n");
 	}
 
-	printf("Basin counter = %d\n", basin_counter);
+	printf("Basin counter = %d\n", basin_size);
+	fprintf(out_size, "%d", basin_size);
 
 	// close exit files
 	fclose(out_boa);
 	fclose(out_ref);
+	fclose(out_size);
 
 	dealloc_2d_int(&basin_matrix, 
 					analysis.grid_resolution);
@@ -1617,8 +1641,8 @@ int periodic_orbit	(perorb *po,
 	double 	gamma = par[0];
 	double 	e = par[1];
 	double 	K = par[6];
-	double number_of_spins;
-	double one_period_angular_diff;
+	double	number_of_spins;
+	double	one_period_angular_diff;
 
 	(*po).dist_on_phase_space = &dist_from_ref;
 	(*po).evolve_n_cycles = &evolve_n_cycles_po;
@@ -2589,6 +2613,11 @@ int draw_basin_of_attraction(double ref[][2], int ref_period,
 	fprintf(gnuplotPipe, 
 		"set title \"Basin of attraction  for  gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e\"\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fprintf(gnuplotPipe, "FILE = \"basin_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat\"\n", 
+	// 	gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fprintf(gnuplotPipe, "stats FILE u (myTitle=strcol(1),0) nooutput\n");
+	// fprintf(gnuplotPipe, "set title \"gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e  size = \".myTitle\n", 
+	// 	gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
 		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
