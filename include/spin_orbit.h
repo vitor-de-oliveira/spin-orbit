@@ -115,7 +115,7 @@ int init_orbital(double y[4],
                 double e);
 
 /**
- * implementation
+ * poincare map
 **/
 
 int orbit_map (double *ic,
@@ -124,6 +124,10 @@ int orbit_map (double *ic,
 
 int phase_space (dynsys system,
                 anlsis analysis);
+
+/**
+ * time series
+**/
 
 int time_series(dynsys system,
                 anlsis analysis);
@@ -137,6 +141,10 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 int multiple_time_series_delta_theta(dynsys system,
 									anlsis analysis);
 
+/**
+ * basin of attraction
+**/
+
 double dist_from_ref(double x[2],
                      double ref[2]);
 
@@ -145,9 +153,16 @@ int evolve_basin(double *ic, double ref[][2],
                 double ***orbit, int *orbit_size,
                 dynsys system, anlsis analysis);
 
-int basin_of_attraction (double ref[][2], int ref_period,
-                        dynsys system,
-                        anlsis analysis);
+int basin_of_attraction (double ref[][2],
+                         int ref_period,
+                         dynsys system,
+                         anlsis analysis);
+
+int evolve_multiple_basin_determined ();
+
+int mutiple_basin_of_attraction_determined ();
+
+int mutiple_basin_of_attraction_undetermined ();
 
 /**
  * periodic orbit
