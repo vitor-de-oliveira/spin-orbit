@@ -19,6 +19,8 @@ typedef struct PerOrb{
     int     period;
     double  seed[2];
     double  initial_condition[2];
+    double  **orbit;
+
     int     winding_number_numerator;
     int     winding_number_denominator;
 

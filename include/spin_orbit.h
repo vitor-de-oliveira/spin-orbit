@@ -148,19 +148,31 @@ int multiple_time_series_delta_theta(dynsys system,
 double dist_from_ref(double x[2],
                      double ref[2]);
 
-int evolve_basin(double *ic, double ref[][2], 
-                int ref_period, bool *converged,
-                double ***orbit, int *orbit_size,
-                dynsys system, anlsis analysis);
+int evolve_basin(double *ic,
+				 bool *converged,
+                 int *convergence_time,
+                 perorb po,
+                 dynsys system,
+				 anlsis analysis);
 
-int basin_of_attraction (double ref[][2],
-                         int ref_period,
+int basin_of_attraction (perorb po,
                          dynsys system,
                          anlsis analysis);
 
-int evolve_multiple_basin_determined ();
+int evolve_multiple_basin_determined(double *ic,
+									 int number_of_po,
+									 int *converged,
+									 int *convergence_time,
+									 perorb po[],
+									 dynsys system,
+									 anlsis analysis);
 
-int mutiple_basin_of_attraction_determined ();
+int mutiple_basin_of_attraction_determined (int number_of_po,
+											perorb po[],
+                         					dynsys system,
+                         					anlsis analysis);
+
+int evolve_multiple_basin_undetermined ();
 
 int mutiple_basin_of_attraction_undetermined ();
 
@@ -235,10 +247,11 @@ int draw_multiple_time_series_delta_theta_dot_latex(dynsys system,
 int draw_multiple_time_series_delta_theta   (dynsys system,
                                              anlsis analysis);
 
-int draw_basin_of_attraction(double ref[][2], int ref_period,
-                            dynsys system, anlsis analysis);
+int draw_basin_of_attraction(perorb po,
+                             dynsys system,
+                             anlsis analysis);
 
-int draw_basin_of_attraction_clean	(double ref[][2], int ref_period,
+int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
                             		 dynsys system, anlsis analysis);
 
 int draw_periodic_orbit_on_phase_space  (perorb po,
