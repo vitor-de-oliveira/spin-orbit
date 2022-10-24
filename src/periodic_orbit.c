@@ -104,35 +104,46 @@ int calculate_periodic_orbit_ic(perorb *po,
                                 anlsis analysis)
 {
     int count, max_steps;
+    int new_try_count, max_new_try;
     double r, lamb, err, err1, err2, tol;
     double *x1, *x2;
-
-    // Levenberg-Marquardt parameters
-    r = 2.0;
-    lamb = 0.01;
+    double internal_seed[2];
 
     // iteration parameters
-    tol = 1e-13;
+    tol = 1e-12;
     max_steps = 1000;
+
+    // in case it fails
+    max_new_try = 4;
+    new_try_count = 0;
 
     // dynamical memory allocation 
     alloc_1d_double(&x1, 2);
     alloc_1d_double(&x2, 2);
 
+    // copy the seed internally
+    copy (internal_seed, (*po).seed, 2);
+
+    back:;
+
+    // Levenberg-Marquardt parameters
+    r = 2.0;
+    lamb = 0.01;
+
     // error of the seed
     printf("seed for initial condition = (%1.5e  %1.5e)\n",
-            (*po).seed[0], (*po).seed[1]);
-    copy ((*po).initial_condition, (*po).seed, 2);
+            internal_seed[0], internal_seed[1]);
+    copy ((*po).initial_condition, internal_seed, 2);
     (*po).evolve_n_cycles((*po).initial_condition, (*po).period, 
                     system, analysis);
-    err = (*po).dist_on_phase_space((*po).initial_condition, (*po).seed);
+    err = (*po).dist_on_phase_space((*po).initial_condition, internal_seed);
     printf("seed error = |M^%d(seed)-seed| = %1.5e\n", 
             (*po).period, err);
 
     // fixed point calculation 
     printf("Starting periodic orbit calculation\n");
 
-    copy ((*po).initial_condition, (*po).seed, 2);
+    copy ((*po).initial_condition, internal_seed, 2);
     count = 0;
     while (err > tol && count < max_steps)
     {
@@ -144,6 +155,13 @@ int calculate_periodic_orbit_ic(perorb *po,
         minimization_step(x2, &err2, r * lamb, *po, system, analysis);
 
         printf("err1 = %1.5e err2 = %1.5e\n", err1, err2);
+
+        if (err1 != err1 || err2 != err2 ||
+            r != r || lamb != lamb)
+        {
+            count = max_steps;
+            break;
+        }
 
         if (err1 < err && err1 < err2)
         {
@@ -176,7 +194,22 @@ int calculate_periodic_orbit_ic(perorb *po,
                 (*po).initial_condition[0], (*po).initial_condition[1]);
         printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n", 
                 (*po).period, err);
-        exit(2);
+        (*po).initial_condition[0] = NAN;
+        (*po).initial_condition[1] = NAN;
+        if (new_try_count < max_new_try)
+        {
+            printf("Starting a new try with a slightly different IC\n");
+
+            copy (internal_seed, (*po).seed, 2);
+
+            double factor = pow(-1.0, (double)new_try_count) * new_try_count;
+
+            internal_seed[0] += factor * internal_seed[0] * 1e-3;
+            internal_seed[1] += factor * internal_seed[1] * 1e-3;
+
+            new_try_count++;
+            goto back;
+        }
     }
     else
     {
@@ -191,6 +224,39 @@ int calculate_periodic_orbit_ic(perorb *po,
     dealloc_1d_double(&x2);
 
     return 0;
+}
+
+void jacobian_eigenvalues_magnitude  (perorb *po,
+                                      dynsys system, 
+                                      anlsis analysis)
+{
+    double mag_1, mag_2;
+    double T, det, delta;
+    double **J;
+
+    alloc_2d_double(&J, 2, 2);
+
+    jacobian_periodic_orbit(J, *po, system, analysis);
+
+    T = J[0][0] + J[1][1];
+    det = J[0][0] * J[1][1] - J[1][0] * J[0][1];
+    delta = T * T - 4.0 * det;
+
+    if (delta < 0.0)
+    {
+        mag_1 = sqrt(det);
+        mag_2 = sqrt(det);
+    }
+    else
+    {
+        mag_1 = 0.5 * sqrt((T + sqrt(delta)) * (T + sqrt(delta)));
+        mag_2 = 0.5 * sqrt((T - sqrt(delta)) * (T - sqrt(delta)));
+    }
+
+    (*po).eigenvalues_absolute_value[0] = mag_1;
+    (*po).eigenvalues_absolute_value[1] = mag_2;
+
+    dealloc_2d_double(&J, 2);
 }
 
 void gauss_solve (double *x, double **A, double *b, int dim)

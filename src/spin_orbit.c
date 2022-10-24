@@ -695,6 +695,8 @@ int phase_space(dynsys system, anlsis analysis)
 	analysis_bw = copy_anlsis(analysis);
 	analysis_bw.cycle_period *= -1.0;
 
+	printf("Calculating phase space for e = %1.3f and gamma = %1.3f\n", e, gamma);
+
 	// loop over coordinate values
 	for (int i = 0; i < analysis.nc; i++)
 	{
@@ -1730,6 +1732,8 @@ int periodic_orbit	(perorb *po,
 
     fclose(out_orb);
 	fclose(out_orb_res);
+
+	final:;
 
 	return 0;
 }
