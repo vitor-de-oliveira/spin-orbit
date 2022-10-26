@@ -216,6 +216,16 @@ double multiply_n_times(double x, int n)
 	return n_x;
 }
 
+int cantor_pairing_function(int a, int b)
+{
+	if (a < 0 || b < 0)
+	{
+		printf("Can't use Cantor pairing function on negative integers.");
+		exit(2);
+	}
+	return  ((a + b) * (a + b + 1) + 2 * b) / 2;
+}
+
 void square_matrix_product_vector(double *mx, double **m, double *x, int dim)
 {
 	for (int i = 0; i < dim; i++)

@@ -316,8 +316,8 @@ int main(int argc, char **argv)
 		periodic_orbit(&multiple_po[i], system, analysis);
 	}
 
-	mutiple_basin_of_attraction_determined (number_of_po, multiple_po, system, analysis);
-	// draw_multiple_basin_of_attraction_determined (po, system, analysis);
+	multiple_basin_of_attraction_determined (number_of_po, multiple_po, system, analysis);
+	draw_multiple_basin_of_attraction_determined (number_of_po, system, analysis);
 	
 	for (int i = 0; i < number_of_po; i++)
 	{

@@ -1406,7 +1406,7 @@ int basin_of_attraction (perorb po,
 
 int evolve_multiple_basin_determined(double *ic,
 									 int number_of_po,
-									 int *converged,
+									 int *converged_po_id,
 									 int *convergence_time,
 									 perorb po[],
 									 dynsys system,
@@ -1415,7 +1415,7 @@ int evolve_multiple_basin_determined(double *ic,
 	// declare variables
 	bool is_close_to;
 	int orbit_counter, close_time_counter;
-	int converged_po_id;
+	int internal_converged_po_id;
 	double y[system.dim], rot[2];
 	double t = 0.0;
 
@@ -1425,7 +1425,7 @@ int evolve_multiple_basin_determined(double *ic,
 	// starts proximity counter
 	close_time_counter = 0;
 	
-	*converged = -1;
+	*converged_po_id = -1;
 
 	copy(y, ic, system.dim);
 	for (int i = 0; i < analysis.number_of_cycles; i++)
@@ -1440,7 +1440,7 @@ int evolve_multiple_basin_determined(double *ic,
 				if(dist_from_ref(rot, po[j].orbit[k]) < analysis.evolve_basin_eps)
 				{
 					is_close_to = true;
-					converged_po_id = j + 1;
+					internal_converged_po_id = j;
 				}
 			}
 		}
@@ -1456,7 +1456,7 @@ int evolve_multiple_basin_determined(double *ic,
 
 		if (close_time_counter > analysis.evolve_basin_time_tol)
 		{
-			*converged = converged_po_id;
+			*converged_po_id = internal_converged_po_id;
 			goto out;
 		}
 
@@ -1479,7 +1479,7 @@ int evolve_multiple_basin_determined(double *ic,
 
 	out:;
 
-	if (*converged != -1)
+	if (*converged_po_id != -1)
 	{
 		*convergence_time = orbit_counter;
 	}
@@ -1491,7 +1491,7 @@ int evolve_multiple_basin_determined(double *ic,
 	return 0;
 }
 
-int mutiple_basin_of_attraction_determined (int number_of_po,
+int multiple_basin_of_attraction_determined (int number_of_po,
 											perorb po[],
                          					dynsys system,
                          					anlsis analysis)
@@ -1519,16 +1519,16 @@ int mutiple_basin_of_attraction_determined (int number_of_po,
 	FILE	*out_boa, *out_ref, *out_size;
 	char	filename[200];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
 	out_boa = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
 	out_ref = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
 	out_size = fopen(filename, "w");
 
 	// declare variables
@@ -1538,11 +1538,10 @@ int mutiple_basin_of_attraction_determined (int number_of_po,
 	double orb[4], orb_ini[4];
 	init_orbital(orb_ini, e);
 
-	double basin_size_fraction;
 	int grid[2];
 	double basin[2];
 	
-	int converged;
+	int converged_po_id;
 	int convergence_time;
 
 	for (int i = 0; i < number_of_po; i++)
@@ -1594,7 +1593,7 @@ int mutiple_basin_of_attraction_determined (int number_of_po,
 		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
-				converged, convergence_time, orb, rot_ini) shared(basin_matrix, \
+				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
 				control_matrix, time_matrix)
 		{
 
@@ -1625,15 +1624,16 @@ int mutiple_basin_of_attraction_determined (int number_of_po,
 
 					// calculate forward integration
 					evolve_multiple_basin_determined(y, number_of_po, 
-						&converged, &convergence_time,
+						&converged_po_id, &convergence_time,
 						po, system, analysis);
 
-					if(converged != -1)
+					if(converged_po_id != -1)
 					{
-						basin_matrix[i][j] = converged;
-						control_matrix[i][j] = 1;
+						basin_matrix[i][j] = 
+							cantor_pairing_function(po[converged_po_id].winding_number_numerator,po[converged_po_id].winding_number_denominator);
+						control_matrix[i][j] = converged_po_id + 1;
 						time_matrix[i][j] = (double)(convergence_time);
-						basin_size[converged - 1]++;
+						basin_size[converged_po_id]++;
 					}
 					else
 					{
@@ -1659,12 +1659,10 @@ int mutiple_basin_of_attraction_determined (int number_of_po,
 			grid[1] = j;
 			grid_to_double(grid, basin, analysis);
 
-			if (basin_matrix[grid[0]][grid[1]] != 0)
+			if (control_matrix[i][j] != -1)
 			{
-				res_spin = 
-					po[basin_matrix[grid[0]][grid[1]] - 1].winding_number_numerator;
-				res_orbit = 
-					po[basin_matrix[grid[0]][grid[1]] - 1].winding_number_denominator;
+				res_spin = po[control_matrix[i][j]-1].winding_number_numerator;
+				res_orbit = po[control_matrix[i][j]-1].winding_number_denominator;
 			}
 			else
 			{
@@ -1683,16 +1681,48 @@ int mutiple_basin_of_attraction_determined (int number_of_po,
 		fprintf(out_boa, "\n");
 	}
 
+	int winding_number_numerator_max = 0;
+	int winding_number_denominator_max = 0;
+
 	for (int i = 0; i < number_of_po; i++)
 	{
-		basin_size_fraction = ((double)basin_size[i]) / 
-			(((double)analysis.grid_resolution) * ((double)analysis.grid_resolution));
-
-		fprintf(out_size, "%d/%d %1.4f\n", 
-			po[i].winding_number_numerator,
-			po[i].winding_number_denominator,
-			basin_size_fraction);
+		if (po[i].winding_number_numerator > winding_number_numerator_max)
+		{
+			winding_number_numerator_max = po[i].winding_number_numerator;
+		}
+		if (po[i].winding_number_denominator > winding_number_denominator_max)
+		{
+			winding_number_denominator_max = po[i].winding_number_denominator;
+		}
 	}
+
+	double basin_size_fraction;
+	double basin_size_fraction_sum;
+
+	basin_size_fraction_sum = 0.0;
+	for (int i = 0; i <= winding_number_numerator_max; i++)
+	{
+		for (int j = 0; j <= winding_number_denominator_max; j++)
+		{
+			basin_size_fraction = 0.0;
+			for (int k = 0; k < number_of_po; k++)
+			{
+				if (po[k].winding_number_numerator == i &&
+					po[k].winding_number_denominator == j)
+				{
+					basin_size_fraction += ((double)basin_size[k]) / 
+						(((double)analysis.grid_resolution) * ((double)analysis.grid_resolution));
+				}
+			}
+
+			fprintf(out_size, "%d %d %1.4f\n", 
+				i, j, basin_size_fraction);	
+			
+			basin_size_fraction_sum += basin_size_fraction;
+		}
+	}
+
+	fprintf(out_size, "n m %1.4f\n", basin_size_fraction_sum);
 
 	// close exit files
 	fclose(out_boa);
@@ -3210,6 +3240,75 @@ int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
 
 	printf("Done!\n");
 	printf("Data written in output/clean_figures/\n");
+
+	return 0;
+}
+
+int draw_multiple_basin_of_attraction_determined(int number_of_po,
+                                        		 dynsys system,
+                                        		 anlsis analysis)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f for %d resonances\n", 
+		system.name, gamma, e, K, number_of_po);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/basin_of_attraction/fig_multiple_basin_of_attraction_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.png\"\n", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "unset colorbox\n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"Multiple basin of attraction for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat' u 1:2:3 w image notitle",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/basin_of_attraction/\n");
+
+	// printf("Drawing convergence times of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f and reference theta = %1.3f theta_dot = %1.3f with period = %d\n", 
+	// 	system.name, gamma, e, K, po.initial_condition[0], po.initial_condition[1], po.period);
+
+	// gnuplotPipe = popen("gnuplot -persistent", "w");
+	// fprintf(gnuplotPipe, "reset\n");
+	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	// fprintf(gnuplotPipe, 
+	// 	"set output \"output/basin_of_attraction/fig_convergence_times_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+	// 	gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	// fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	// fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	// fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	// fprintf(gnuplotPipe, "unset key\n");
+	// fprintf(gnuplotPipe, 
+	// 	"set title \"        Convergence times  for  gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e\"\n", 
+	// 	gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+	// 	gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fclose(gnuplotPipe);
+
+	// printf("Done!\n");
+	// printf("Data written in output/basin_of_attraction/\n");
 
 	return 0;
 }

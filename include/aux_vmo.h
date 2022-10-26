@@ -84,6 +84,9 @@ int lin_comb_vec(double *x, double *lamb, double *y, double *z, int dim);
 // multiply the double x by itself n times
 double multiply_n_times(double x, int n);
 
+// returns a unique natural number from two natural numbers
+int cantor_pairing_function(int a, int b);
+
 // mx = m * x
 void square_matrix_product_vector(double *mx, double **m, double *x, int dim);
 
