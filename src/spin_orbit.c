@@ -3284,31 +3284,34 @@ int draw_multiple_basin_of_attraction_determined(int number_of_po,
 	printf("Done!\n");
 	printf("Data written in output/basin_of_attraction/\n");
 
-	// printf("Drawing convergence times of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f and reference theta = %1.3f theta_dot = %1.3f with period = %d\n", 
-	// 	system.name, gamma, e, K, po.initial_condition[0], po.initial_condition[1], po.period);
+	printf("Drawing convergence times for system %s with gamma = %1.3f, e = %1.3f and K = %1.5f for %d resonances\n", 
+		system.name, gamma, e, K, number_of_po);
 
-	// gnuplotPipe = popen("gnuplot -persistent", "w");
-	// fprintf(gnuplotPipe, "reset\n");
-	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
-	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_convergence_times_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
-	// 	gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
-	// fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	// fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
-	// fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	// fprintf(gnuplotPipe, "unset key\n");
-	// fprintf(gnuplotPipe, 
-	// 	"set title \"        Convergence times  for  gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e\"\n", 
-	// 	gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
-	// 	gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// fclose(gnuplotPipe);
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/basin_of_attraction/fig_multiple_convergence_time_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.png\"\n", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "unset colorbox\n");
+	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, 
+		"set title \"Convergence times for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat' u 1:2:4 w image notitle",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	fclose(gnuplotPipe);
 
-	// printf("Done!\n");
-	// printf("Data written in output/basin_of_attraction/\n");
+	printf("Done!\n");
+	printf("Data written in output/basin_of_attraction/\n");
 
 	return 0;
 }

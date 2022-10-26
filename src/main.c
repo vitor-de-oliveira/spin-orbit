@@ -278,7 +278,7 @@ int main(int argc, char **argv)
 
 	analysis.number_of_cycles = 1e3; //1e3
 	analysis.cycle_period = T;
-	analysis.grid_resolution = 600;
+	analysis.grid_resolution = 100;
 	analysis.grid_coordinate_min = -M_PI;
 	analysis.grid_coordinate_max = M_PI;
 	analysis.grid_velocity_min = 0.0;
@@ -298,7 +298,7 @@ int main(int argc, char **argv)
 	// // draw_basin_of_attraction_clean (po.period, po.initial_condition, system, analysis);
 	// dealloc_2d_double(&po.orbit, po.period);
 
-	int number_of_po = 3;
+	int number_of_po = 2;
 	perorb multiple_po[number_of_po];
 
 	multiple_po[0].period = 1;
@@ -307,8 +307,8 @@ int main(int argc, char **argv)
 	multiple_po[1].period = 2;
 	multiple_po[1].seed[0] = -1.50359; multiple_po[1].seed[1] = 0.860586; // e = 0.1 period 2 SPO 1/2 system linear
 	
-	multiple_po[2].period = 1;
-	multiple_po[2].seed[0] = M_PI; multiple_po[2].seed[1] = 0.551537;
+	// multiple_po[2].period = 1;
+	// multiple_po[2].seed[0] = M_PI; multiple_po[2].seed[1] = 0.551537;
 
 	for (int i = 0; i < number_of_po; i++)
 	{
