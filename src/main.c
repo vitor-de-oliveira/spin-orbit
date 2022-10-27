@@ -99,18 +99,18 @@ int main(int argc, char **argv)
 	/*				   	Periodic Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// // system = system_rigid;
+	system = system_rigid;
 	// // system = system_linear_average;
 	// system = system_linear;
 
-	// gamma = gamma_hyperion;
-	// e = e_hyperion;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-2;
-	// T = 2.0 * M_PI;
+	gamma = gamma_hyperion;
+	e = e_hyperion;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
+	T = 2.0 * M_PI;
 
 	// analysis.cycle_period = T;
 	// analysis.evolve_box_size = 1e8;
@@ -148,16 +148,33 @@ int main(int argc, char **argv)
 	// for (int i = 0; i < 4; i++) ic_po[i+2] = orbital[i];
 	// orbit_map(ic_po, system, analysis);
 
-	// analysis.number_of_cycles = 2;
-	// analysis.cycle_period = 2.0 * M_PI;
-	// analysis.grid_resolution = 600;
-	// analysis.grid_coordinate_min = -M_PI;
-	// analysis.grid_coordinate_max = M_PI;
-	// analysis.grid_velocity_min = 0.0;
-	// analysis.grid_velocity_max = 3.0;
-	// analysis.evolve_box_size = 1e6;
+	analysis.cycle_period = T;
+	analysis.grid_resolution = 1000;
+	analysis.grid_coordinate_min = -M_PI;
+	analysis.grid_coordinate_max = M_PI;
+	analysis.grid_velocity_min = 0.0;
+	analysis.grid_velocity_max = 3.0;
+	analysis.evolve_box_size = 1e6;
 
-	// look_for_resonance (2, 3, system, analysis);
+	int spin_period, orbit_period;
+	int number_of_candidates;
+	double **candidates;
+
+	spin_period = 5;
+	orbit_period = 2;
+	number_of_candidates = 5 * orbit_period;
+	
+	alloc_2d_double(&candidates, number_of_candidates, 2);
+
+	look_for_resonance (number_of_candidates, candidates, 
+		spin_period, orbit_period, system, analysis);
+
+	for (int i = 0; i < number_of_candidates; i++)
+	{
+		printf("%1.5f %1.5f\n", candidates[i][0], candidates[i][1]);
+	}
+
+	dealloc_2d_double(&candidates, number_of_candidates);
 
 	// draw_orbit_map(system);
 
@@ -264,65 +281,65 @@ int main(int argc, char **argv)
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_linear_average;
-	system = system_linear;
+	// // system = system_linear_average;
+	// system = system_linear;
 
-	gamma = gamma_hyperion;
-	e = e_hyperion;
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-2;
-	T = 2.0 * M_PI;
+	// gamma = gamma_hyperion;
+	// e = e_hyperion;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
+	// T = 2.0 * M_PI;
 
-	analysis.number_of_cycles = 1e3; //1e3
-	analysis.cycle_period = T;
-	analysis.grid_resolution = 100;
-	analysis.grid_coordinate_min = -M_PI;
-	analysis.grid_coordinate_max = M_PI;
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 3.0;
-	analysis.evolve_box_size = 1e8;
-	analysis.evolve_basin_time_tol = 100;
-	analysis.evolve_basin_eps = 1e-1;
+	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.cycle_period = T;
+	// analysis.grid_resolution = 100;
+	// analysis.grid_coordinate_min = -M_PI;
+	// analysis.grid_coordinate_max = M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
+	// analysis.evolve_box_size = 1e8;
+	// analysis.evolve_basin_time_tol = 100;
+	// analysis.evolve_basin_eps = 1e-1;
 
-	// // po.period = 1;
-	// // po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
-	// po.period = 2;
-	// po.seed[0] = -1.50359; po.seed[1] = 0.860586; // e = 0.1 period 2 SPO 1/2 system linear
-	// alloc_2d_double(&po.orbit, po.period, system.dim);
-	// periodic_orbit(&po, system, analysis);
-  	// basin_of_attraction (po, system, analysis);
-	// draw_basin_of_attraction (po, system, analysis);
-	// // draw_basin_of_attraction_clean (po.period, po.initial_condition, system, analysis);
-	// dealloc_2d_double(&po.orbit, po.period);
+	// // // po.period = 1;
+	// // // po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
+	// // po.period = 2;
+	// // po.seed[0] = -1.50359; po.seed[1] = 0.860586; // e = 0.1 period 2 SPO 1/2 system linear
+	// // alloc_2d_double(&po.orbit, po.period, system.dim);
+	// // periodic_orbit(&po, system, analysis);
+  	// // basin_of_attraction (po, system, analysis);
+	// // draw_basin_of_attraction (po, system, analysis);
+	// // // draw_basin_of_attraction_clean (po.period, po.initial_condition, system, analysis);
+	// // dealloc_2d_double(&po.orbit, po.period);
 
-	int number_of_po = 2;
-	perorb multiple_po[number_of_po];
+	// int number_of_po = 2;
+	// perorb multiple_po[number_of_po];
 
-	multiple_po[0].period = 1;
-	multiple_po[0].seed[0] = 0.0; multiple_po[0].seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
+	// multiple_po[0].period = 1;
+	// multiple_po[0].seed[0] = 0.0; multiple_po[0].seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
 	
-	multiple_po[1].period = 2;
-	multiple_po[1].seed[0] = -1.50359; multiple_po[1].seed[1] = 0.860586; // e = 0.1 period 2 SPO 1/2 system linear
+	// multiple_po[1].period = 2;
+	// multiple_po[1].seed[0] = -1.50359; multiple_po[1].seed[1] = 0.860586; // e = 0.1 period 2 SPO 1/2 system linear
 	
-	// multiple_po[2].period = 1;
-	// multiple_po[2].seed[0] = M_PI; multiple_po[2].seed[1] = 0.551537;
+	// // multiple_po[2].period = 1;
+	// // multiple_po[2].seed[0] = M_PI; multiple_po[2].seed[1] = 0.551537;
 
-	for (int i = 0; i < number_of_po; i++)
-	{
-		alloc_2d_double(&multiple_po[i].orbit, multiple_po[i].period, system.dim);
-		periodic_orbit(&multiple_po[i], system, analysis);
-	}
+	// for (int i = 0; i < number_of_po; i++)
+	// {
+	// 	alloc_2d_double(&multiple_po[i].orbit, multiple_po[i].period, system.dim);
+	// 	periodic_orbit(&multiple_po[i], system, analysis);
+	// }
 
-	multiple_basin_of_attraction_determined (number_of_po, multiple_po, system, analysis);
-	draw_multiple_basin_of_attraction_determined (number_of_po, system, analysis);
+	// multiple_basin_of_attraction_determined (number_of_po, multiple_po, system, analysis);
+	// draw_multiple_basin_of_attraction_determined (number_of_po, system, analysis);
 	
-	for (int i = 0; i < number_of_po; i++)
-	{
-		dealloc_2d_double(&multiple_po[i].orbit, multiple_po[i].period);
-	}
+	// for (int i = 0; i < number_of_po; i++)
+	// {
+	// 	dealloc_2d_double(&multiple_po[i].orbit, multiple_po[i].period);
+	// }
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */

@@ -1906,8 +1906,10 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 // 	return 0;
 // }
 
-int look_for_resonance	(int orbital_period,
-                         int number_of_spins,
+int look_for_resonance	(int number_of_candidates,
+						 double **candidates,
+						 int spin_period,
+                         int orbit_period,
                          dynsys system, 
 						 anlsis analysis)
 {
@@ -1923,27 +1925,28 @@ int look_for_resonance	(int orbital_period,
 	double K = par[6];
 
 	// prepare and open exit files
-	FILE	*out_res;
+	FILE	*out_dist, *out_cand;
 	char	filename[200];
 
-	sprintf(filename, "output/periodic_orbit/resonance_distances_gamma_%1.3f_e_%1.3f_period_%d_spin_%d.dat", 
-		gamma, e, orbital_period, number_of_spins);
-	out_res = fopen(filename, "w");
+	sprintf(filename, "output/periodic_orbit/resonance_distances_gamma_%1.3f_e_%1.3f_spin_orbit_%d_%d.dat", 
+		gamma, e, spin_period, orbit_period);
+	out_dist = fopen(filename, "w");
+	sprintf(filename, "output/periodic_orbit/resonance_candidates_gamma_%1.3f_e_%1.3f_spin_orbit_%d_%d.dat", 
+		gamma, e, spin_period, orbit_period);
+	out_cand = fopen(filename, "w");
 
 	// declare variables
-	double y[system.dim];
-	double coordinate, velocity;
-	int orbit_fw_size, orbit_bw_size;
-	double **orbit_fw, **orbit_bw;
-	double rot_ini[2];
-	double orb[4], orb_ini[4];
+	double y[system.dim], y0[system.dim];
+	double rot_ini[2], orb_ini[4];
 	init_orbital(orb_ini, e);
 	int grid[2];
 	double ic[2];
+	double t;
+
+	int **candidates_ij;
+	alloc_2d_int(&candidates_ij, number_of_candidates, 2);
+
 	double **orbit_distance, **spin_distance;
-	double one_period_angular_diff_fw, one_period_angular_diff_bw;
-	double number_of_spins_fw, number_of_spins_bw;
-	anlsis analysis_fw, analysis_bw;
 
 	alloc_2d_double(&orbit_distance, 
 		analysis.grid_resolution, analysis.grid_resolution);
@@ -1958,13 +1961,6 @@ int look_for_resonance	(int orbital_period,
 		}
 	}
 
-	analysis_fw = copy_anlsis(analysis);
-	analysis_bw = copy_anlsis(analysis);
-
-	analysis_fw.number_of_cycles = orbital_period;
-	analysis_bw.number_of_cycles = orbital_period;
-	analysis_bw.cycle_period *= -1.0;
-
 	// loop over coordinate values
 	for (int i = 0; i < analysis.grid_resolution; i++)
 	{
@@ -1975,11 +1971,7 @@ int look_for_resonance	(int orbital_period,
 		omp_set_dynamic(0);     // Explicitly disable dynamic teams
 		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
 
-		#pragma omp parallel private(y, coordinate, velocity, ic, grid, \
-				orbit_fw_size, orbit_fw, orbit_bw_size, orbit_bw, orb, \
-				one_period_angular_diff_fw, one_period_angular_diff_bw, \
-				number_of_spins_fw, number_of_spins_bw, \
-				rot_ini) shared(orbit_distance, spin_distance)
+		#pragma omp parallel private(y, y0, grid, rot_ini, t) shared(orbit_distance, spin_distance)
 		{
 
 		#pragma omp for
@@ -1987,8 +1979,8 @@ int look_for_resonance	(int orbital_period,
 			for (int j = 0; j < analysis.grid_resolution; j++)
 			{
 				// print progress on velocity
-				printf("Calculating subset %d of %d\n", 
-							j + 1, analysis.grid_resolution);
+				// printf("Calculating subset %d of %d\n", 
+				// 			j + 1, analysis.grid_resolution);
 
 				grid[0] = i;
 				grid[1] = j;
@@ -1996,7 +1988,6 @@ int look_for_resonance	(int orbital_period,
 				grid_to_double(grid, rot_ini, analysis);
 
 				copy(y, rot_ini, 2);
-
 				if (system.dim == 6)
 				{
 					for (int k = 0; k < 4; k++)
@@ -2005,68 +1996,106 @@ int look_for_resonance	(int orbital_period,
 					}
 				}
 
-				// calculate forward integration
-				evolve_orbit(y, &orbit_fw, &orbit_fw_size,
-					system, analysis_fw);
+				t = 0.0;
+				copy(y0, y, system.dim);
+				for (int i = 0; i < orbit_period; i++)
+				{
+					evolve_cycle(y, &t, system, analysis);
+				}
 
-				// calculate backward integration
-				evolve_orbit(y, &orbit_bw, 
-					&orbit_bw_size, system, analysis_bw);
-
-				orbit_distance[i][j] = 
-					dist_from_ref(orbit_fw[orbit_fw_size - 1], orbit_fw[0]) *
-					dist_from_ref(orbit_bw[orbit_bw_size - 1], orbit_bw[0]);
-
-				one_period_angular_diff_fw = 
-					orbit_fw[orbit_fw_size - 1][0] - orbit_fw[0][0];
-				one_period_angular_diff_bw = 
-					orbit_bw[orbit_bw_size - 1][0] - orbit_bw[0][0];
-
-				number_of_spins_fw = one_period_angular_diff_fw / (2.*M_PI);
-				number_of_spins_bw = fabs(one_period_angular_diff_bw) / (2.*M_PI);
+				orbit_distance[i][j] = dist_from_ref(y,y0);
 
 				spin_distance[i][j] = 
-					fabs(number_of_spins_fw - (double) number_of_spins) * 
-					fabs(number_of_spins_bw - (double) number_of_spins);
-
-				// free memory
-				dealloc_2d_double(&orbit_fw, 
-						analysis.number_of_cycles);
-				dealloc_2d_double(&orbit_bw, 
-						analysis.number_of_cycles);
-			
+					fabs((y[0] - y0[0]) / (2.*M_PI) - (double) spin_period);
 			}
 		} // end pragma
 
 		// new line on terminal
-		printf("\n");
+		// printf("\n");
 	}
 
 	for (int i = 0; i < analysis.grid_resolution; i++)
 	{
 		for (int j = 0; j < analysis.grid_resolution; j++)
 		{
+			if (orbit_distance[i][j] != orbit_distance[i][j] ||
+				 spin_distance[i][j] != spin_distance[i][j])
+			{
+				printf("Looking for the resonance gave NAN value.\n");
+			}
+
 			grid[0] = i;
 			grid[1] = j;
 			grid_to_double(grid, ic, analysis);
 
-			fprintf(out_res, "%1.5f %1.5f %1.5e %1.5e %1.5e\n", 
-				ic[0], ic[1],
-				orbit_distance[grid[0]][grid[1]],
-				spin_distance[grid[0]][grid[1]],
-				orbit_distance[grid[0]][grid[1]] * 
-				spin_distance[grid[0]][grid[1]]);
+			fprintf(out_dist, "%1.10f %1.10f %1.10e %1.10e\n", 
+				ic[0], ic[1], orbit_distance[i][j],	spin_distance[i][j]);
 		}
-		fprintf(out_res, "\n");
+		fprintf(out_dist, "\n");
 	}
 
-	// close exit files
-	fclose(out_res);
+	int counter = 0;
+	for (int i = 0; i < analysis.grid_resolution; i++)
+	{
+		for (int j = 0; j < analysis.grid_resolution; j++)
+		{
+			if (counter < number_of_candidates)
+			{
+				candidates_ij[counter][0] = i;
+				candidates_ij[counter][1] = j;
+				counter++;
+			}
+			else
+			{
+				for (int k = 0; k < number_of_candidates - 1; k++)
+				{
+					for (int l = k + 1; l < number_of_candidates; l++)
+					{
+						if ((spin_distance[candidates_ij[k][0]][candidates_ij[k][1]] < 
+							 spin_distance[candidates_ij[l][0]][candidates_ij[l][1]]) &&
+							(orbit_distance[candidates_ij[k][0]][candidates_ij[k][1]] < 
+							 orbit_distance[candidates_ij[l][0]][candidates_ij[l][1]]))
+						{
+							int hold[2];
+							copy_int(hold, candidates_ij[k], 2);
+							copy_int(candidates_ij[k], candidates_ij[l], 2);
+							copy_int(candidates_ij[l], hold, 2);
+						}
+					}
+				}
+				for (int k = 0; k < number_of_candidates; k++)
+				{
+					if ((spin_distance[i][j] < spin_distance[candidates_ij[k][0]][candidates_ij[k][1]]) &&
+						(orbit_distance[i][j] < orbit_distance[candidates_ij[k][0]][candidates_ij[k][1]]))
+					{
+						candidates_ij[k][0] = i;
+						candidates_ij[k][1] = j;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < number_of_candidates; i++)
+	{
+		grid[0] = candidates_ij[i][0];
+		grid[1] = candidates_ij[i][1];
+		grid_to_double(grid, ic, analysis);
+		fprintf(out_cand, "%1.5f %1.5f\n", ic[0], ic[1]);
+		copy(candidates[i], ic, 2);
+	}
+				
+	dealloc_2d_int(&candidates_ij, number_of_candidates);
 
 	dealloc_2d_double(&orbit_distance, 
 					analysis.grid_resolution);
 	dealloc_2d_double(&spin_distance, 
 					analysis.grid_resolution);
+
+	// close exit files
+	fclose(out_dist);
+	fclose(out_cand);
 
 	printf("Data written in output/periodic_orbit/\n");
 
@@ -2193,7 +2222,7 @@ int periodic_orbit	(perorb *po,
 
     for (int i = 0; i < (*po).period; i++)
     {
-        copy((*po).orbit[i], y, 2);
+        copy((*po).orbit[i], y, system.dim);
 
 		fprintf(out_orb, "%1.10e %1.10e\n", 
             angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);

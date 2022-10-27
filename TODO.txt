@@ -1,5 +1,12 @@
 IMPORTANT STUFF
 
+- pensando na serie de cauchy, fazer uma versao do basin 
+undetermined onde eu nem uso o resultado final para calcular 
+as órbitas periódicas pelo método, eu considero que elas 
+são a minha órbita final mesmo e só calculo winding number.
+isso é, a simples distancia entre elementos da orbita jah
+define a sua convergencia
+
 - implement histogram for times
 
 - remove reference to K from everything that concerns the

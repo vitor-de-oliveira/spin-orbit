@@ -180,10 +180,12 @@ int multiple_basin_of_attraction_undetermined ();
  * periodic orbit
 **/
 
-// search the phase space for a resonance
-// of orbital period given by analysis.number_of_cycles
-int look_for_resonance	(int orbital_period,
-                         int number_of_spins,
+// search the phase space for number_of_candidates 
+// resonances of type spin_period / orbit_period
+int look_for_resonance	(int number_of_candidates,
+						 double **candidates,
+						 int spin_period,
+                         int orbit_period,
                          dynsys system, 
 						 anlsis analysis);
 

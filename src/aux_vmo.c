@@ -32,6 +32,15 @@ int copy_parts(double *x, double *y, int initial_value, int final_value)
 	return 0;
 }
 
+int copy_int(int *x, int *y, int dim)
+{
+	for (int i = 0; i < dim; i++)
+	{
+		x[i] = y[i];
+	}
+	return 0;
+}
+
 int print_array(double *x, int dim)
 {
 	for (int i = 0; i < dim; i++)

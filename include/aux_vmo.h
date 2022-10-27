@@ -19,13 +19,17 @@
 // with elelents copied from the array x of size dim squared
 int array_to_matrix(double **m, double *x, int dim);
 
-// defines x as a copy of y
+// defines x (double) as a copy of y (double)
 // where x and y are arrays of dimension dim
 int copy(double *x, double *y, int dim);
 
 // defines an interval of x as a copy of the same interval of y
 // the copied indices go from initial_value to final_value
 int copy_parts(double *x, double *y, int initial_value, int final_value);
+
+// defines x (int) as a copy of y (int)
+// where x and y are arrays of dimension dim
+int copy_int(int *x, int *y, int dim);
 
 // prints array of doubles of size dim
 int print_array(double *x, int dim);
