@@ -112,8 +112,8 @@ int calculate_periodic_orbit_ic(perorb *po,
     lamb = 0.01;
 
     // iteration parameters
-    tol = 1e-13;
-    max_steps = 1000;
+    max_steps = analysis.po_max_step;
+    tol = analysis.po_tol;
 
     // dynamical memory allocation 
     alloc_1d_double(&x1, 2);
@@ -136,14 +136,23 @@ int calculate_periodic_orbit_ic(perorb *po,
     count = 0;
     while (err > tol && count < max_steps)
     {
-        printf ("step = %d err = %1.5e lamb = %f\n",
-                count, err, lamb);
+        printf ("step = %d err = %1.5e lamb = %f r = %f\n",
+                count, err, lamb, r);
 
         minimization_step(x1, &err1, lamb, *po, system, analysis);
 
         minimization_step(x2, &err2, r * lamb, *po, system, analysis);
 
+        if ((x1 != x1) || (x2 != x2) ||
+            (err1 != err1) || (err2 != err2) ||
+            (lamb != lamb) || (r != r))
+        {
+            goto exit;
+        }
+
         printf("err1 = %1.5e err2 = %1.5e\n", err1, err2);
+        printf("x1[0] = %1.5e x1[1] = %1.5e\n", x1[0], x1[1]);
+        printf("x2[0] = %1.5e x2[1] = %1.5e\n", x2[0], x2[1]);
 
         if (err1 < err && err1 < err2)
         {
@@ -170,13 +179,14 @@ int calculate_periodic_orbit_ic(perorb *po,
     // if max count was reached
     if (count == max_steps)
     {
+        exit:;
         printf("method didn't converge\n");
 	    printf("max. count reached during fixed point search\n");
         printf("approx. initial condition = (%1.15e  %1.15e)\n", 
                 (*po).initial_condition[0], (*po).initial_condition[1]);
         printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n", 
                 (*po).period, err);
-        exit(2);
+        return -1;
     }
     else
     {

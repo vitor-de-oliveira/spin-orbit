@@ -183,7 +183,7 @@ int multiple_basin_of_attraction_undetermined ();
 // search the phase space for number_of_candidates 
 // resonances of type spin_period / orbit_period
 int look_for_resonance	(int number_of_candidates,
-						 double **candidates,
+						 double candidates[][2],
 						 int spin_period,
                          int orbit_period,
                          dynsys system, 

@@ -1440,7 +1440,10 @@ int evolve_multiple_basin_determined(double *ic,
 				if(dist_from_ref(rot, po[j].orbit[k]) < analysis.evolve_basin_eps)
 				{
 					is_close_to = true;
-					internal_converged_po_id = j;
+					internal_converged_po_id = j;	// tem um problema aqui
+					// as vezes o calculo da orbita periodica encontra a mesma
+					// orbita para 1/1 e 2/2. Nessa linha, é atribuído o ponto
+					// da bacia de 1/1 para 2/2
 				}
 			}
 		}
@@ -1492,9 +1495,9 @@ int evolve_multiple_basin_determined(double *ic,
 }
 
 int multiple_basin_of_attraction_determined (int number_of_po,
-											perorb po[],
-                         					dynsys system,
-                         					anlsis analysis)
+											 perorb po[],
+                         					 dynsys system,
+                         					 anlsis analysis)
 {
 	// little warning
 	if (strcmp(system.name, "two_body") == 0)
@@ -1700,9 +1703,9 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	double basin_size_fraction_sum;
 
 	basin_size_fraction_sum = 0.0;
-	for (int i = 0; i <= winding_number_numerator_max; i++)
+	for (int i = 1; i <= winding_number_numerator_max; i++)
 	{
-		for (int j = 0; j <= winding_number_denominator_max; j++)
+		for (int j = 1; j <= winding_number_denominator_max; j++)
 		{
 			basin_size_fraction = 0.0;
 			for (int k = 0; k < number_of_po; k++)
@@ -1907,7 +1910,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 // }
 
 int look_for_resonance	(int number_of_candidates,
-						 double **candidates,
+						 double candidates[][2],
 						 int spin_period,
                          int orbit_period,
                          dynsys system, 
@@ -2172,7 +2175,10 @@ int periodic_orbit	(perorb *po,
 	(*po).dist_on_phase_space = &dist_from_ref;
 	(*po).evolve_n_cycles = &evolve_n_cycles_po;
 
-	calculate_periodic_orbit_ic(po, system, analysis);
+	if (calculate_periodic_orbit_ic(po, system, analysis) == -1)
+	{
+		return -1;
+	}
 
     copy(y, (*po).initial_condition, 2);
 	if (system.dim == 6)
