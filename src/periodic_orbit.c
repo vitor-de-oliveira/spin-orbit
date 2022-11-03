@@ -120,24 +120,24 @@ int calculate_periodic_orbit_ic(perorb *po,
     alloc_1d_double(&x2, 2);
 
     // error of the seed
-    printf("seed for initial condition = (%1.5e  %1.5e)\n",
-            (*po).seed[0], (*po).seed[1]);
+    // printf("seed for initial condition = (%1.5e  %1.5e)\n",
+    //         (*po).seed[0], (*po).seed[1]);
     copy ((*po).initial_condition, (*po).seed, 2);
     (*po).evolve_n_cycles((*po).initial_condition, (*po).period, 
                     system, analysis);
     err = (*po).dist_on_phase_space((*po).initial_condition, (*po).seed);
-    printf("seed error = |M^%d(seed)-seed| = %1.5e\n", 
-            (*po).period, err);
+    // printf("seed error = |M^%d(seed)-seed| = %1.5e\n", 
+    //         (*po).period, err);
 
     // fixed point calculation 
-    printf("Starting periodic orbit calculation\n");
+    // printf("Starting periodic orbit calculation\n");
 
     copy ((*po).initial_condition, (*po).seed, 2);
     count = 0;
     while (err > tol && count < max_steps)
     {
-        printf ("step = %d err = %1.5e lamb = %f r = %f\n",
-                count, err, lamb, r);
+        // printf ("step = %d err = %1.5e lamb = %f r = %f\n",
+        //         count, err, lamb, r);
 
         minimization_step(x1, &err1, lamb, *po, system, analysis);
 
@@ -150,9 +150,9 @@ int calculate_periodic_orbit_ic(perorb *po,
             goto exit;
         }
 
-        printf("err1 = %1.5e err2 = %1.5e\n", err1, err2);
-        printf("x1[0] = %1.5e x1[1] = %1.5e\n", x1[0], x1[1]);
-        printf("x2[0] = %1.5e x2[1] = %1.5e\n", x2[0], x2[1]);
+        // printf("err1 = %1.5e err2 = %1.5e\n", err1, err2);
+        // printf("x1[0] = %1.5e x1[1] = %1.5e\n", x1[0], x1[1]);
+        // printf("x2[0] = %1.5e x2[1] = %1.5e\n", x2[0], x2[1]);
 
         if (err1 < err && err1 < err2)
         {
@@ -180,21 +180,21 @@ int calculate_periodic_orbit_ic(perorb *po,
     if (count == max_steps)
     {
         exit:;
-        printf("method didn't converge\n");
-	    printf("max. count reached during fixed point search\n");
-        printf("approx. initial condition = (%1.15e  %1.15e)\n", 
-                (*po).initial_condition[0], (*po).initial_condition[1]);
-        printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n", 
-                (*po).period, err);
+        // printf("method didn't converge\n");
+	    // printf("max. count reached during fixed point search\n");
+        // printf("approx. initial condition = (%1.15e  %1.15e)\n", 
+        //         (*po).initial_condition[0], (*po).initial_condition[1]);
+        // printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n", 
+        //         (*po).period, err);
         return -1;
     }
     else
     {
-        printf("periodic orbit of period %d found after %d steps\n", (*po).period, count);
-        printf("initial condition = (%1.15e  %1.15e)\n", 
-                (*po).initial_condition[0], (*po).initial_condition[1]);
-        printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n",
-                (*po).period, err);
+        // printf("periodic orbit of period %d found after %d steps\n", (*po).period, count);
+        // printf("initial condition = (%1.15e  %1.15e)\n", 
+        //         (*po).initial_condition[0], (*po).initial_condition[1]);
+        // printf("error = |M^%d(po_ic)-po_ic| = %1.5e\n",
+        //         (*po).period, err);
     }
 
     dealloc_1d_double(&x1);

@@ -397,26 +397,28 @@ int main(int argc, char **argv)
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
-	// // system = system_linear_average;
-	// system = system_linear;
+	// system = system_linear_average;
+	system = system_linear;
 
-	// gamma = gamma_hyperion;
-	// e = e_hyperion;
-	// m_secondary = 0.0;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
- 	// K = 1e-2;
-	// T = 2.0 * M_PI;
+	gamma = gamma_hyperion;
+	e = e_hyperion;
+	m_secondary = 0.0;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+ 	K = 1e-2;
+	T = 2.0 * M_PI;
 
 	// analysis.number_of_cycles = 1e3; //1e3
 	// analysis.cycle_period = T;
+	// analysis.evolve_box_size = 1e8;
+
 	// analysis.grid_resolution = 100;
 	// analysis.grid_coordinate_min = -M_PI;
 	// analysis.grid_coordinate_max = M_PI;
 	// analysis.grid_velocity_min = 0.0;
 	// analysis.grid_velocity_max = 3.0;
-	// analysis.evolve_box_size = 1e8;
+	
 	// analysis.evolve_basin_time_tol = 100;
 	// analysis.evolve_basin_eps = 1e-1;
 
@@ -456,6 +458,24 @@ int main(int argc, char **argv)
 	// {
 	// 	dealloc_2d_double(&multiple_po[i].orbit, multiple_po[i].period);
 	// }
+
+	// analysis.number_of_cycles = 1e3; //1e3
+	// analysis.cycle_period = T;
+	// analysis.evolve_box_size = 1e8;
+
+	// analysis.grid_resolution = 600;
+	// analysis.grid_coordinate_min = -M_PI;
+	// analysis.grid_coordinate_max = M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
+	
+	// analysis.evolve_basin_time_tol = 100;
+
+	// analysis.po_max_step = 1000;
+	// analysis.po_tol = 1e-10;	
+
+	// multiple_basin_of_attraction_undetermined (system, analysis);
+	// draw_multiple_basin_of_attraction_undetermined (system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */

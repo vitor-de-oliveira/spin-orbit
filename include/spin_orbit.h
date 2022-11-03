@@ -168,13 +168,19 @@ int evolve_multiple_basin_determined(double *ic,
 									 anlsis analysis);
 
 int multiple_basin_of_attraction_determined (int number_of_po,
-											perorb po[],
-                         					dynsys system,
-                         					anlsis analysis);
+											 perorb po[],
+                         					 dynsys system,
+                         					 anlsis analysis);
 
-int evolve_multiple_basin_undetermined ();
+int evolve_multiple_basin_undetermined  (double *ic,
+									     bool *converged,
+                                         int *attractor_period,
+									     int *convergence_time,
+									     dynsys system,
+									     anlsis analysis);
 
-int multiple_basin_of_attraction_undetermined ();
+int multiple_basin_of_attraction_undetermined   (dynsys system,
+                         					     anlsis analysis);
 
 /**
  * periodic orbit
@@ -259,6 +265,9 @@ int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
 int draw_multiple_basin_of_attraction_determined(int number_of_po,
                                         		 dynsys system,
                                         		 anlsis analysis);
+
+int draw_multiple_basin_of_attraction_undetermined  (dynsys system,
+                                        		     anlsis analysis);
 
 int draw_periodic_orbit_on_phase_space  (perorb po,
                                          dynsys system);
