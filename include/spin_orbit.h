@@ -142,6 +142,31 @@ int multiple_time_series_delta_theta(dynsys system,
 									anlsis analysis);
 
 /**
+ * periodic orbit
+**/
+
+// search the phase space for number_of_candidates 
+// resonances of type spin_period / orbit_period
+int look_for_resonance	(int number_of_candidates,
+						 double candidates[][2],
+						 int spin_period,
+                         int orbit_period,
+                         dynsys system, 
+						 anlsis analysis);
+
+// evolves an initial condition for n cycles
+int evolve_n_cycles_po  (double y0[2],
+                         int n,
+                         dynsys system,
+                         anlsis analysis);
+
+// calculates periodic orbit 
+// and prints it on an exit file
+int periodic_orbit	(perorb *po,
+                     dynsys system,
+                     anlsis analysis);
+
+/**
  * basin of attraction
 **/
 
@@ -182,30 +207,12 @@ int evolve_multiple_basin_undetermined  (double *ic,
 int multiple_basin_of_attraction_undetermined   (dynsys system,
                          					     anlsis analysis);
 
-/**
- * periodic orbit
-**/
-
-// search the phase space for number_of_candidates 
-// resonances of type spin_period / orbit_period
-int look_for_resonance	(int number_of_candidates,
-						 double candidates[][2],
-						 int spin_period,
-                         int orbit_period,
-                         dynsys system, 
-						 anlsis analysis);
-
-// evolves an initial condition for n cycles
-int evolve_n_cycles_po  (double y0[2],
-                         int n,
-                         dynsys system,
-                         anlsis analysis);
-
-// calculates periodic orbit 
-// and prints it on an exit file
-int periodic_orbit	(perorb *po,
-                     dynsys system,
-                     anlsis analysis);
+// uses look_for_resonance and multiple_basin_of_attraction_determined
+// to find all the spin-resonances on the phase space that
+// have spin and orbit periods below a certain value and
+// returns their size and other information
+int all_basins_of_attraction(dynsys system,
+                         	 anlsis analysis);
 
 /**
  * benchmark tests

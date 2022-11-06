@@ -203,6 +203,39 @@ int calculate_periodic_orbit_ic(perorb *po,
     return 0;
 }
 
+void jacobian_eigenvalues_magnitude  (perorb *po,
+                                      dynsys system, 
+                                      anlsis analysis)
+{
+    double mag_1, mag_2;
+    double T, det, delta;
+    double **J;
+
+    alloc_2d_double(&J, 2, 2);
+
+    jacobian_periodic_orbit(J, *po, system, analysis);
+
+    T = J[0][0] + J[1][1];
+    det = J[0][0] * J[1][1] - J[1][0] * J[0][1];
+    delta = T * T - 4.0 * det;
+
+    if (delta < 0.0)
+    {
+        mag_1 = sqrt(det);
+        mag_2 = sqrt(det);
+    }
+    else
+    {
+        mag_1 = 0.5 * sqrt((T + sqrt(delta)) * (T + sqrt(delta)));
+        mag_2 = 0.5 * sqrt((T - sqrt(delta)) * (T - sqrt(delta)));
+    }
+
+    (*po).eigenvalues_absolute_value[0] = mag_1;
+    (*po).eigenvalues_absolute_value[1] = mag_2;
+
+    dealloc_2d_double(&J, 2);
+}
+
 void gauss_solve (double *x, double **A, double *b, int dim)
 {
     double temp;
