@@ -106,9 +106,9 @@ int main(int argc, char **argv)
 	/*				   	Periodic Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_rigid;
+	// system = system_rigid;
 	// system = system_linear_average;
-	// system = system_linear;
+	system = system_linear;
 	double ic_po[system.dim];
 
 	gamma = gamma_hyperion;
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 	a = 1.0;
-	K = 5e-2;
+	K = 1e-1;
 	T = 2.0 * M_PI;
 
 	analysis.cycle_period = T;
@@ -147,104 +147,166 @@ int main(int argc, char **argv)
 	// draw_periodic_orbit_on_phase_space (po, system);
 	// draw_periodic_orbit_on_phase_space_clean (po, system);
 
-	FILE 	*out_po_track_e;
-	char    filename[200];
-	int		po_counter, po_number = 1000;
-	double	po_tracker[po_number][3]; // e |lambda_1| |lambda_2|
-	double	e_max, e_min, e_base, e_step_up, e_step_down;
+	// FILE 	*out_po_track_e;
+	// char    filename[200];
+	// int		po_counter, po_number = 1000;
+	// double	po_tracker[po_number][3]; // e |lambda_1| |lambda_2|
+	// double	e_max, e_min, e_base, e_step_up, e_step_down;
 	
-	e_base = 0.1;
-	e_max = 0.2;
-	e_min = 0.0;
-	e_step_up = fabs(e_base - e_max) / ((double) (po_number - 1));
-	e_step_down = fabs(e_base - e_min) / ((double) (po_number - 1));
+	// e_base = 0.1;
+	// e_max = 0.2;
+	// e_min = 0.0;
+	// e_step_up = fabs(e_base - e_max) / ((double) (po_number - 1));
+	// e_step_down = fabs(e_base - e_min) / ((double) (po_number - 1));
+
+	// e = e_base;
+	// po.period = 2;
+	// po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
+	
+	// periodic_orbit(&po, system, analysis);
+	
+	// if (strcmp(system.name, "rigid") == 0)
+	// {
+	// 	sprintf(filename, "output/periodic_orbit/periodic_orbit_track_gamma_%1.3f_system_%s_resonance_%d_%d.dat", 
+	// 		gamma, system.name, po.winding_number_numerator, po.winding_number_denominator);
+	// }
+	// else
+	// {
+	// 	sprintf(filename, "output/periodic_orbit/periodic_orbit_track_gamma_%1.3f_system_%s_K_%1.5f_resonance_%d_%d.dat", 
+	// 		gamma, system.name, K, po.winding_number_numerator, po.winding_number_denominator);
+	// }
+	// out_po_track_e = fopen(filename, "w");
+
+	// po_counter = 0;
+	// for (e = e_base; e > e_min - e_step_down/2.; e -= e_step_down)
+	// {
+
+	// 	if ((po.seed[0] != po.seed[0]) ||
+	// 		(po.seed[1] != po.seed[1]))
+	// 	{
+	// 		printf("Can't calculate PO due to bad seed\n");
+	// 		goto jump;
+	// 	}
+
+	// 	periodic_orbit(&po, system, analysis);
+
+	// 	jacobian_eigenvalues_magnitude(&po, system, analysis);
+
+	// 	jump:;
+
+	// 	po_tracker[po_counter][0] = e;
+	// 	po_tracker[po_counter][1] = po.eigenvalues_absolute_value[0];
+	// 	po_tracker[po_counter][2] = po.eigenvalues_absolute_value[1];
+
+	// 	copy(po.seed, po.initial_condition, 2);
+
+	// 	po_counter++;
+	// }
+
+	// for (int i = po_number - 1; i > 0; i--)
+	// {
+	// 	fprintf(out_po_track_e, "%1.5e %1.5e %1.5e\n", 
+	// 		po_tracker[i][0], po_tracker[i][1], po_tracker[i][2]);
+	// }
+
+	// po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
+
+	// po_counter = 0;
+	// for (e = e_base; e < e_max + e_step_up/2.; e += e_step_up)
+	// {
+
+	// 	if ((po.seed[0] != po.seed[0]) ||
+	// 		(po.seed[1] != po.seed[1]))
+	// 	{
+	// 		printf("Can't calculate PO due to bad seed\n");
+	// 		goto jump2;
+	// 	}
+
+	// 	periodic_orbit(&po, system, analysis);
+
+	// 	jacobian_eigenvalues_magnitude(&po, system, analysis);
+
+	// 	jump2:;
+
+	// 	po_tracker[po_counter][0] = e;
+	// 	po_tracker[po_counter][1] = po.eigenvalues_absolute_value[0];
+	// 	po_tracker[po_counter][2] = po.eigenvalues_absolute_value[1];
+
+	// 	po.seed[0] = po.initial_condition[0];
+	// 	po.seed[1] = po.initial_condition[1];
+
+	// 	po_counter++;
+	// }
+
+	// for (int i = 0; i < po_number; i++)
+	// {
+	// 	fprintf(out_po_track_e, "%1.5e %1.5e %1.5e\n", 
+	// 		po_tracker[i][0], po_tracker[i][1], po_tracker[i][2]);
+	// }
+	
+	// fclose(out_po_track_e);
+
+	FILE 	*out_bif;
+	char    filename[200];
+	int number_of_iter = 1000, transient = 900;
+	double number_of_points = 1000.;
+	double x[system.dim], t;
+	double	e_max, e_min, e_base, e_step_up, e_step_down;
+
+	e_base = e_hyperion;
+	e_max = e_hyperion + 0.1;
+	e_min = e_hyperion - 0.1;
+	e_step_up = fabs(e_base - e_max) / number_of_points;
+	e_step_down = fabs(e_base - e_min) / number_of_points;
 
 	e = e_base;
-	po.period = 2;
-	po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
-	
+	po.period = 1;
+	po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
 	periodic_orbit(&po, system, analysis);
-	
-	if (strcmp(system.name, "rigid") == 0)
-	{
-		sprintf(filename, "output/periodic_orbit/periodic_orbit_track_gamma_%1.3f_system_%s_resonance_%d_%d.dat", 
-			gamma, system.name, po.winding_number_numerator, po.winding_number_denominator);
-	}
-	else
-	{
-		sprintf(filename, "output/periodic_orbit/periodic_orbit_track_gamma_%1.3f_system_%s_K_%1.5f_resonance_%d_%d.dat", 
-			gamma, system.name, K, po.winding_number_numerator, po.winding_number_denominator);
-	}
-	out_po_track_e = fopen(filename, "w");
 
-	po_counter = 0;
+	sprintf(filename, "output/periodic_orbit/bifurcation_diagram_gamma_%1.3f_system_%s_K_%1.5f_resonance_%d_%d.dat", 
+			gamma, system.name, K, po.winding_number_numerator, po.winding_number_denominator);
+	out_bif = fopen(filename, "w");
+
+	copy (x, po.initial_condition, 2);
 	for (e = e_base; e > e_min - e_step_down/2.; e -= e_step_down)
 	{
-
-		if ((po.seed[0] != po.seed[0]) ||
-			(po.seed[1] != po.seed[1]))
+		printf("e = %1.4f\n", e);
+		x[0] = angle_mod(x[0]);
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++) x[i+2] = orbital[i];
+		t = 0.0;
+		for (int i = 0; i < number_of_iter; i++)
 		{
-			printf("Can't calculate PO due to bad seed\n");
-			goto jump;
+			evolve_cycle(x, &t, system, analysis);
+			if (i > transient)
+			{
+				fprintf(out_bif, "%1.4f %1.10e %1.10e\n", 
+					e, angle_mod(x[0]), x[1]);
+			}
 		}
-
-		periodic_orbit(&po, system, analysis);
-
-		jacobian_eigenvalues_magnitude(&po, system, analysis);
-
-		jump:;
-
-		po_tracker[po_counter][0] = e;
-		po_tracker[po_counter][1] = po.eigenvalues_absolute_value[0];
-		po_tracker[po_counter][2] = po.eigenvalues_absolute_value[1];
-
-		copy(po.seed, po.initial_condition, 2);
-
-		po_counter++;
 	}
 
-	for (int i = po_number - 1; i > 0; i--)
-	{
-		fprintf(out_po_track_e, "%1.5e %1.5e %1.5e\n", 
-			po_tracker[i][0], po_tracker[i][1], po_tracker[i][2]);
-	}
-
-	po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
-
-	po_counter = 0;
+	copy (x, po.initial_condition, 2);
 	for (e = e_base; e < e_max + e_step_up/2.; e += e_step_up)
 	{
-
-		if ((po.seed[0] != po.seed[0]) ||
-			(po.seed[1] != po.seed[1]))
+		printf("e = %1.4f\n", e);
+		x[0] = angle_mod(x[0]);
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++) x[i+2] = orbital[i];
+		t = 0.0;
+		for (int i = 0; i < number_of_iter; i++)
 		{
-			printf("Can't calculate PO due to bad seed\n");
-			goto jump2;
+			evolve_cycle(x, &t, system, analysis);
+			if (i > transient)
+			{
+				fprintf(out_bif, "%1.4f %1.10e %1.10e\n", 
+					e, angle_mod(x[0]), x[1]);
+			}
 		}
-
-		periodic_orbit(&po, system, analysis);
-
-		jacobian_eigenvalues_magnitude(&po, system, analysis);
-
-		jump2:;
-
-		po_tracker[po_counter][0] = e;
-		po_tracker[po_counter][1] = po.eigenvalues_absolute_value[0];
-		po_tracker[po_counter][2] = po.eigenvalues_absolute_value[1];
-
-		po.seed[0] = po.initial_condition[0];
-		po.seed[1] = po.initial_condition[1];
-
-		po_counter++;
 	}
 
-	for (int i = 0; i < po_number; i++)
-	{
-		fprintf(out_po_track_e, "%1.5e %1.5e %1.5e\n", 
-			po_tracker[i][0], po_tracker[i][1], po_tracker[i][2]);
-	}
-	
-	fclose(out_po_track_e);
+	fclose(out_bif);
 
 	// analysis.number_of_cycles = 5e4;
 	// analysis.cycle_period = 1e-3;
