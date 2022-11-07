@@ -1124,6 +1124,181 @@ int multiple_time_series_delta_theta(dynsys system,
 	return 0;
 }
 
+int evolve_n_cycles_po  (double y0[2],
+						 int n,
+                         dynsys system,
+                         anlsis analysis)
+{
+    double t = 0;
+	double y[system.dim], orbital[4];
+	double *par = (double *)system.params;
+	double e = par[1];
+
+	copy (y, y0, 2);
+
+	if (system.dim == 6)
+	{
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++)
+		{
+			y[i+2] = orbital[i];
+		}
+	}
+
+    // loop over cycles
+	for (int i = 0; i < n; i++)
+	{
+		evolve_cycle(y, &t, system, analysis);
+	
+		// check if orbit diverges
+		for (int j = 0; j < system.dim; j++)
+		{
+			if (fabs(y[j]) > analysis.evolve_box_size)
+			{
+                printf("Warning: evolve periodic orbit failed\n");
+				printf("box limit reached\n");
+				printf("y[%d] = %1.10e\n", j, y[j]);
+				exit(2);
+			}
+		}
+	}
+
+	copy (y0, y, 2);
+
+	return 0;
+}
+
+int periodic_orbit	(perorb *po,
+                     dynsys system,
+                     anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/periodic_orbit", &st) == -1)
+    {
+		mkdir("output/periodic_orbit", 0700);
+	}
+
+	FILE    *out_orb, *out_orb_res;
+	char    filename[200];
+	double 	t = 0;
+    double 	y[system.dim], orbital[4];
+	double	po_ic_after_one_period[system.dim];
+	double 	*par = (double *)system.params;
+	double 	gamma = par[0];
+	double 	e = par[1];
+	double 	K = par[6];
+	double	number_of_spins;
+	double	one_period_angular_diff;
+
+	(*po).dist_on_phase_space = &dist_from_ref;
+	(*po).evolve_n_cycles = &evolve_n_cycles_po;
+
+	if (calculate_periodic_orbit_ic(po, system, analysis) == -1)
+	{
+		return -1;
+	}
+
+    copy(y, (*po).initial_condition, 2);
+	if (system.dim == 6)
+	{
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++)
+		{
+			y[i+2] = orbital[i];
+		}
+	}
+
+    for (int i = 0; i < (*po).period; i++)
+    {
+        copy((*po).orbit[i], y, 2);
+		evolve_cycle(y, &t, system, analysis);
+    }
+
+    // finds the index for the smallest theta value
+    // inside the periodic orbit to use as a reference
+    // on the file name
+    int index_theta_min = 0;
+    for (int i = 1; i < (*po).period; i++)
+    {
+        if(angle_mod((*po).orbit[i][0]) < angle_mod((*po).orbit[i-1][0]))
+        {
+            index_theta_min = i;
+        }
+    }
+
+	(*po).initial_condition[0] = angle_mod((*po).orbit[index_theta_min][0]);
+	(*po).initial_condition[1] = (*po).orbit[index_theta_min][1];
+
+	// indexed file
+	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
+            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
+	out_orb = fopen(filename, "w");
+
+	copy(y, (*po).initial_condition, 2);
+	if (system.dim == 6)
+	{
+		init_orbital(orbital, e);
+		for (int i = 0; i < 4; i++)
+		{
+			y[i+2] = orbital[i];
+		}
+	}
+
+    for (int i = 0; i < (*po).period; i++)
+    {
+        copy((*po).orbit[i], y, system.dim);
+
+		fprintf(out_orb, "%1.10e %1.10e\n", 
+            angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
+
+		evolve_cycle(y, &t, system, analysis);
+    }
+
+	copy(po_ic_after_one_period, y, system.dim);
+
+	sprintf(filename, "output/periodic_orbit/periodic_orbit_resonance_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
+            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
+	out_orb_res = fopen(filename, "w");
+
+	// calculating the resonance
+	one_period_angular_diff = 
+		po_ic_after_one_period[0] - (*po).initial_condition[0];
+
+	number_of_spins = one_period_angular_diff / (2.*M_PI);
+
+	(*po).winding_number_numerator = (int) round(number_of_spins);
+	(*po).winding_number_denominator = (*po).period;
+
+	fprintf(out_orb_res, "Orbit:\n\n");
+
+	for (int i = 0; i < (*po).period; i++)
+    {
+        fprintf(out_orb_res, "%1.5e %1.5e\n", 
+            angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
+    }
+
+	fprintf(out_orb_res, "\n\n");
+
+	fprintf(out_orb_res, "Orbit period:\n\n%d\n\n\n", 
+		(*po).period);
+
+	fprintf(out_orb_res, "Angular difference after 1 period:\n\n%1.10e\n\n\n", 
+		one_period_angular_diff);
+
+	fprintf(out_orb_res, "Number of spins:\n\n%1.10e\n\n\n", 
+		number_of_spins);
+
+	fprintf(out_orb_res, "Resonance:\n\n%d / %d\n\n\n", 
+		(*po).winding_number_numerator, 
+		(*po).winding_number_denominator);
+
+    fclose(out_orb);
+	fclose(out_orb_res);
+
+	return 0;
+}
+
 int look_for_resonance	(int number_of_candidates,
 						 double candidates[][2],
 						 int spin_period,
@@ -1320,177 +1495,104 @@ int look_for_resonance	(int number_of_candidates,
 	return 0;
 }
 
-int evolve_n_cycles_po  (double y0[2],
-						 int n,
-                         dynsys system,
-                         anlsis analysis)
+int find_all_periodic_orbits(int *number_of_pos,
+							 perorb **multiple_pos,
+							 dynsys system,
+                         	 anlsis analysis)
 {
-    double t = 0;
-	double y[system.dim], orbital[4];
-	double *par = (double *)system.params;
-	double e = par[1];
+	int spin_period, orbit_period;
+	int number_of_candidates;
+	double tol_between_pos;
 
-	copy (y, y0, 2);
+	// distance value for which we say two pos are actually the same one
+	tol_between_pos = 1e-5;		
 
-	if (system.dim == 6)
+	*number_of_pos = 0;
+
+	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
 	{
-		init_orbital(orbital, e);
-		for (int i = 0; i < 4; i++)
+		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
 		{
-			y[i+2] = orbital[i];
-		}
-	}
+			printf("SPIN = %d ORBIT = %d\n", spin_period, orbit_period);
+			number_of_candidates = 5 * orbit_period; // 2 * orbit_period
+			
+			double candidates[number_of_candidates][2];
+			look_for_resonance (number_of_candidates, candidates, 
+				spin_period, orbit_period, system, analysis);
 
-    // loop over cycles
-	for (int i = 0; i < n; i++)
-	{
-		evolve_cycle(y, &t, system, analysis);
-	
-		// check if orbit diverges
-		for (int j = 0; j < system.dim; j++)
-		{
-			if (fabs(y[j]) > analysis.evolve_box_size)
+			perorb multiple_candidates[number_of_candidates];
+			int successful_candidates_indices[number_of_candidates];
+			for (int i = 0; i < number_of_candidates; i++)
 			{
-                printf("Warning: evolve periodic orbit failed\n");
-				printf("box limit reached\n");
-				printf("y[%d] = %1.10e\n", j, y[j]);
-				exit(2);
+				successful_candidates_indices[i] = -1;
+			}
+
+			for (int i = 0; i < number_of_candidates; i++)
+			{
+				multiple_candidates[i].period = orbit_period;
+				copy (multiple_candidates[i].seed, candidates[i], 2);
+				alloc_2d_double(&multiple_candidates[i].orbit, multiple_candidates[i].period, system.dim);
+				if (periodic_orbit(&multiple_candidates[i], system, analysis) == 0)
+				{
+					// check if p.o. already registered
+					for (int k = 0; k < *number_of_pos; k++)
+					{
+						for (int l = 0; l < (*multiple_pos)[k].period; l++)
+						{
+							for (int m = 0; m < orbit_period; m++)
+							{
+								if (dist_from_ref((*multiple_pos)[k].orbit[l], multiple_candidates[i].orbit[m]) 
+									< tol_between_pos)
+								{
+									goto skip;
+								}
+							}
+						}
+					}
+					// check if p.o is stable
+					jacobian_eigenvalues_magnitude(&multiple_candidates[i], system, analysis);
+					if ((multiple_candidates[i].eigenvalues_absolute_value[0] > 1.0) ||
+						(multiple_candidates[i].eigenvalues_absolute_value[1] > 1.0))
+					{
+						goto skip;
+					}
+					successful_candidates_indices[i] = 1;
+					*number_of_pos = *number_of_pos + 1;
+					if (*number_of_pos == 1)
+					{
+						*multiple_pos = (perorb*) malloc(*number_of_pos * sizeof(perorb));
+					}
+					else
+					{
+						*multiple_pos = realloc(*multiple_pos, *number_of_pos * sizeof(perorb));
+					}
+
+					(*multiple_pos)[*number_of_pos-1].period = multiple_candidates[i].period;
+					(*multiple_pos)[*number_of_pos-1].seed[0] = multiple_candidates[i].seed[0];
+					(*multiple_pos)[*number_of_pos-1].seed[1] = multiple_candidates[i].seed[1];
+					(*multiple_pos)[*number_of_pos-1].initial_condition[0] = multiple_candidates[i].initial_condition[0];
+					(*multiple_pos)[*number_of_pos-1].initial_condition[1] = multiple_candidates[i].initial_condition[1];
+					(*multiple_pos)[*number_of_pos-1].eigenvalues_absolute_value[0] = multiple_candidates[i].eigenvalues_absolute_value[0];
+					(*multiple_pos)[*number_of_pos-1].eigenvalues_absolute_value[1] = multiple_candidates[i].eigenvalues_absolute_value[1];
+					(*multiple_pos)[*number_of_pos-1].winding_number_numerator = multiple_candidates[i].winding_number_numerator;
+					(*multiple_pos)[*number_of_pos-1].winding_number_denominator = multiple_candidates[i].winding_number_denominator;
+
+					alloc_2d_double(&(*multiple_pos)[*number_of_pos-1].orbit, (*multiple_pos)[*number_of_pos-1].period, system.dim);
+					for (int j = 0; j < (*multiple_pos)[*number_of_pos-1].period; j++)
+					{
+						copy((*multiple_pos)[*number_of_pos-1].orbit[j], multiple_candidates[i].orbit[j], system.dim);
+					}
+				}
+				skip:;
+				dealloc_2d_double(&multiple_candidates[i].orbit, multiple_candidates[i].period);
 			}
 		}
 	}
 
-	copy (y0, y, 2);
-
-	return 0;
-}
-
-int periodic_orbit	(perorb *po,
-                     dynsys system,
-                     anlsis analysis)
-{
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output/periodic_orbit", &st) == -1)
-    {
-		mkdir("output/periodic_orbit", 0700);
-	}
-
-	FILE    *out_orb, *out_orb_res;
-	char    filename[200];
-	double 	t = 0;
-    double 	y[system.dim], orbital[4];
-	double	po_ic_after_one_period[system.dim];
-	double 	*par = (double *)system.params;
-	double 	gamma = par[0];
-	double 	e = par[1];
-	double 	K = par[6];
-	double	number_of_spins;
-	double	one_period_angular_diff;
-
-	(*po).dist_on_phase_space = &dist_from_ref;
-	(*po).evolve_n_cycles = &evolve_n_cycles_po;
-
-	if (calculate_periodic_orbit_ic(po, system, analysis) == -1)
+	if (*number_of_pos == 0)
 	{
-		return -1;
+		printf("Could not find any po.\n");
 	}
-
-    copy(y, (*po).initial_condition, 2);
-	if (system.dim == 6)
-	{
-		init_orbital(orbital, e);
-		for (int i = 0; i < 4; i++)
-		{
-			y[i+2] = orbital[i];
-		}
-	}
-
-    for (int i = 0; i < (*po).period; i++)
-    {
-        copy((*po).orbit[i], y, 2);
-		evolve_cycle(y, &t, system, analysis);
-    }
-
-    // finds the index for the smallest theta value
-    // inside the periodic orbit to use as a reference
-    // on the file name
-    int index_theta_min = 0;
-    for (int i = 1; i < (*po).period; i++)
-    {
-        if(angle_mod((*po).orbit[i][0]) < angle_mod((*po).orbit[i-1][0]))
-        {
-            index_theta_min = i;
-        }
-    }
-
-	(*po).initial_condition[0] = angle_mod((*po).orbit[index_theta_min][0]);
-	(*po).initial_condition[1] = (*po).orbit[index_theta_min][1];
-
-	// indexed file
-	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
-            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
-	out_orb = fopen(filename, "w");
-
-	copy(y, (*po).initial_condition, 2);
-	if (system.dim == 6)
-	{
-		init_orbital(orbital, e);
-		for (int i = 0; i < 4; i++)
-		{
-			y[i+2] = orbital[i];
-		}
-	}
-
-    for (int i = 0; i < (*po).period; i++)
-    {
-        copy((*po).orbit[i], y, system.dim);
-
-		fprintf(out_orb, "%1.10e %1.10e\n", 
-            angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
-
-		evolve_cycle(y, &t, system, analysis);
-    }
-
-	copy(po_ic_after_one_period, y, system.dim);
-
-	sprintf(filename, "output/periodic_orbit/periodic_orbit_resonance_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
-            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
-	out_orb_res = fopen(filename, "w");
-
-	// calculating the resonance
-	one_period_angular_diff = 
-		po_ic_after_one_period[0] - (*po).initial_condition[0];
-
-	number_of_spins = one_period_angular_diff / (2.*M_PI);
-
-	(*po).winding_number_numerator = (int) round(number_of_spins);
-	(*po).winding_number_denominator = (*po).period;
-
-	fprintf(out_orb_res, "Orbit:\n\n");
-
-	for (int i = 0; i < (*po).period; i++)
-    {
-        fprintf(out_orb_res, "%1.5e %1.5e\n", 
-            angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
-    }
-
-	fprintf(out_orb_res, "\n\n");
-
-	fprintf(out_orb_res, "Orbit period:\n\n%d\n\n\n", 
-		(*po).period);
-
-	fprintf(out_orb_res, "Angular difference after 1 period:\n\n%1.10e\n\n\n", 
-		one_period_angular_diff);
-
-	fprintf(out_orb_res, "Number of spins:\n\n%1.10e\n\n\n", 
-		number_of_spins);
-
-	fprintf(out_orb_res, "Resonance:\n\n%d / %d\n\n\n", 
-		(*po).winding_number_numerator, 
-		(*po).winding_number_denominator);
-
-    fclose(out_orb);
-	fclose(out_orb_res);
 
 	return 0;
 }
@@ -1890,16 +1992,16 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	FILE	*out_boa, *out_ref, *out_size;
 	char	filename[200];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_boa = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_ref = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_size = fopen(filename, "w");
 
 	// declare variables
@@ -1953,6 +2055,10 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 			time_matrix[i][j] = NAN;
 		}
 	}
+
+	int spin_period, orbit_period;
+	double basin_size_fraction;
+	double basin_size_fraction_sum;
 
 	// loop over coordinate values
 	for (int i = 0; i < analysis.grid_resolution; i++)
@@ -2021,8 +2127,6 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		// printf("\n");
 	}
 
-	int res_spin, res_orbit;
-
 	for (int i = 0; i < analysis.grid_resolution; i++)
 	{
 		for (int j = 0; j < analysis.grid_resolution; j++)
@@ -2033,68 +2137,50 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 
 			if (control_matrix[i][j] != -1)
 			{
-				res_spin = po[control_matrix[i][j]-1].winding_number_numerator;
-				res_orbit = po[control_matrix[i][j]-1].winding_number_denominator;
+				spin_period = po[control_matrix[i][j]-1].winding_number_numerator;
+				orbit_period = po[control_matrix[i][j]-1].winding_number_denominator;
 			}
 			else
 			{
-				res_spin = 0;
-				res_orbit = 0;
+				spin_period = 0;
+				orbit_period = 0;
 			}
 
 			fprintf(out_boa, "%1.5f %1.5f %f %1.5e %d %d\n", 
 				basin[0], basin[1], 
 				basin_matrix[grid[0]][grid[1]],
 				time_matrix[grid[0]][grid[1]],
-				res_spin,
-				res_orbit);
+				spin_period,
+				orbit_period);
 
 		}
 		fprintf(out_boa, "\n");
 	}
 
-	int winding_number_numerator_max = 0;
-	int winding_number_denominator_max = 0;
-
-	for (int i = 0; i < number_of_po; i++)
-	{
-		if (po[i].winding_number_numerator > winding_number_numerator_max)
-		{
-			winding_number_numerator_max = po[i].winding_number_numerator;
-		}
-		if (po[i].winding_number_denominator > winding_number_denominator_max)
-		{
-			winding_number_denominator_max = po[i].winding_number_denominator;
-		}
-	}
-
-	double basin_size_fraction;
-	double basin_size_fraction_sum;
-
 	basin_size_fraction_sum = 0.0;
-	for (int i = 1; i <= winding_number_numerator_max; i++)
+	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
 	{
-		for (int j = 1; j <= winding_number_denominator_max; j++)
+		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
 		{
 			basin_size_fraction = 0.0;
 			for (int k = 0; k < number_of_po; k++)
 			{
-				if (po[k].winding_number_numerator == i &&
-					po[k].winding_number_denominator == j)
+				if (po[k].winding_number_numerator == spin_period &&
+					po[k].winding_number_denominator == orbit_period)
 				{
 					basin_size_fraction += ((double)basin_size[k]) / 
 						(((double)analysis.grid_resolution) * ((double)analysis.grid_resolution));
 				}
 			}
 
-			fprintf(out_size, "%d %d %1.4f\n", 
-				i, j, basin_size_fraction);	
+			fprintf(out_size, "%1.3f %d %d %1.4f\n", 
+				e, spin_period, orbit_period, basin_size_fraction);	
 			
 			basin_size_fraction_sum += basin_size_fraction;
 		}
 	}
 
-	fprintf(out_size, "n m %1.4f\n", basin_size_fraction_sum);
+	fprintf(out_size, "%1.3f s o %1.4f\n", e, basin_size_fraction_sum);
 
 	// close exit files
 	fclose(out_boa);
@@ -2568,13 +2654,6 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 					analysis.grid_resolution);
 
 	printf("Data written in output/basin_of_attraction/\n");
-
-	return 0;
-}
-
-int all_basins_of_attraction(dynsys system,
-                         	 anlsis analysis)
-{
 
 	return 0;
 }
@@ -3578,8 +3657,7 @@ int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
 	return 0;
 }
 
-int draw_multiple_basin_of_attraction_determined(int number_of_po,
-                                        		 dynsys system,
+int draw_multiple_basin_of_attraction_determined(dynsys system,
                                         		 anlsis analysis)
 {
 	FILE *gnuplotPipe;
@@ -3589,59 +3667,59 @@ int draw_multiple_basin_of_attraction_determined(int number_of_po,
 	double e = par[1];
 	double K = par[6];
 
-	printf("Drawing basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f for %d resonances\n", 
-		system.name, gamma, e, K, number_of_po);
+	printf("Drawing multtiple basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		system.name, gamma, e, K);
 
 	gnuplotPipe = popen("gnuplot -persistent", "w");
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_multiple_basin_of_attraction_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.png\"\n", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+		"set output \"output/basin_of_attraction/fig_multiple_basin_of_attraction_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	fprintf(gnuplotPipe, "unset colorbox\n");
-	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set xrange[-3.15:3.15]\n");
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
 		"set title \"Multiple basin of attraction (D) for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat' u 1:2:3 w image notitle",
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
-	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");
 	printf("Data written in output/basin_of_attraction/\n");
 
-	printf("Drawing convergence times for system %s with gamma = %1.3f, e = %1.3f and K = %1.5f for %d resonances\n", 
-		system.name, gamma, e, K, number_of_po);
+	printf("Drawing convergence times for system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		system.name, gamma, e, K);
 
 	gnuplotPipe = popen("gnuplot -persistent", "w");
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_multiple_convergence_time_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.png\"\n", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+		"set output \"output/basin_of_attraction/fig_multiple_convergence_time_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	fprintf(gnuplotPipe, "unset colorbox\n");
-	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
+	fprintf(gnuplotPipe, "set xrange[-3.15:3.15]\n");
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
 		"set title \"Convergence times (D) for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat' u 1:2:4 w image notitle",
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
-	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_number_of_po_%d.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, number_of_po);
+	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");

@@ -145,15 +145,6 @@ int multiple_time_series_delta_theta(dynsys system,
  * periodic orbit
 **/
 
-// search the phase space for number_of_candidates 
-// resonances of type spin_period / orbit_period
-int look_for_resonance	(int number_of_candidates,
-						 double candidates[][2],
-						 int spin_period,
-                         int orbit_period,
-                         dynsys system, 
-						 anlsis analysis);
-
 // evolves an initial condition for n cycles
 int evolve_n_cycles_po  (double y0[2],
                          int n,
@@ -165,6 +156,23 @@ int evolve_n_cycles_po  (double y0[2],
 int periodic_orbit	(perorb *po,
                      dynsys system,
                      anlsis analysis);
+
+// search the phase space for number_of_candidates 
+// resonances of type spin_period / orbit_period
+int look_for_resonance	(int number_of_candidates,
+						 double candidates[][2],
+						 int spin_period,
+                         int orbit_period,
+                         dynsys system, 
+						 anlsis analysis);
+
+// uses look_for_resonance to find all the spin-orbit resonances
+// on the phase space that have spin and orbit periods inside 
+// the range given in analysis
+int find_all_periodic_orbits(int *number_of_pos,
+							 perorb **multiple_pos,
+							 dynsys system,
+                         	 anlsis analysis);
 
 /**
  * basin of attraction
@@ -206,13 +214,6 @@ int evolve_multiple_basin_undetermined  (double *ic,
 
 int multiple_basin_of_attraction_undetermined   (dynsys system,
                          					     anlsis analysis);
-
-// uses look_for_resonance and multiple_basin_of_attraction_determined
-// to find all the spin-resonances on the phase space that
-// have spin and orbit periods below a certain value and
-// returns their size and other information
-int all_basins_of_attraction(dynsys system,
-                         	 anlsis analysis);
 
 /**
  * benchmark tests
@@ -269,8 +270,7 @@ int draw_basin_of_attraction(perorb po,
 int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
                             		 dynsys system, anlsis analysis);
 
-int draw_multiple_basin_of_attraction_determined(int number_of_po,
-                                        		 dynsys system,
+int draw_multiple_basin_of_attraction_determined(dynsys system,
                                         		 anlsis analysis);
 
 int draw_multiple_basin_of_attraction_undetermined  (dynsys system,
