@@ -263,6 +263,12 @@ int draw_multiple_time_series_delta_theta_dot_latex(dynsys system,
 int draw_multiple_time_series_delta_theta   (dynsys system,
                                              anlsis analysis);
 
+int draw_periodic_orbit_on_phase_space  (perorb po,
+                                         dynsys system);
+
+int draw_periodic_orbit_on_phase_space_clean(perorb po,
+                                         	 dynsys system);
+
 int draw_basin_of_attraction(perorb po,
                              dynsys system,
                              anlsis analysis);
@@ -276,10 +282,7 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 int draw_multiple_basin_of_attraction_undetermined  (dynsys system,
                                         		     anlsis analysis);
 
-int draw_periodic_orbit_on_phase_space  (perorb po,
-                                         dynsys system);
-
-int draw_periodic_orbit_on_phase_space_clean(perorb po,
-                                         	 dynsys system);
+int draw_multiple_basin_of_attraction_determined_range_e(dynsys system,
+                                        		         anlsis analysis);
 
 #endif

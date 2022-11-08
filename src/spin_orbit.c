@@ -3507,6 +3507,105 @@ int draw_multiple_time_series_delta_theta   (dynsys system,
 	return 0;
 }
 
+int draw_periodic_orbit_on_phase_space  (perorb po,
+                                         dynsys system)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing periodic orbit of period %d on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		po.period, system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/periodic_orbit/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
+		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1416:3.1416]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	if(system.name == "rigid")
+	{
+		fprintf(gnuplotPipe, 
+			"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f. Resonance = %d / %d\"\n", 
+			system.name, gamma, e, po.winding_number_numerator, po.winding_number_denominator);
+	}
+	else
+	{
+		fprintf(gnuplotPipe, 
+			"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f K = %1.5f. Resonance = %d / %d\"\n", 
+			system.name, gamma, e, K, po.winding_number_numerator, po.winding_number_denominator);
+	}
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
+		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/periodic_orbit/\n");
+
+	return 0;
+}
+
+int draw_periodic_orbit_on_phase_space_clean(perorb po,
+                                         	 dynsys system)
+{
+
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/clean_figures", &st) == -1) {
+		mkdir("output/clean_figures", 0700);
+	}
+
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	printf("Drawing periodic orbit of period %d on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		po.period, system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/clean_figures/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
+		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
+	fprintf(gnuplotPipe, "set size square \n");
+	fprintf(gnuplotPipe, "set lmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set bmargin at screen 0.05\n");
+	fprintf(gnuplotPipe, "set rmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set tmargin at screen 0.95\n");
+	fprintf(gnuplotPipe, "set border lw 2 \n");
+	fprintf(gnuplotPipe, "set xrange[-3.1416:3.1416]\n");
+	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set xtics format \" \"\n");
+	fprintf(gnuplotPipe, "set ytics format \" \"\n");
+	fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "unset title\n");
+	// fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 4 lc rgb \"black\" notitle",
+	// 	gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 5 lc rgb \"black\" notitle",
+		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/periodic_orbit/\n");
+
+	return 0;
+}
+
 int draw_basin_of_attraction(perorb po,
                              dynsys system,
                              anlsis analysis)
@@ -3799,101 +3898,85 @@ int draw_multiple_basin_of_attraction_undetermined	(dynsys system,
 	return 0;
 }
 
-int draw_periodic_orbit_on_phase_space  (perorb po,
-                                         dynsys system)
+int draw_multiple_basin_of_attraction_determined_range_e(dynsys system,
+                                        		 		 anlsis analysis)
 {
-	FILE *gnuplotPipe;
+	// double *par = (double *)system.params;
+	// double gamma = par[0];
+	// double e = par[1];
+	// double K = par[6];
+	
+	FILE *combineFiles;
+	char	filename[1000];
 
-	double *par = (double *)system.params;
-	double gamma = par[0];
-	double e = par[1];
-	double K = par[6];
+	sprintf(filename, "paste -d \"\n\"");
 
-	printf("Drawing periodic orbit of period %d on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
-		po.period, system.name, gamma, e, K);
-
-	gnuplotPipe = popen("gnuplot -persistent", "w");
-	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
-	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/periodic_orbit/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
-		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
-	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
-	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
-	fprintf(gnuplotPipe, "set xrange[-3.1416:3.1416]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	fprintf(gnuplotPipe, "unset key\n");
-	if(system.name == "rigid")
+	for(int ec = 0; ec < 2; ec++)
 	{
-		fprintf(gnuplotPipe, 
-			"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f. Resonance = %d / %d\"\n", 
-			system.name, gamma, e, po.winding_number_numerator, po.winding_number_denominator);
+		char local_filename[100];
+		sprintf(local_filename, " ../temp/tests/%d.dat", ec);
+		strcat(filename, local_filename);
 	}
-	else
-	{
-		fprintf(gnuplotPipe, 
-			"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f K = %1.5f. Resonance = %d / %d\"\n", 
-			system.name, gamma, e, K, po.winding_number_numerator, po.winding_number_denominator);
-	}
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
-		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
-	fclose(gnuplotPipe);
 
-	printf("Done!\n");
-	printf("Data written in output/periodic_orbit/\n");
+	strcat(filename, " > ../temp/tests/test_pipe_loop.dat");
 
-	return 0;
-}
+	combineFiles = popen(filename, "w");
 
-int draw_periodic_orbit_on_phase_space_clean(perorb po,
-                                         	 dynsys system)
-{
+	fclose(combineFiles);
 
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output/clean_figures", &st) == -1) {
-		mkdir("output/clean_figures", 0700);
-	}
+	int spin_period, orbit_period;
 
 	FILE *gnuplotPipe;
 
-	double *par = (double *)system.params;
-	double gamma = par[0];
-	double e = par[1];
-	double K = par[6];
-
-	printf("Drawing periodic orbit of period %d on phase space of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
-		po.period, system.name, gamma, e, K);
-
 	gnuplotPipe = popen("gnuplot -persistent", "w");
 	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
-	fprintf(gnuplotPipe, 
-		"set output \"output/clean_figures/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
-		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
-	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
-	fprintf(gnuplotPipe, "set size square \n");
-	fprintf(gnuplotPipe, "set lmargin at screen 0.05\n");
-	fprintf(gnuplotPipe, "set bmargin at screen 0.05\n");
-	fprintf(gnuplotPipe, "set rmargin at screen 0.95\n");
-	fprintf(gnuplotPipe, "set tmargin at screen 0.95\n");
-	fprintf(gnuplotPipe, "set border lw 2 \n");
-	fprintf(gnuplotPipe, "set xrange[-3.1416:3.1416]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	fprintf(gnuplotPipe, "set xtics format \" \"\n");
-	fprintf(gnuplotPipe, "set ytics format \" \"\n");
-	fprintf(gnuplotPipe, "unset key\n");
-	fprintf(gnuplotPipe, "unset title\n");
-	// fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 4 lc rgb \"black\" notitle",
-	// 	gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 5 lc rgb \"black\" notitle",
-		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
+
+	spin_period = 1;
+	orbit_period = 1;
+
+	fprintf(gnuplotPipe, "set yrange[0:2]\n"); 
+
+	fprintf(gnuplotPipe, "plot '../temp/tests/test_pipe_loop.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt 7 ps 2 title \"%d/%d\"", 
+		spin_period, orbit_period, spin_period, orbit_period);
+
+	spin_period = 1;
+	orbit_period = 2;
+
+	fprintf(gnuplotPipe, " , '../temp/tests/test_pipe_loop.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt 7 ps 2 title \"%d/%d\"", 
+		spin_period, orbit_period, spin_period, orbit_period);
+
+	fprintf(gnuplotPipe, " , '../temp/tests/test_pipe_loop.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt 7 ps 2 title \"sum\"");
+
+	fprintf(gnuplotPipe, "\n");
+
+	fprintf(gnuplotPipe, "pause -1\n");
+
+	TROCAR O NOME DESSA FUNÇÃO APENAS PARA DESENHAR O GRÁFICO DO TAMANHO DAS BACIAS
+
+	DEFINIR AS ESCALAS DE COR CORRETAMENTE NO DRAW DETERMINED
+
+	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	// fprintf(gnuplotPipe, 
+	// 	"set output \"output/basin_of_attraction/fig_multiple_basin_of_attraction_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
+	// fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
+	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	// fprintf(gnuplotPipe, "unset colorbox\n");
+	// fprintf(gnuplotPipe, "set xrange[-3.15:3.15]\n");
+	// fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	// fprintf(gnuplotPipe, "unset key\n");
+	// fprintf(gnuplotPipe, 
+	// 	"set title \"Multiple basin of attraction (D) for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+	// 	gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle",
+	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");
-	printf("Data written in output/periodic_orbit/\n");
 
 	return 0;
 }
