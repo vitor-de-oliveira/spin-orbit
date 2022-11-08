@@ -336,47 +336,62 @@ int main(int argc, char **argv)
 	// multiple_basin_of_attraction_undetermined (system, analysis);
 	// draw_multiple_basin_of_attraction_undetermined (system, analysis);
 
-	// int number_of_pos;
-	// perorb *multiple_pos;
+	int number_of_pos;
+	perorb *multiple_pos;
+	int number_of_e;
+	double e_initial;
+	double e_final;
+	double e_step;
 
-	// analysis.number_of_cycles = 1e3;
-	// analysis.cycle_period = T;
-	// analysis.evolve_box_size = 1e8;
+	analysis.number_of_cycles = 1e3;
+	analysis.cycle_period = T;
+	analysis.evolve_box_size = 1e8;
 
-	// analysis.grid_coordinate_min = -M_PI;
-	// analysis.grid_coordinate_max = M_PI;
-	// analysis.grid_velocity_min = 0.0;
-	// analysis.grid_velocity_max = 3.0;
+	analysis.grid_coordinate_min = -M_PI;
+	analysis.grid_coordinate_max = M_PI;
+	analysis.grid_velocity_min = 0.0;
+	analysis.grid_velocity_max = 3.0;
 	
-	// analysis.spin_period_min = 1;
-	// analysis.orbit_period_min = 1;
-	// analysis.spin_period_max = 9;
-	// analysis.orbit_period_max = 4;
-	// analysis.evolve_basin_time_tol = 100;
-	// analysis.evolve_basin_eps = 1e-1;
+	analysis.spin_period_min = 1;
+	analysis.orbit_period_min = 1;
+	analysis.spin_period_max = 9;
+	analysis.orbit_period_max = 4;
+	analysis.evolve_basin_time_tol = 100;
+	analysis.evolve_basin_eps = 1e-1;
 
-	// analysis.po_max_step = 1000;			// 1000
-	// analysis.po_tol = 1e-13;				// 1e-13
+	analysis.po_max_step = 1000;			// 1000
+	analysis.po_tol = 1e-13;				// 1e-13
 
-	// analysis.grid_resolution = 250;
+	number_of_e = 2;
+	e_initial = 0.0;
+	e_final = 0.1;
 
-	// find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
+	e_step = (e_final - e_initial) / (double)(number_of_e - 1);
 
-	// analysis.grid_resolution = 600;
+	e = e_initial;
+	for (int i = 0; i < number_of_e; i++)
+	{
+		analysis.grid_resolution = 250;
+		find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
 
-	// if (number_of_pos > 0)
-	// {
-	// 	multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-	// 	draw_multiple_basin_of_attraction_determined (system, analysis);
+		if (number_of_pos > 0)
+		{
+			analysis.grid_resolution = 600;
+			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
+			draw_multiple_basin_of_attraction_determined (system, analysis);
 
-	// 	for (int i = 0; i < number_of_pos; i++)
-	// 	{
-	// 		dealloc_2d_double(&multiple_pos[i].orbit, multiple_pos[i].period);
-	// 	}
-	// 	free(multiple_pos);
-	// }
+			for (int j = 0; j < number_of_pos; j++)
+			{
+				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+			}
+			free(multiple_pos);
+		}
+		e += e_step;
+	}
 
-	draw_multiple_basin_of_attraction_determined_range_e(system, analysis);
+	analysis.grid_resolution = 600;
+	plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
+		e_initial, e_final, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */
