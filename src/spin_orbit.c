@@ -1336,6 +1336,8 @@ int look_for_resonance	(int number_of_candidates,
 	double ic[2];
 	double t;
 
+	int safety_factor = 3;	// looks for a multiple of the p.o instead of the p.o itself
+
 	int **candidates_ij;
 	alloc_2d_int(&candidates_ij, number_of_candidates, 2);
 
@@ -1391,7 +1393,7 @@ int look_for_resonance	(int number_of_candidates,
 
 				t = 0.0;
 				copy(y0, y, system.dim);
-				for (int i = 0; i < orbit_period; i++)
+				for (int i = 0; i < safety_factor * orbit_period; i++)
 				{
 					evolve_cycle(y, &t, system, analysis);
 				}
@@ -1399,7 +1401,7 @@ int look_for_resonance	(int number_of_candidates,
 				orbit_distance[i][j] = dist_from_ref(y,y0);
 
 				spin_distance[i][j] = 
-					fabs((y[0] - y0[0]) / (2.*M_PI) - (double) spin_period);
+					fabs((y[0] - y0[0]) / (2.*M_PI) - (double) (safety_factor * spin_period));
 			}
 		} // end pragma
 
@@ -1514,7 +1516,7 @@ int find_all_periodic_orbits(int *number_of_pos,
 		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
 		{
 			printf("SPIN = %d ORBIT = %d\n", spin_period, orbit_period);
-			number_of_candidates = 5 * orbit_period; // 2 * orbit_period
+			number_of_candidates = 10 * orbit_period; // 2 * orbit_period
 			
 			double candidates[number_of_candidates][2];
 			look_for_resonance (number_of_candidates, candidates, 
@@ -2173,14 +2175,15 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 				}
 			}
 
-			fprintf(out_size, "%1.3f %d %d %1.4f\n", 
-				e, spin_period, orbit_period, basin_size_fraction);	
+			fprintf(out_size, "%1.3f %d %d %1.4f %d\n", 
+				e, spin_period, orbit_period, basin_size_fraction,
+				cantor_pairing_function(spin_period, orbit_period));	
 			
 			basin_size_fraction_sum += basin_size_fraction;
 		}
 	}
 
-	fprintf(out_size, "%1.3f s o %1.4f\n", e, basin_size_fraction_sum);
+	fprintf(out_size, "%1.3f s o %1.4f nan\n", e, basin_size_fraction_sum);
 
 	// close exit files
 	fclose(out_boa);
@@ -3766,6 +3769,9 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 	double e = par[1];
 	double K = par[6];
 
+	int cb_range_min = cantor_pairing_function(analysis.spin_period_min, analysis.orbit_period_min);
+	int cb_range_max = cantor_pairing_function(analysis.spin_period_max, analysis.orbit_period_max);
+
 	printf("Drawing multtiple basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
 		system.name, gamma, e, K);
 
@@ -3782,7 +3788,8 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 	fprintf(gnuplotPipe, "unset colorbox\n");
 	fprintf(gnuplotPipe, "set xrange[-3.15:3.15]\n");
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	fprintf(gnuplotPipe, "set cbrange [4.0:]\n");
+	// fprintf(gnuplotPipe, "set cbrange [4.0:]\n");
+	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
 		"set title \"Multiple basin of attraction (D) for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
@@ -3852,7 +3859,7 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 		exit(2);
 	}
 
-	e_step = (e_final - e_initial) / (double)(number_of_e - 1); 
+	e_step = (e_final - e_initial) / (double)(number_of_e); 
 
 	sprintf(filename, "paste -d \"\n\"");
 
@@ -3883,10 +3890,10 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 	fprintf(gnuplotPipe, "set ylabel \"Basin size\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	fprintf(gnuplotPipe, 
-		"set title \"                          Size of multiple basin of attraction (D) for {/Symbol g} = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+		"set title \"       Size of multiple basin of attraction (D) for {/Symbol g} = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
 		gamma, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
 
-	fprintf(gnuplotPipe, "set key opaque box outside top right\n");
+	fprintf(gnuplotPipe, "set key opaque box outside top right width 1.1\n");
 
 	fprintf(gnuplotPipe, "unset colorbox\n");
 	fprintf(gnuplotPipe, "set cbrange [4.0:]\n");
