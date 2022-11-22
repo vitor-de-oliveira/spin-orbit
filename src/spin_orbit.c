@@ -1336,7 +1336,7 @@ int look_for_resonance	(int number_of_candidates,
 	double ic[2];
 	double t;
 
-	int safety_factor = 3;	// looks for a multiple of the p.o instead of the p.o itself
+	int safety_factor = 5;	// looks for a multiple of the p.o instead of the p.o itself
 
 	int **candidates_ij;
 	alloc_2d_int(&candidates_ij, number_of_candidates, 2);
@@ -1536,6 +1536,11 @@ int find_all_periodic_orbits(int *number_of_pos,
 				alloc_2d_double(&multiple_candidates[i].orbit, multiple_candidates[i].period, system.dim);
 				if (periodic_orbit(&multiple_candidates[i], system, analysis) == 0)
 				{
+					// check if spin exceeds maximum defined spin
+					if (multiple_candidates[i].winding_number_numerator > analysis.spin_period_max)
+					{
+						goto skip;
+					}
 					// check if p.o. already registered
 					for (int k = 0; k < *number_of_pos; k++)
 					{
@@ -3788,7 +3793,6 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 	fprintf(gnuplotPipe, "unset colorbox\n");
 	fprintf(gnuplotPipe, "set xrange[-3.15:3.15]\n");
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	// fprintf(gnuplotPipe, "set cbrange [4.0:]\n");
 	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
@@ -3848,6 +3852,8 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 	char	filename[size_filename * number_of_e + 50];
 	int		spin_period;
 	int		orbit_period;
+	int		cb_range_min;
+	int		cb_range_max;
 	double 	*par = (double *)system.params;
 	double 	gamma = par[0];
 	double 	K = par[6];
@@ -3878,6 +3884,9 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 
 	fclose(combineFiles);
 
+	cb_range_min = cantor_pairing_function(analysis.spin_period_min, analysis.orbit_period_min);
+	cb_range_max = cantor_pairing_function(analysis.spin_period_max, analysis.orbit_period_max);
+
 	gnuplotPipe = popen("gnuplot -persistent", "w");
 
 	fprintf(gnuplotPipe, "reset\n");
@@ -3896,7 +3905,7 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 	fprintf(gnuplotPipe, "set key opaque box outside top right width 1.1\n");
 
 	fprintf(gnuplotPipe, "unset colorbox\n");
-	fprintf(gnuplotPipe, "set cbrange [4.0:]\n");
+	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
 
 	fprintf(gnuplotPipe, "plot ");
 
@@ -3904,13 +3913,12 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 	{
 		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
 		{
-			fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 palette cb %d title \"%d/%d\", ", 
-				spin_period, orbit_period, orbit_period + 4, spin_period+3, spin_period , orbit_period);
+			fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 title \"%d/%d\", ", 
+				spin_period, orbit_period, orbit_period + 4, spin_period, orbit_period);
 		}
 	}
 
-	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt %d ps 2 title \"sum\"", 
-		analysis.orbit_period_max + 7);
+	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"sum\"");
 
 	fclose(gnuplotPipe);
 
