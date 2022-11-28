@@ -1733,8 +1733,6 @@ int periodic_orbit	(perorb *po,
     fclose(out_orb);
 	fclose(out_orb_res);
 
-	final:;
-
 	return 0;
 }
 
