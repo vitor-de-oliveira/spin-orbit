@@ -4,7 +4,7 @@ set loadpath "../output/periodic_orbit"
 
 set key box opaque left
 set xlabel "e"
-set ylabel "|{/Symbol l}|"
+# set ylabel "|{/Symbol l}|"
 
 # set output "../output/meeting_10_21/bifurcation_resonance_1_1.png"
 
@@ -45,15 +45,37 @@ set ylabel "|{/Symbol l}|"
 #      'periodic_orbit_track_gamma_0.264_system_linear_K_0.01000_resonance_1_2.dat' u 1:2 w l lw 2 lc rgb "red" title "K = 0.010", \
 #      'periodic_orbit_track_gamma_0.264_system_linear_K_0.01000_resonance_1_2.dat' u 1:3 w l lw 2 lc rgb "red" notitle
 
-set output "../output/meeting_10_21/bifurcation_resonance_3_2.png"
+# set output "../output/meeting_10_21/bifurcation_resonance_3_2.png"
+
+# set key box opaque bottom left
+
+# set title "Resonance 3/2"
+
+# plot 'periodic_orbit_track_gamma_0.264_system_rigid_resonance_3_2.dat' u 1:2 w l lw 2 lc rgb "black" title "K = 0.000", \
+#      'periodic_orbit_track_gamma_0.264_system_rigid_resonance_3_2.dat' u 1:3 w l lw 2 lc rgb "black" notitle, \
+#      'periodic_orbit_track_gamma_0.264_system_linear_K_0.00100_resonance_3_2.dat' u 1:2 w l lw 2 lc rgb "green" title "K = 0.001", \
+#      'periodic_orbit_track_gamma_0.264_system_linear_K_0.00100_resonance_3_2.dat' u 1:3 w l lw 2 lc rgb "green" notitle, \
+#      'periodic_orbit_track_gamma_0.264_system_linear_K_0.01000_resonance_3_2.dat' u 1:2 w l lw 2 lc rgb "red" title "K = 0.010", \
+#      'periodic_orbit_track_gamma_0.264_system_linear_K_0.01000_resonance_3_2.dat' u 1:3 w l lw 2 lc rgb "red" notitle
+
+set output "../output/meeting_11_11/bifurcation_diagram_resonance_1_1_K_0_10.png"
 
 set key box opaque bottom left
 
-set title "Resonance 3/2"
+unset key
 
-plot 'periodic_orbit_track_gamma_0.264_system_rigid_resonance_3_2.dat' u 1:2 w l lw 2 lc rgb "black" title "K = 0.000", \
-     'periodic_orbit_track_gamma_0.264_system_rigid_resonance_3_2.dat' u 1:3 w l lw 2 lc rgb "black" notitle, \
-     'periodic_orbit_track_gamma_0.264_system_linear_K_0.00100_resonance_3_2.dat' u 1:2 w l lw 2 lc rgb "green" title "K = 0.001", \
-     'periodic_orbit_track_gamma_0.264_system_linear_K_0.00100_resonance_3_2.dat' u 1:3 w l lw 2 lc rgb "green" notitle, \
-     'periodic_orbit_track_gamma_0.264_system_linear_K_0.01000_resonance_3_2.dat' u 1:2 w l lw 2 lc rgb "red" title "K = 0.010", \
-     'periodic_orbit_track_gamma_0.264_system_linear_K_0.01000_resonance_3_2.dat' u 1:3 w l lw 2 lc rgb "red" notitle
+set title "K = 0.1  ---  {/Symbol q} (purple)  ~{/Symbol q}{1.1.} (green)"
+
+plot 'bifurcation_diagram_gamma_0.264_system_linear_K_0.10000_resonance_1_1.dat' u 1:2 w p pt 7 ps 1, \
+     'bifurcation_diagram_gamma_0.264_system_linear_K_0.10000_resonance_1_1.dat' u 1:3 w p pt 7 ps 1
+
+# set output "../output/meeting_11_11/bifurcation_diagram_resonance_1_1_K_0_01.png"
+
+# set key box opaque bottom left
+
+# unset key
+
+# set title "K = 0.01  ---  {/Symbol q} (purple)  ~{/Symbol q}{1.1.} (green)"
+
+# plot 'bifurcation_diagram_gamma_0.264_system_linear_K_0.01000_resonance_1_1.dat' u 1:2 w p pt 7 ps 1, \
+#      'bifurcation_diagram_gamma_0.264_system_linear_K_0.01000_resonance_1_1.dat' u 1:3 w p pt 7 ps 1

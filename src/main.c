@@ -72,32 +72,31 @@ int main(int argc, char **argv)
 	/////////////////////////////////////////////////////////
 
 	// // system = system_rigid;
-	// system = system_linear_average;
-	// // system = system_linear;
+	// // system = system_linear_average;
+	// system = system_linear;
 	// double ic[system.dim];
 
 	// gamma = gamma_hyperion;
-	// e = 0.140;
+	// e = 0.186;
 	// m_secondary = 0.;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 	// a = 1.0;
-	// K = 1e-2;
+	// K = 1e-1;
 	// T = 2.0 * M_PI;
 
 	// analysis.number_of_cycles = 2e3; //1e3 6e3
-	// analysis.cycle_period = 2.0 * M_PI; // 1e-3
+	// analysis.cycle_period = T; // 1e-3
 	// analysis.evolve_box_size = 1e8;
 	// analysis.evolve_basin_eps = 1e-1;
 
-	// // ic[0] = 0.0, ic[1] = 1000.;
-	// // // // near the 1:1 stable fp in the rigid case
-	// // // ic[0] = M_PI; ic[1] = 0.551537;
-	// // init_orbital(orbital, e);
-	// // for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// // // ic[0] = 0.0, ic[1] = 1000.;
+	// // // // // near the 1:1 stable fp in the rigid case
+	// // // // ic[0] = M_PI; ic[1] = 0.551537;
+	// // // init_orbital(orbital, e);
+	// // // for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 
-	// ic[0] = 0.0, ic[1] = 0.5;
-	// // ic[0] = 1.56704; ic[1] = 2.55510;
+	// ic[0] = -0.237849, ic[1] = 0.569783;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
@@ -248,46 +247,57 @@ int main(int argc, char **argv)
 
 	FILE 	*out_bif;
 	char    filename[200];
-	int number_of_iter = 1000, transient = 900;
-	double number_of_points = 1000.;
-	double x[system.dim], t;
-	double	e_max, e_min, e_base, e_step_up, e_step_down;
+	int 	number_of_iter = 2000;		// 1000
+	int		transient = 1900;			// 900
+	int 	number_of_points = 10;		// 1000
+	double 	x[system.dim], t;
+	double	e_max, e_min, e_base;
+	double	e_step_up, e_step_down;
 
-	e_base = e_hyperion;
-	e_max = e_hyperion + 0.1;
+	e_base = 0.186004;					// e_hyperion
+	e_max = 0.186006;				// e_hyperion + 0.1;
 	e_min = e_hyperion - 0.1;
-	e_step_up = fabs(e_base - e_max) / number_of_points;
-	e_step_down = fabs(e_base - e_min) / number_of_points;
+	e_step_up = fabs(e_base - e_max) / ((double) number_of_points);
+	e_step_down = fabs(e_base - e_min) / ((double) number_of_points);
+
+	// e = e_base;
+	// po.period = 1;
+	// po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
+	// periodic_orbit(&po, system, analysis);
 
 	e = e_base;
-	po.period = 1;
-	po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
+	po.period = 2;
+	po.seed[0] = -0.245487; po.seed[1] = 0.558370; // e = 0.1 SFP 1/1 resonance
 	periodic_orbit(&po, system, analysis);
 
-	sprintf(filename, "output/periodic_orbit/bifurcation_diagram_gamma_%1.3f_system_%s_K_%1.5f_resonance_%d_%d.dat", 
+	sprintf(filename, "output/periodic_orbit/test_bifurcation_diagram_gamma_%1.3f_system_%s_K_%1.5f_resonance_%d_%d.dat", 
 			gamma, system.name, K, po.winding_number_numerator, po.winding_number_denominator);
 	out_bif = fopen(filename, "w");
 
-	copy (x, po.initial_condition, 2);
-	for (e = e_base; e > e_min - e_step_down/2.; e -= e_step_down)
-	{
-		printf("e = %1.4f\n", e);
-		x[0] = angle_mod(x[0]);
-		init_orbital(orbital, e);
-		for (int i = 0; i < 4; i++) x[i+2] = orbital[i];
-		t = 0.0;
-		for (int i = 0; i < number_of_iter; i++)
-		{
-			evolve_cycle(x, &t, system, analysis);
-			if (i > transient)
-			{
-				fprintf(out_bif, "%1.4f %1.10e %1.10e\n", 
-					e, angle_mod(x[0]), x[1]);
-			}
-		}
-	}
+	// copy (x, po.initial_condition, 2);
+	// // init_orbital(orbital, e);
+	// // for (int i = 0; i < 4; i++) x[i+2] = orbital[i];
+	// for (e = e_base; e > e_min - e_step_down/2.; e -= e_step_down)
+	// {
+	// 	printf("e = %1.4f\n", e);
+	// 	x[0] = angle_mod(x[0]);
+	// 	init_orbital(orbital, e);
+	// 	for (int i = 0; i < 4; i++) x[i+2] = orbital[i];
+	// 	t = 0.0;
+	// 	for (int i = 0; i < number_of_iter; i++)
+	// 	{
+	// 		evolve_cycle(x, &t, system, analysis);
+	// 		if (i > transient)
+	// 		{
+	// 			fprintf(out_bif, "%1.4f %1.10e %1.10e\n", 
+	// 				e, angle_mod(x[0]), x[1]);
+	// 		}
+	// 	}
+	// }
 
 	copy (x, po.initial_condition, 2);
+	// init_orbital(orbital, e);
+	// for (int i = 0; i < 4; i++) x[i+2] = orbital[i];
 	for (e = e_base; e < e_max + e_step_up/2.; e += e_step_up)
 	{
 		printf("e = %1.4f\n", e);
@@ -300,7 +310,7 @@ int main(int argc, char **argv)
 			evolve_cycle(x, &t, system, analysis);
 			if (i > transient)
 			{
-				fprintf(out_bif, "%1.4f %1.10e %1.10e\n", 
+				fprintf(out_bif, "%1.10e %1.10e %1.10e\n", 
 					e, angle_mod(x[0]), x[1]);
 			}
 		}
