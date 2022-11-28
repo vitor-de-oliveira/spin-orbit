@@ -115,7 +115,7 @@ int init_orbital(double y[4],
                 double e);
 
 /**
- * implementation
+ * poincare map
 **/
 
 int orbit_map (double *ic,
@@ -124,6 +124,10 @@ int orbit_map (double *ic,
 
 int phase_space (dynsys system,
                 anlsis analysis);
+
+/**
+ * time series
+**/
 
 int time_series(dynsys system,
                 anlsis analysis);
@@ -137,28 +141,9 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 int multiple_time_series_delta_theta(dynsys system,
 									anlsis analysis);
 
-double dist_from_ref(double x[2],
-                     double ref[2]);
-
-int evolve_basin(double *ic, double ref[][2], 
-                int ref_period, bool *converged,
-                double ***orbit, int *orbit_size,
-                dynsys system, anlsis analysis);
-
-int basin_of_attraction (double ref[][2], int ref_period,
-                        dynsys system,
-                        anlsis analysis);
-
 /**
  * periodic orbit
 **/
-
-// search the phase space for a resonance
-// of orbital period given by analysis.number_of_cycles
-int look_for_resonance	(int orbital_period,
-                         int number_of_spins,
-                         dynsys system, 
-						 anlsis analysis);
 
 // evolves an initial condition for n cycles
 int evolve_n_cycles_po  (double y0[2],
@@ -171,6 +156,64 @@ int evolve_n_cycles_po  (double y0[2],
 int periodic_orbit	(perorb *po,
                      dynsys system,
                      anlsis analysis);
+
+// search the phase space for number_of_candidates 
+// resonances of type spin_period / orbit_period
+int look_for_resonance	(int number_of_candidates,
+						 double candidates[][2],
+						 int spin_period,
+                         int orbit_period,
+                         dynsys system, 
+						 anlsis analysis);
+
+// uses look_for_resonance to find all the spin-orbit resonances
+// on the phase space that have spin and orbit periods inside 
+// the range given in analysis
+int find_all_periodic_orbits(int *number_of_pos,
+							 perorb **multiple_pos,
+							 dynsys system,
+                         	 anlsis analysis);
+
+/**
+ * basin of attraction
+**/
+
+double dist_from_ref(double x[2],
+                     double ref[2]);
+
+int evolve_basin(double *ic,
+				 bool *converged,
+                 int *convergence_time,
+                 perorb po,
+                 dynsys system,
+				 anlsis analysis);
+
+int basin_of_attraction (perorb po,
+                         dynsys system,
+                         anlsis analysis);
+
+int evolve_multiple_basin_determined(double *ic,
+									 int number_of_po,
+									 int *converged,
+									 int *convergence_time,
+									 perorb po[],
+									 dynsys system,
+									 anlsis analysis);
+
+int multiple_basin_of_attraction_determined (int number_of_po,
+											 perorb po[],
+                         					 dynsys system,
+                         					 anlsis analysis);
+
+int evolve_multiple_basin_undetermined  (double *ic,
+									     bool *converged,
+                                         int *attractor_period,
+									     int *convergence_time,
+									     dynsys system,
+									     anlsis analysis);
+
+int multiple_basin_of_attraction_undetermined   (dynsys system,
+                         					     anlsis analysis);
 
 /**
  * benchmark tests
@@ -220,16 +263,29 @@ int draw_multiple_time_series_delta_theta_dot_latex(dynsys system,
 int draw_multiple_time_series_delta_theta   (dynsys system,
                                              anlsis analysis);
 
-int draw_basin_of_attraction(double ref[][2], int ref_period,
-                            dynsys system, anlsis analysis);
-
-int draw_basin_of_attraction_clean	(double ref[][2], int ref_period,
-                            		 dynsys system, anlsis analysis);
-
 int draw_periodic_orbit_on_phase_space  (perorb po,
                                          dynsys system);
 
 int draw_periodic_orbit_on_phase_space_clean(perorb po,
                                          	 dynsys system);
+
+int draw_basin_of_attraction(perorb po,
+                             dynsys system,
+                             anlsis analysis);
+
+int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
+                            		 dynsys system, anlsis analysis);
+
+int draw_multiple_basin_of_attraction_determined(dynsys system,
+                                        		 anlsis analysis);
+
+int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
+																 double e_initial,
+																 double e_final,
+																 dynsys system,
+																 anlsis analysis);
+
+int draw_multiple_basin_of_attraction_undetermined  (dynsys system,
+                                        		     anlsis analysis);
 
 #endif

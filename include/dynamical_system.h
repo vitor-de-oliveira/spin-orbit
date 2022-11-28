@@ -41,23 +41,40 @@ dynsys copy_dynsys(dynsys system);
 
 // System analysis
 typedef struct AnlSis{
+
+    // orbit evolution
     int nc, nv;
-    int grid_resolution;
 	int number_of_cycles;
 	double cycle_period;
+    double evolve_box_size;     // maximum size of a variable
 	double coordinate_min;
 	double coordinate_max;
 	double velocity_min;
 	double velocity_max;
+
+    // grid variables
+    int grid_resolution;
     double grid_coordinate_min;
 	double grid_coordinate_max;
 	double grid_velocity_min;
 	double grid_velocity_max;
-    double evolve_box_size;     // maximum size of a variable
+
+    // basin of attraction    
+    int spin_period_min;
+    int spin_period_max;
+    int orbit_period_min;
+    int orbit_period_max;
     int evolve_basin_time_tol;  // time close to the reference for which we say an orbit converged
     double evolve_basin_eps;    // distance from reference for which we say an orbit converged
+
+    // time series
     int number_of_time_series;  // number of ICs for multiple time series
     double time_series_delta;   // distance between ICs for multiple time series
+
+    // periodic orbits
+    int po_max_step;            // maximum numbers of steps for the iterative method
+    double po_tol;              // maximum error allowed for the periodic orbit calculation
+
 } anlsis;
 
 anlsis copy_anlsis(anlsis analysis);

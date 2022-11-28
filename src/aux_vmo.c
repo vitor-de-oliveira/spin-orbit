@@ -32,6 +32,15 @@ int copy_parts(double *x, double *y, int initial_value, int final_value)
 	return 0;
 }
 
+int copy_int(int *x, int *y, int dim)
+{
+	for (int i = 0; i < dim; i++)
+	{
+		x[i] = y[i];
+	}
+	return 0;
+}
+
 int print_array(double *x, int dim)
 {
 	for (int i = 0; i < dim; i++)
@@ -214,6 +223,16 @@ double multiply_n_times(double x, int n)
 		n_x *= x;
 	}
 	return n_x;
+}
+
+int cantor_pairing_function(int a, int b)
+{
+	if (a < 0 || b < 0)
+	{
+		printf("Can't use Cantor pairing function on negative integers.");
+		exit(2);
+	}
+	return  ((a + b) * (a + b + 1) + 2 * b) / 2;
 }
 
 void square_matrix_product_vector(double *mx, double **m, double *x, int dim)

@@ -19,6 +19,12 @@ typedef struct PerOrb{
     int     period;
     double  seed[2];
     double  initial_condition[2];
+    double  **orbit;
+
+    // absolute value of both eigenvalues
+    double  eigenvalues_absolute_value[2];
+
+    // winding number
     int     winding_number_numerator;
     int     winding_number_denominator;
 
@@ -52,6 +58,11 @@ void minimization_step  (double *x,
 int calculate_periodic_orbit_ic(perorb *po,
                                 dynsys system, 
                                 anlsis analysis);
+
+// magnitude of eigenvalues for the jacobian
+void jacobian_eigenvalues_magnitude  (perorb *po,
+                                      dynsys system, 
+                                      anlsis analysis);                                
 
 /**
  * mathematical functions

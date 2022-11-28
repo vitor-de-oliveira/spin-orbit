@@ -14,22 +14,37 @@ dynsys copy_dynsys(dynsys system)
 anlsis copy_anlsis(anlsis analysis)
 {
 	anlsis cp_anlsis;
+	
+	// orbit evolution
 	cp_anlsis.nc = analysis.nc;
 	cp_anlsis.nv = analysis.nv;
-    cp_anlsis.grid_resolution = analysis.grid_resolution;
 	cp_anlsis.number_of_cycles = analysis.number_of_cycles;
 	cp_anlsis.cycle_period = analysis.cycle_period;
+	cp_anlsis.evolve_box_size = analysis.evolve_box_size;
 	cp_anlsis.coordinate_min = analysis.coordinate_min;
 	cp_anlsis.coordinate_max = analysis.coordinate_max;
 	cp_anlsis.velocity_min = analysis.velocity_min;
 	cp_anlsis.velocity_max = analysis.velocity_max;
+
+	// grid variables
+    cp_anlsis.grid_resolution = analysis.grid_resolution;
     cp_anlsis.grid_coordinate_min = analysis.grid_coordinate_min;
 	cp_anlsis.grid_coordinate_max = analysis.grid_coordinate_max;
 	cp_anlsis.grid_velocity_min = analysis.grid_velocity_min;
 	cp_anlsis.grid_velocity_max = analysis.grid_velocity_max;
-    cp_anlsis.evolve_box_size = analysis.evolve_box_size;
+
+	// basin of attraction  
+    cp_anlsis.evolve_basin_time_tol = analysis.evolve_basin_time_tol;
     cp_anlsis.evolve_basin_eps = analysis.evolve_basin_eps;
+
+	// time series
+    cp_anlsis.number_of_time_series = analysis.number_of_time_series;
     cp_anlsis.time_series_delta = analysis.time_series_delta;
+
+    // periodic orbits
+    cp_anlsis.po_max_step = analysis.po_max_step;
+    cp_anlsis.po_tol = analysis.po_tol;
+
 	return cp_anlsis;
 }
 

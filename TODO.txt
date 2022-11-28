@@ -1,11 +1,13 @@
 IMPORTANT STUFF
 
+- pensando na serie de cauchy, fazer uma versao do basin 
+undetermined onde eu nem uso o resultado final para calcular 
+as órbitas periódicas pelo método, eu considero que elas 
+são a minha órbita final mesmo e só calculo winding number.
+isso é, a simples distancia entre elementos da orbita jah
+define a sua convergencia
+
 - implement histogram for times
-
-- talvez alterar o evolve_basin para que ele retorne apenas o resultado
-e o tempo da convergência. Não precisa, a principio, guardar a órbita inteira
-
-- talvez implementar o p.o. dentro do basin. talvez só o calculate p.o. ic
 
 - remove reference to K from everything that concerns the
 rigid case. Maybe add a type to the field to differentiate it between
@@ -17,11 +19,6 @@ and figure labels
 - acertar quando o periodo da po é na verdade menor
 do que o dado. Por exemplo, o metodo acha ponto fixo
 quando procura po de periodo 2. Diferenciar. Não sei como.
-
-- add a criterium for the basin which measures if the orbit stays close 
-to the attractor for a sufficient ammount of time. 100 cycles maybe. 
-Put this criterium along with the convergence criterium to stabilish that a
-given orbit has ideed converged.
 
 - write a basin which keeps the temporal series theta, theta_dot and n 
 of the last ~100 cycles of every initial condition
