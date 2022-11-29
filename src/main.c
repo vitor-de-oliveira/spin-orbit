@@ -343,17 +343,20 @@ int main(int argc, char **argv)
 	// multiple_basin_of_attraction_undetermined (system, analysis);
 	// draw_multiple_basin_of_attraction_undetermined (system, analysis);
 
-	int number_of_pos;
-	perorb *multiple_pos;
-	int number_of_e;
-	double e_initial;
-	double e_final;
-	double e_step;
+	FILE	*in;
+	char	filename_main[200];
+	int 	number_of_pos;
+	perorb 	*multiple_pos;
+	int 	number_of_e;
+	double 	e_initial;
+	double 	e_final;
+	double 	e_step;
 
 	analysis.number_of_cycles = 1e3;
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
+	analysis.grid_resolution = 600;
 	analysis.grid_coordinate_min = -M_PI;	// -M_PI
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
@@ -375,49 +378,77 @@ int main(int argc, char **argv)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	// e = 0.09;
-	// // FILE *out = fopen("output/tests/test_po_7.dat", "w");
+	for (int i = 0; i <= number_of_e; i++)
+	{
+		e = e_initial + (double)i * e_step;
 
-	// // for (int i = 0; i <= number_of_e; i++)
-	// {
-	// 	// e = e_initial + (double)i * e_step;
+		sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+		// sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+		in = fopen(filename_main, "r");
 
-	// 	analysis.grid_resolution = 300;
-	// 	// analysis.grid_resolution = 
-	// 	// 	((int)fabs(analysis.grid_coordinate_max-analysis.grid_coordinate_min)) * 10;
-	// 	find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
+		if (in == NULL)
+		{
+			analysis.grid_resolution = 300;
+			find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
+		}
+		else
+		{
+			int 	wind_x, wind_y;
+			double	po_x, po_y;
+		
+			printf("Getting pos from printed file\n");
 
-	// 	// if (number_of_pos > 0)
-	// 	// {
-	// 	// 	for (int j = 0; j < number_of_pos; j++)
-	// 	// 	{
-	// 	// 		for (int k = 0; k < multiple_pos[j].period; k++)
-	// 	// 		{
-	// 	// 			fprintf(out, "%1.15e %1.15e %d/%d\n", 
-	// 	// 				angle_mod(multiple_pos[j].orbit[k][0]),
-	// 	// 				multiple_pos[j].orbit[k][1],
-	// 	// 				multiple_pos[j].winding_number_numerator,
-	// 	// 				multiple_pos[j].winding_number_denominator);
-	// 	// 		}
-	// 	// 		fprintf(out, "\n");
-	// 	// 	}
-	// 	// }
+			number_of_pos = 0;
+			while(fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y) != EOF)
+			{
+				number_of_pos++;
+				
+				if (number_of_pos == 1)
+				{
+					multiple_pos = (perorb*) malloc(number_of_pos * sizeof(perorb));
+				}
+				else
+				{
+					multiple_pos = realloc(multiple_pos, number_of_pos * sizeof(perorb));
+				}
+				
+				multiple_pos[number_of_pos-1].period = wind_y;
+				multiple_pos[number_of_pos-1].seed[0] = po_x;
+				multiple_pos[number_of_pos-1].seed[1] = po_y;
+				multiple_pos[number_of_pos-1].initial_condition[0] = po_x;
+				multiple_pos[number_of_pos-1].initial_condition[1] = po_y;
+				multiple_pos[number_of_pos-1].winding_number_numerator = wind_x;
+				multiple_pos[number_of_pos-1].winding_number_denominator = wind_y;
+				
+				alloc_2d_double(&multiple_pos[number_of_pos-1].orbit, multiple_pos[number_of_pos-1].period, 2);
+				multiple_pos[number_of_pos-1].orbit[0][0] = po_x;
+				multiple_pos[number_of_pos-1].orbit[0][1] = po_y;
+				for (int l = 1; l < multiple_pos[number_of_pos-1].period; l++)
+				{
+					fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
+					multiple_pos[number_of_pos-1].orbit[l][0] = po_x;
+					multiple_pos[number_of_pos-1].orbit[l][1] = po_y;
+					printf("%1.15e %1.15e %d %d\n", po_x, po_y, wind_x, wind_y);
+				}
+			}
+			fclose(in);
+		}
 
-	// 	if (number_of_pos > 0)
-	// 	{
-	// 		analysis.grid_resolution = 600;
-	// 		multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-	// 		draw_multiple_basin_of_attraction_determined (system, analysis);
+		if (number_of_pos > 0)
+		{
+			analysis.grid_resolution = 600;
+			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
+			draw_multiple_basin_of_attraction_determined (system, analysis);
 
-	// 		for (int j = 0; j < number_of_pos; j++)
-	// 		{
-	// 			dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-	// 		}
-	// 		free(multiple_pos);
-	// 	}
-	// }
-
-	// fclose(out);
+			for (int j = 0; j < number_of_pos; j++)
+			{
+				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+			}
+			free(multiple_pos);
+		}
+	}
 
 	analysis.grid_resolution = 600;
 	plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
