@@ -1504,6 +1504,25 @@ int find_all_periodic_orbits(int *number_of_pos,
 							 dynsys system,
                          	 anlsis analysis)
 {
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/periodic_orbit", &st) == -1) {
+		mkdir("output/periodic_orbit", 0700);
+	}
+	
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files
+	FILE	*out;
+	char	filename[200];
+
+	sprintf(filename, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out = fopen(filename, "w");
+
 	int spin_period, orbit_period;
 	int number_of_candidates;
 	double tol_between_pos;
@@ -1602,6 +1621,23 @@ int find_all_periodic_orbits(int *number_of_pos,
 	{
 		printf("Could not find any po.\n");
 	}
+	else
+	{
+		for (int j = 0; j < *number_of_pos; j++)
+		{
+			for (int k = 0; k < (*multiple_pos)[j].period; k++)
+			{
+				fprintf(out, "%1.15e %1.15e %d %d\n", 
+					angle_mod((*multiple_pos)[j].orbit[k][0]),
+					(*multiple_pos)[j].orbit[k][1],
+					(*multiple_pos)[j].winding_number_numerator,
+					(*multiple_pos)[j].winding_number_denominator);
+			}
+			fprintf(out, "\n");
+		}
+	}
+
+	fclose(out);
 
 	return 0;
 }
