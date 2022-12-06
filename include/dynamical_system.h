@@ -59,7 +59,7 @@ typedef struct AnlSis{
 	double grid_velocity_min;
 	double grid_velocity_max;
 
-    // basin of attraction    
+    // basins of attraction    
     int spin_period_min;
     int spin_period_max;
     int orbit_period_min;
@@ -67,6 +67,9 @@ typedef struct AnlSis{
     int evolve_basin_time_tol;  // time close to the reference for which we say an orbit converged
     double evolve_basin_eps;    // distance from reference for which we say an orbit converged
 
+    // basin entropy
+    int sqrt_orbits_on_box;     // square root of the number of orbits on a box
+    
     // time series
     int number_of_time_series;  // number of ICs for multiple time series
     double time_series_delta;   // distance between ICs for multiple time series

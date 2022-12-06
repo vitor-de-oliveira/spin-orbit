@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = 0.0;
+	e = e_hyperion;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -361,6 +361,8 @@ int main(int argc, char **argv)
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
 	analysis.grid_velocity_max = 3.0;
+
+	analysis.sqrt_orbits_on_box = 10;
 	
 	analysis.spin_period_min = 1;
 	analysis.orbit_period_min = 1;
@@ -378,14 +380,14 @@ int main(int argc, char **argv)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	for (int i = 0; i <= number_of_e; i++)
+	// for (int i = 0; i <= number_of_e; i++)
 	{
-		e = e_initial + (double)i * e_step;
+		// e = e_initial + (double)i * e_step;
 
-		sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
-		gamma, e, system.name, K);
-		// sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-		// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+		// sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		// gamma, e, system.name, K);
+		sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+			gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		in = fopen(filename_main, "r");
 
 		if (in == NULL)
@@ -440,7 +442,7 @@ int main(int argc, char **argv)
 		{
 			analysis.grid_resolution = 600;
 			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-			draw_multiple_basin_of_attraction_determined (system, analysis);
+			// draw_multiple_basin_of_attraction_determined (system, analysis);
 
 			for (int j = 0; j < number_of_pos; j++)
 			{
@@ -450,9 +452,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	analysis.grid_resolution = 600;
-	plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
-		e_initial, e_final, system, analysis);
+	// analysis.grid_resolution = 600;
+	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */

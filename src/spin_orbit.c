@@ -2034,7 +2034,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	double K = par[6];
 
 	// prepare and open exit files
-	FILE	*out_boa, *out_ref, *out_size;
+	FILE	*out_boa, *out_ref, *out_size, *out_entropy;
 	char	filename[200];
 
 	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
@@ -2048,6 +2048,10 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_size = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	out_entropy = fopen(filename, "w");
 
 	// declare variables
 	double y[system.dim];
@@ -2074,6 +2078,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		}
 		fprintf(out_ref, "\n");
 	}
+	fclose(out_ref);
 
 	int *basin_size;
 	int **control_matrix;
@@ -2201,6 +2206,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		}
 		fprintf(out_boa, "\n");
 	}
+	fclose(out_boa);
 
 	basin_size_fraction_sum = 0.0;
 	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
@@ -2225,22 +2231,54 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 			basin_size_fraction_sum += basin_size_fraction;
 		}
 	}
-
 	fprintf(out_size, "%1.3f s o %1.4f nan\n", e, basin_size_fraction_sum);
-
-	// close exit files
-	fclose(out_boa);
-	fclose(out_ref);
 	fclose(out_size);
 
-	dealloc_1d_int(&basin_size);
+	// basin entropy
+	for (int step = 1; step < (analysis.grid_resolution / analysis.sqrt_orbits_on_box); step++)
+	{
+		if ((analysis.grid_resolution % (analysis.sqrt_orbits_on_box * step)) == 0)
+		{
+			double gibbs_entropy = 0.0;
+			for (int n = 0; n <= (analysis.grid_resolution / analysis.sqrt_orbits_on_box) - step; n = n + step)
+			{
+				for (int m = 0; m <= (analysis.grid_resolution / analysis.sqrt_orbits_on_box) - step; m = m + step)
+				{
+					double prob[number_of_po];
+					for (int p = 0; p < number_of_po; p++)
+					{
+						prob[p] = 0.0;
+					}
+					for (int i = n * analysis.sqrt_orbits_on_box; i < (n + step) * analysis.sqrt_orbits_on_box; i = i + step)
+					{
+						for (int j = m * analysis.sqrt_orbits_on_box; j < (m + step) * analysis.sqrt_orbits_on_box; j = j + step)
+						{
+							if (control_matrix[i][j] != -1)
+							{
+								prob[control_matrix[i][j] - 1] += 1.0 / ((double)(analysis.sqrt_orbits_on_box * analysis.sqrt_orbits_on_box));
+							}
+						}
+					}
+					double gibbs_entropy_on_box = 0.0;
+					for (int p = 0; p < number_of_po; p++)
+					{
+						gibbs_entropy_on_box += prob[p] * log (1.0 / prob[p]);
+					}
+					gibbs_entropy += gibbs_entropy_on_box;
+				}
+			}
+			fprintf(out_entropy, "%1.5e %1.5e\n",  
+				log(1.0 / ((double)(analysis.sqrt_orbits_on_box * step))), log(gibbs_entropy));
+		}
+	}
+	fclose(out_entropy);
 
+	// free memory
+	dealloc_1d_int(&basin_size);
 	dealloc_2d_int(&control_matrix, 
 					analysis.grid_resolution);
-
 	dealloc_2d_double(&basin_matrix, 
 					analysis.grid_resolution);
-
 	dealloc_2d_double(&time_matrix, 
 					analysis.grid_resolution);
 
