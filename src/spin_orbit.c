@@ -2034,7 +2034,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	double K = par[6];
 
 	// prepare and open exit files
-	FILE	*out_boa, *out_ref, *out_size, *out_entropy;
+	FILE	*out_boa, *out_ref, *out_size, *out_entropy, *out_control;
 	char	filename[200];
 
 	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
@@ -2050,6 +2050,10 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	out_size = fopen(filename, "w");
 
 	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	out_entropy = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_entropy = fopen(filename, "w");
 
@@ -2202,11 +2206,15 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 				time_matrix[grid[0]][grid[1]],
 				spin_period,
 				orbit_period);
+			
+			fprintf(out_control, "%d %d %d\n", 
+				i, j, control_matrix[i][j]-1);
 
 		}
 		fprintf(out_boa, "\n");
 	}
 	fclose(out_boa);
+	fclose(out_control);
 
 	basin_size_fraction_sum = 0.0;
 	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
@@ -2244,9 +2252,11 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 			{
 				for (int m = 0; m <= (analysis.grid_resolution / analysis.sqrt_orbits_on_box) - step; m = m + step)
 				{
+					int non_zero_prob[number_of_po];
 					double prob[number_of_po];
 					for (int p = 0; p < number_of_po; p++)
 					{
+						non_zero_prob[p] = -1;
 						prob[p] = 0.0;
 					}
 					for (int i = n * analysis.sqrt_orbits_on_box; i < (n + step) * analysis.sqrt_orbits_on_box; i = i + step)
@@ -2255,18 +2265,24 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 						{
 							if (control_matrix[i][j] != -1)
 							{
-								prob[control_matrix[i][j] - 1] += 1.0 / ((double)(analysis.sqrt_orbits_on_box * analysis.sqrt_orbits_on_box));
+								prob[control_matrix[i][j] - 1] += 1.0;
+								non_zero_prob[control_matrix[i][j] - 1] = 1;
 							}
 						}
 					}
 					double gibbs_entropy_on_box = 0.0;
 					for (int p = 0; p < number_of_po; p++)
 					{
-						gibbs_entropy_on_box += prob[p] * log (1.0 / prob[p]);
+						if (non_zero_prob[p] != -1)
+						{
+							prob[p] /= ((double)(analysis.sqrt_orbits_on_box * analysis.sqrt_orbits_on_box));
+							gibbs_entropy_on_box += prob[p] * log (1.0 / prob[p]);
+						}
 					}
 					gibbs_entropy += gibbs_entropy_on_box;
 				}
 			}
+			gibbs_entropy /= ((double)(analysis.grid_resolution * analysis.grid_resolution));
 			fprintf(out_entropy, "%1.5e %1.5e\n",  
 				log(1.0 / ((double)(analysis.sqrt_orbits_on_box * step))), log(gibbs_entropy));
 		}
@@ -4070,6 +4086,125 @@ int draw_multiple_basin_of_attraction_undetermined	(dynsys system,
 
 	printf("Done!\n");
 	printf("Data written in output/basin_of_attraction/\n");
+
+	return 0;
+}
+
+int draw_basin_entropy  (dynsys system,
+                         anlsis analysis)
+{
+	FILE *gnuplotPipe;
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	int cb_range_min = cantor_pairing_function(analysis.spin_period_min, analysis.orbit_period_min);
+	int cb_range_max = cantor_pairing_function(analysis.spin_period_max, analysis.orbit_period_max);
+
+	printf("Drawing multtiple basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+		system.name, gamma, e, K);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/basin_of_attraction/fig_basin_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "set xlabel \"log {/Symbol e}\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"log S/N\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	// fprintf(gnuplotPipe, "unset key\n");
+	fprintf(gnuplotPipe, "set key opaque box top left\n");
+	fprintf(gnuplotPipe, "set fit quiet\n");
+	fprintf(gnuplotPipe, "set fit logfile '/dev/null'\n");
+	fprintf(gnuplotPipe, "f(x) = a * x + b\n");
+	fprintf(gnuplotPipe, "fit f(x) 'multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 via a,b\n",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "set print \"output/basin_of_attraction/basin_entropy_slope_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat\"\n",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "print sprintf(\"%1.3f %%1.3f\", a)\n", e);
+	fprintf(gnuplotPipe, "set print\n");
+	fprintf(gnuplotPipe, 
+		"set title \"Basin entropy for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 3 ps 2 notitle, f(x) lw 2 title sprintf(\"Slope = %%1.3f\", a)",
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+	printf("Data written in output/basin_of_attraction/\n");
+
+	return 0;
+}
+
+int plot_slope_basin_entropy_range_e(int number_of_e,
+									 double e_initial,
+									 double e_final,
+									 dynsys system,
+									 anlsis analysis)
+{
+	FILE 	*combineFiles;
+	FILE 	*gnuplotPipe;
+	int		size_filename = 200;
+	char 	local_filename[size_filename];
+	char	filename[size_filename * number_of_e + 50];
+	int		spin_period;
+	int		orbit_period;
+	double 	*par = (double *)system.params;
+	double 	gamma = par[0];
+	double 	K = par[6];
+	double 	ec, e_step;
+
+	if (number_of_e < 2)
+	{
+		printf("Invalid range\n");
+		exit(2);
+	}
+
+	e_step = (e_final - e_initial) / (double)(number_of_e); 
+
+	sprintf(filename, "paste -d ");
+
+	ec = e_initial;
+	for(int i = 0; i < number_of_e; i++)
+	{
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+		strcat(filename, local_filename);
+		ec += e_step;
+	}
+
+	strcat(filename, " > output/basin_of_attraction/basin_entropy_slope_combined.dat");
+
+	combineFiles = popen(filename, "w");
+
+	fclose(combineFiles);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/basin_of_attraction/fig_basin_entropy_slope_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
+	fprintf(gnuplotPipe, "set ylabel \"Basin entropy slope\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, 
+		"set title \"       Basin entropy slope for {/Symbol g} = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+		gamma, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+
+	fprintf(gnuplotPipe, "set key opaque box outside top right width 1.1\n");
+
+	fprintf(gnuplotPipe, "plot 'basin_entropy_slope_combined.dat' w lp pt 7 ps 1.5");
+
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
 
 	return 0;
 }

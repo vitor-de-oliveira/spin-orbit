@@ -288,4 +288,13 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 int draw_multiple_basin_of_attraction_undetermined  (dynsys system,
                                         		     anlsis analysis);
 
+int draw_basin_entropy  (dynsys system,
+                         anlsis analysis);
+
+int plot_slope_basin_entropy_range_e(int number_of_e,
+									 double e_initial,
+									 double e_final,
+									 dynsys system,
+									 anlsis analysis);
+
 #endif

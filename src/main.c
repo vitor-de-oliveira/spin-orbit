@@ -380,9 +380,9 @@ int main(int argc, char **argv)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	// for (int i = 0; i <= number_of_e; i++)
+	for (int i = 0; i <= number_of_e; i++)
 	{
-		// e = e_initial + (double)i * e_step;
+		e = e_initial + (double)i * e_step;
 
 		// sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
 		// gamma, e, system.name, K);
@@ -432,7 +432,6 @@ int main(int argc, char **argv)
 					fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
 					multiple_pos[number_of_pos-1].orbit[l][0] = po_x;
 					multiple_pos[number_of_pos-1].orbit[l][1] = po_y;
-					printf("%1.15e %1.15e %d %d\n", po_x, po_y, wind_x, wind_y);
 				}
 			}
 			fclose(in);
@@ -442,7 +441,8 @@ int main(int argc, char **argv)
 		{
 			analysis.grid_resolution = 600;
 			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-			// draw_multiple_basin_of_attraction_determined (system, analysis);
+			draw_multiple_basin_of_attraction_determined (system, analysis);
+			draw_basin_entropy (system, analysis);
 
 			for (int j = 0; j < number_of_pos; j++)
 			{
@@ -455,6 +455,10 @@ int main(int argc, char **argv)
 	// analysis.grid_resolution = 600;
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
+
+	analysis.grid_resolution = 600;
+	plot_slope_basin_entropy_range_e(number_of_e,
+		e_initial, e_final, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */
