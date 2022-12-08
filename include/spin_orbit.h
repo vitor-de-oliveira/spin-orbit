@@ -279,11 +279,20 @@ int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
 int draw_multiple_basin_of_attraction_determined(dynsys system,
                                         		 anlsis analysis);
 
+int draw_multiple_basin_of_attraction_determined_clean  (dynsys system,
+                                        		         anlsis analysis);
+
 int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 																 double e_initial,
 																 double e_final,
 																 dynsys system,
 																 anlsis analysis);
+
+int plot_size_multiple_basin_of_attraction_determined_range_e_latex	(int number_of_e,
+																 	 double e_initial,
+																 	 double e_final,
+																 	 dynsys system,
+																 	 anlsis analysis);
 
 int draw_multiple_basin_of_attraction_undetermined  (dynsys system,
                                         		     anlsis analysis);
@@ -296,5 +305,11 @@ int plot_slope_basin_entropy_range_e(int number_of_e,
 									 double e_final,
 									 dynsys system,
 									 anlsis analysis);
+
+int plot_basin_entropy_range_e	(int number_of_e,
+								 double e_initial,
+								 double e_final,
+								 dynsys system,
+								 anlsis analysis);
 
 #endif
