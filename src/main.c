@@ -440,7 +440,7 @@ int main(int argc, char **argv)
 		{
 			analysis.grid_resolution = 600;
 			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-			draw_multiple_basin_of_attraction_determined (system, analysis);
+			// draw_multiple_basin_of_attraction_determined (system, analysis);
 
 			for (int j = 0; j < number_of_pos; j++)
 			{
@@ -450,9 +450,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	analysis.grid_resolution = 600;
-	plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
-		e_initial, e_final, system, analysis);
+	// analysis.grid_resolution = 600;
+	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */

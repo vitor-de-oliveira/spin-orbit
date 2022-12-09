@@ -1934,6 +1934,7 @@ int evolve_multiple_basin_determined(double *ic,
 	bool is_close_to;
 	int orbit_counter, close_time_counter;
 	int internal_converged_po_id;
+	int previous_internal_converged_po_id;
 	double y[system.dim], rot[2];
 	double t = 0.0;
 
@@ -1957,13 +1958,22 @@ int evolve_multiple_basin_determined(double *ic,
 			{
 				if(dist_from_ref(rot, po[j].orbit[k]) < analysis.evolve_basin_eps)
 				{
+					if (close_time_counter > 1)
+					{
+						previous_internal_converged_po_id = internal_converged_po_id;
+					}
 					is_close_to = true;
 					internal_converged_po_id = j;
+					if (close_time_counter == 0)
+					{
+						previous_internal_converged_po_id = internal_converged_po_id;
+					}
 				}
 			}
 		}
 
-		if (is_close_to == true)
+		if ((is_close_to == true) &&
+			(previous_internal_converged_po_id == internal_converged_po_id))
 		{
 			close_time_counter++;
 		}
