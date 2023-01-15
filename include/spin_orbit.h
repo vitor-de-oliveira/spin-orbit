@@ -181,6 +181,23 @@ int find_all_periodic_orbits(int *number_of_pos,
 double dist_from_ref(double x[2],
                      double ref[2]);
 
+int evolve_orbit_convergence(double *ic,
+							 double ***orbit,
+							 int *orbit_size,
+							 int number_of_po,
+							 int *converged_po_id,
+							 int *convergence_time,
+							 double pos_min_dist[],
+							 perorb po[],
+							 dynsys system,
+							 anlsis analysis);
+
+int orbit_map_convergence   (double *ic,
+							 int number_of_po,
+							 perorb po[],
+                             dynsys system,
+                             anlsis analysis);
+
 int evolve_basin(double *ic,
 				 bool *converged,
                  int *convergence_time,
@@ -196,6 +213,7 @@ int evolve_multiple_basin_determined(double *ic,
 									 int number_of_po,
 									 int *converged,
 									 int *convergence_time,
+                                     double pos_min_dist[],
 									 perorb po[],
 									 dynsys system,
 									 anlsis analysis);

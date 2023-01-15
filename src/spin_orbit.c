@@ -1658,6 +1658,250 @@ double dist_from_ref(double x[2],
     return dist_ref;
 }
 
+int evolve_orbit_convergence(double *ic,
+							 double ***orbit,
+							 int *orbit_size,
+							 int number_of_po,
+							 int *converged_po_id,
+							 int *convergence_time,
+							 double pos_min_dist[],
+							 perorb po[],
+							 dynsys system,
+							 anlsis analysis)
+{
+	// declare variables
+	bool is_close_to;
+	int orbit_counter, close_time_counter;
+	int internal_converged_po_id;
+	int previous_internal_converged_po_id;
+	double y[system.dim], rot[2];
+	double t = 0.0;
+
+	// allocate memory and initializes exit data
+	if (orbit != NULL)
+	{
+		// takes into consideration initial condition
+		alloc_2d_double(orbit, analysis.number_of_cycles + 1, 
+			system.dim);
+		copy((*orbit)[0], ic, system.dim);
+	}
+	else
+	{
+		printf("Error: NULL orbit.");
+		exit(2);
+	}
+
+	// takes into consideration initial condition
+	orbit_counter = 1;
+
+	// starts proximity counter
+	close_time_counter = 0;
+	
+	*converged_po_id = -1;
+
+	copy(y, ic, system.dim);
+
+	for (int i = 0; i < number_of_po; i++)
+	{
+		pos_min_dist[i] = analysis.max_distance;
+	}
+
+	FILE *tst = fopen("output/tests/test_evolve_converged.dat","w");
+
+	for (int i = 0; i < analysis.number_of_cycles; i++)
+	{
+		copy(rot, y, 2);
+
+		is_close_to = false;
+		for (int j = 0; j < number_of_po; j++)
+		{
+			fprintf(tst, "%d %1.10e ", j, pos_min_dist[j]);
+			for (int k = 0; k < po[j].period; k++)
+			{
+				double distance_from_po = dist_from_ref(rot, po[j].orbit[k]);
+				if(distance_from_po < analysis.evolve_basin_eps)
+				{
+					if (close_time_counter > 1)
+					{
+						previous_internal_converged_po_id = internal_converged_po_id;
+					}
+					is_close_to = true;
+					internal_converged_po_id = j;
+					if (close_time_counter == 0)
+					{
+						previous_internal_converged_po_id = internal_converged_po_id;
+					}
+				}
+				if (distance_from_po < pos_min_dist[j])
+				{
+					pos_min_dist[j] = distance_from_po;
+				}
+			}
+		}
+
+		fprintf(tst, "\n");
+
+		if ((is_close_to == true) &&
+			(previous_internal_converged_po_id == internal_converged_po_id))
+		{
+			close_time_counter++;
+		}
+		else
+		{
+			close_time_counter = 0;
+		}
+
+		if (close_time_counter > analysis.evolve_basin_time_tol)
+		{
+			*converged_po_id = internal_converged_po_id;
+			goto out;
+		}
+
+		evolve_cycle(y, &t, system, analysis);
+	
+		// check if orbit diverges
+		for (int j = 0; j < system.dim; j++)
+		{
+			if (fabs(y[j]) > analysis.evolve_box_size)
+			{
+				printf("Warning: box limit reached\n");
+				printf("y[%d] = %1.10e\n", j, y[j]);
+				goto out;
+			}
+		}
+
+		orbit_counter++;
+
+		// write orbit element
+		copy((*orbit)[i + 1], y, system.dim);
+
+	}
+
+	out:;
+
+	fclose(tst);
+
+	*orbit_size = orbit_counter;
+
+	if (*converged_po_id != -1)
+	{
+		*convergence_time = orbit_counter;
+	}
+	else
+	{
+		*convergence_time = -1;
+	}
+
+	return 0;
+}
+
+int orbit_map_convergence   (double *ic,
+							 int number_of_po,
+							 perorb po[],
+                             dynsys system,
+                             anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/orbit", &st) == -1) {
+		mkdir("output/orbit", 0700);
+	}
+
+	printf("Calculating orbit\n");
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files 
+	FILE	*out_orb, *out_orb_ic, 
+			*out_orb_err,
+			*out_min_dist;
+	char	filename[150];
+
+	sprintf(filename, "output/orbit/orbit_convergence_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_orb = fopen(filename, "w");
+
+	sprintf(filename, "output/orbit/orbit_convergence_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_orb_ic = fopen(filename, "w");
+
+	sprintf(filename, "output/orbit/orbit_convergence_orbital_error_angular_momentum_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_orb_err = fopen(filename, "w");
+
+	sprintf(filename, "output/orbit/orbit_convergence_min_dist_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_min_dist = fopen(filename, "w");
+
+
+	// declare variables
+	int orbit_size;
+	int gcd, numerator, denominator;
+	double **orbit;
+	double orb[4], orb_ini[4];
+	double last_angle_dif;
+	int converged_po_id;
+	int convergence_time;
+	double pos_min_dist[number_of_po];
+
+	for (int i = 0; i < 4; i++)
+	{
+		orb_ini[i] = ic[i+2];
+	}
+
+	// evolve system
+	evolve_orbit_convergence(ic, &orbit, &orbit_size, number_of_po, 
+						&converged_po_id, &convergence_time, pos_min_dist,
+						po, system, analysis);
+
+	// write orbit and constant error to file
+	fprintf(out_orb_ic, "%1.15e %1.15e\n", 
+			angle_mod_pos(orbit[0][0]), orbit[0][1]);
+
+	for (int i = 0; i < orbit_size; i++)
+	{
+		// fprintf(out_orb, "%1.15e %1.15e\n", 
+		// 		angle_mod_pos(orbit[i][0]), orbit[i][1]);
+		fprintf(out_orb, "%1.15e %1.15e %d\n", 
+				angle_mod(orbit[i][0]), orbit[i][1], i);
+		
+		// if (strcmp(system.name, "rigid") == 0)
+		if (system.dim == 6)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				orb[j] = orbit[i][j+2];
+			}
+			fprintf(out_orb_err, "%d %1.15e\n", 
+					i, fabs(angular_momentum_two_body(orb)-
+					angular_momentum_two_body(orb_ini)));
+		}
+	}
+
+	for (int i = 0; i < number_of_po; i++)
+	{
+		fprintf(out_min_dist, "dist = %1.15e index = %d po_x = %1.5e po_y = %1.5e po_period = %d\n", 
+			pos_min_dist[i], i, po[i].initial_condition[0], 
+			po[i].initial_condition[1], po[i].period);
+	}
+
+	// free memory
+	dealloc_2d_double(&orbit, analysis.number_of_cycles);
+
+	// close files
+	fclose(out_orb);
+	fclose(out_orb_ic);
+	fclose(out_orb_err);
+	fclose(out_min_dist);
+
+	printf("Data written in output/orbit/\n");
+
+	return 0;
+}
+
 int evolve_basin(double *ic,
 				 bool *converged,
                  int *convergence_time,
@@ -1926,6 +2170,7 @@ int evolve_multiple_basin_determined(double *ic,
 									 int number_of_po,
 									 int *converged_po_id,
 									 int *convergence_time,
+									 double pos_min_dist[],
 									 perorb po[],
 									 dynsys system,
 									 anlsis analysis)
@@ -1947,6 +2192,12 @@ int evolve_multiple_basin_determined(double *ic,
 	*converged_po_id = -1;
 
 	copy(y, ic, system.dim);
+
+	for (int i = 0; i < number_of_po; i++)
+	{
+		pos_min_dist[i] = analysis.max_distance;
+	}
+
 	for (int i = 0; i < analysis.number_of_cycles; i++)
 	{
 		copy(rot, y, 2);
@@ -1956,7 +2207,8 @@ int evolve_multiple_basin_determined(double *ic,
 		{
 			for (int k = 0; k < po[j].period; k++)
 			{
-				if(dist_from_ref(rot, po[j].orbit[k]) < analysis.evolve_basin_eps)
+				double distance_from_po = dist_from_ref(rot, po[j].orbit[k]);
+				if(distance_from_po < analysis.evolve_basin_eps)
 				{
 					if (close_time_counter > 1)
 					{
@@ -1968,6 +2220,10 @@ int evolve_multiple_basin_determined(double *ic,
 					{
 						previous_internal_converged_po_id = internal_converged_po_id;
 					}
+				}
+				if (distance_from_po < pos_min_dist[j])
+				{
+					pos_min_dist[j] = distance_from_po;
 				}
 			}
 		}
@@ -2045,6 +2301,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 
 	// prepare and open exit files
 	FILE	*out_boa, *out_ref, *out_size;
+	FILE	*out_min_dist, *out_min_dist_orbit_ic;
 	char	filename[200];
 
 	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
@@ -2058,6 +2315,14 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_size = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_min_dist_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	out_min_dist = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_min_dist_ic_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	out_min_dist_orbit_ic = fopen(filename, "w");
 
 	// declare variables
 	double y[system.dim];
@@ -2084,10 +2349,14 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		}
 		fprintf(out_ref, "\n");
 	}
+	fclose(out_ref);
 
 	int *basin_size;
 	int **control_matrix;
 	double **basin_matrix, **time_matrix;
+
+	double pos_min_dist[number_of_po];
+	double **another_po_min_dist;
 
 	alloc_1d_int(&basin_size, number_of_po);
 	for (int i = 0; i < number_of_po; i++)
@@ -2101,6 +2370,9 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		analysis.grid_resolution, analysis.grid_resolution);
 	alloc_2d_double(&time_matrix, 
 		analysis.grid_resolution, analysis.grid_resolution);
+
+	alloc_2d_double(&another_po_min_dist, 
+		analysis.grid_resolution, analysis.grid_resolution);
 	for (int i = 0; i < analysis.grid_resolution; i++)
 	{
 		for (int j = 0; j < analysis.grid_resolution; j++)
@@ -2108,6 +2380,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 			control_matrix[i][j] = 0;
 			basin_matrix[i][j] = NAN;
 			time_matrix[i][j] = NAN;
+			another_po_min_dist[i][j] = analysis.max_distance;
 		}
 	}
 
@@ -2126,7 +2399,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
-				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
+				converged_po_id, convergence_time, orb, rot_ini, pos_min_dist) shared(basin_matrix, \
 				control_matrix, time_matrix)
 		{
 
@@ -2157,7 +2430,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 
 					// calculate forward integration
 					evolve_multiple_basin_determined(y, number_of_po, 
-						&converged_po_id, &convergence_time,
+						&converged_po_id, &convergence_time, pos_min_dist,
 						po, system, analysis);
 
 					if(converged_po_id != -1)
@@ -2167,6 +2440,18 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 						control_matrix[i][j] = converged_po_id + 1;
 						time_matrix[i][j] = (double)(convergence_time);
 						basin_size[converged_po_id]++;
+						double minimal_dist = analysis.max_distance;
+						for (int k = 0; k < number_of_po; k++)
+						{
+							if (k != converged_po_id)
+							{
+								if (pos_min_dist[k] < minimal_dist)
+								{
+									minimal_dist = pos_min_dist[k];
+								}
+							}
+						}
+						another_po_min_dist[i][j] = minimal_dist;
 					}
 					else
 					{
@@ -2181,6 +2466,8 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		// new line on terminal
 		// printf("\n");
 	}
+
+	double min = analysis.max_distance, min_x, min_y;
 
 	for (int i = 0; i < analysis.grid_resolution; i++)
 	{
@@ -2208,9 +2495,25 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 				spin_period,
 				orbit_period);
 
+			fprintf(out_min_dist, "%1.5f %1.5f %1.5e\n", 
+				basin[0], basin[1], 
+				another_po_min_dist[grid[0]][grid[1]]);
+		
+			double dist_value = another_po_min_dist[grid[0]][grid[1]];
+
+			if (dist_value < min)
+			{
+				min = dist_value;
+				min_x = basin[0];
+				min_y = basin[1];
+			}
+	
 		}
 		fprintf(out_boa, "\n");
 	}
+	
+	fprintf(out_min_dist_orbit_ic, "%1.15e %1.15e %1.15e\n", 
+		min_x, min_y, min);
 
 	basin_size_fraction_sum = 0.0;
 	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
@@ -2240,18 +2543,19 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 
 	// close exit files
 	fclose(out_boa);
-	fclose(out_ref);
 	fclose(out_size);
+	fclose(out_min_dist);
+	fclose(out_min_dist_orbit_ic);
 
 	dealloc_1d_int(&basin_size);
-
+	// dealloc_1d_double(&pos_min_dist);
 	dealloc_2d_int(&control_matrix, 
 					analysis.grid_resolution);
-
 	dealloc_2d_double(&basin_matrix, 
 					analysis.grid_resolution);
-
 	dealloc_2d_double(&time_matrix, 
+					analysis.grid_resolution);
+	dealloc_2d_double(&another_po_min_dist, 
 					analysis.grid_resolution);
 
 	printf("Data written in output/basin_of_attraction/\n");

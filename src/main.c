@@ -77,20 +77,24 @@ int main(int argc, char **argv)
 	// double ic[system.dim];
 
 	// gamma = gamma_hyperion;
-	// e = 0.105;
+	// e = e_hyperion;
 	// m_secondary = 0.;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 	// a = 1.0;
-	// K = 1e-2;
+	// K = 1e-3;
 	// T = 2.0 * M_PI;
 
-	// analysis.number_of_cycles = 5e3;		//1e3 6e3
-	// analysis.cycle_period = T; 				// 1e-3
+	// analysis.number_of_cycles = 8e2;		//1e3 6e3
+	// analysis.cycle_period = T; 			// T 1e-3
 	// analysis.evolve_box_size = 1e8;
 
-	// ic[0] = -6.696425553095295e-01 + M_PI;
-	// ic[1] = 2.102460925123672e+00;
+	// // ic[0] = 1.314232926751730e+00;
+	// // ic[1] = 2.562500000000000e+00;
+	// ic[0] = 6.230825429619755e-01;
+	// ic[1] = 1.832500000000000e+00;
+	// // ic[0] = 0.0;
+	// // ic[1] = 1000.0;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
@@ -267,7 +271,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = 0.0;
+	e = e_hyperion;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -356,12 +360,16 @@ int main(int argc, char **argv)
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
-	analysis.grid_resolution = 600;
+	analysis.max_distance = 
+		sqrt((M_PI - (-M_PI)) * (M_PI - (-M_PI)) +
+			 (3.0 - 0.0) * (3.0 - 0.0));
+
+	analysis.grid_resolution = 600;			// 600
 	analysis.grid_coordinate_min = -M_PI;	// -M_PI
 	analysis.grid_coordinate_max = M_PI;	// M_PI
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 3.0;
-	
+	analysis.grid_velocity_min = 0.0;		// 0.0
+	analysis.grid_velocity_max = 3.0;		// 3.0
+
 	analysis.spin_period_min = 1;
 	analysis.orbit_period_min = 1;
 	analysis.spin_period_max = 5;
@@ -378,14 +386,14 @@ int main(int argc, char **argv)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	for (int i = 0; i <= number_of_e; i++)
+	// for (int i = 0; i <= number_of_e; i++)
 	{
-		e = e_initial + (double)i * e_step;
+		// e = e_initial + (double)i * e_step;
 
-		sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
-		gamma, e, system.name, K);
-		// sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-		// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+		// sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		// gamma, e, system.name, K);
+		sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+			gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		in = fopen(filename_main, "r");
 
 		if (in == NULL)
@@ -430,7 +438,6 @@ int main(int argc, char **argv)
 					fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
 					multiple_pos[number_of_pos-1].orbit[l][0] = po_x;
 					multiple_pos[number_of_pos-1].orbit[l][1] = po_y;
-					printf("%1.15e %1.15e %d %d\n", po_x, po_y, wind_x, wind_y);
 				}
 			}
 			fclose(in);
@@ -438,9 +445,18 @@ int main(int argc, char **argv)
 
 		if (number_of_pos > 0)
 		{
-			analysis.grid_resolution = 600;
+			analysis.grid_resolution = 600;		// 600
 			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-			// draw_multiple_basin_of_attraction_determined (system, analysis);
+			draw_multiple_basin_of_attraction_determined (system, analysis);
+
+			// double ic[system.dim];
+			// ic[0] = 6.278916520000000e-01;
+			// ic[1] = 1.830276500000000e+00;
+			// init_orbital(orbital, e);
+			// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+			// analysis.number_of_cycles = 2e3;
+			// orbit_map_convergence(ic, number_of_pos, multiple_pos, system, analysis);
+			// analysis.number_of_cycles = 1e3;
 
 			for (int j = 0; j < number_of_pos; j++)
 			{

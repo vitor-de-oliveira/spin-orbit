@@ -52,6 +52,9 @@ typedef struct AnlSis{
 	double velocity_min;
 	double velocity_max;
 
+    // pahse space
+    double max_distance;        // max distance on phase space
+
     // grid variables
     int grid_resolution;
     double grid_coordinate_min;
