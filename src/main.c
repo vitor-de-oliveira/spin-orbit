@@ -653,8 +653,12 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
 
+	// analysis.grid_resolution = 600;
+	// plot_size_multiple_basin_of_attraction_determined_range_e_latex(number_of_e,
+	// 	e_initial, e_final, system, analysis);
+
 	analysis.grid_resolution = 600;
-	plot_size_multiple_basin_of_attraction_determined_range_e_latex(number_of_e,
+	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
 		e_initial, e_final, system, analysis);
 
 	// // analysis.grid_resolution = 600;

@@ -312,4 +312,10 @@ int plot_basin_entropy_range_e	(int number_of_e,
 								 dynsys system,
 								 anlsis analysis);
 
+int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(int number_of_e,
+																 	 			 double e_initial,
+																 	 			 double e_final,
+																 	 			 dynsys system,
+																 	 			 anlsis analysis);
+                                                                                   
 #endif

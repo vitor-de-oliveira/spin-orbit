@@ -4431,3 +4431,95 @@ int plot_basin_entropy_range_e	(int number_of_e,
 
 	return 0;
 }
+
+int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(int number_of_e,
+																 	 			 double e_initial,
+																 	 			 double e_final,
+																 	 			 dynsys system,
+																 	 			 anlsis analysis)
+{
+	FILE 	*combineFiles;
+	FILE 	*gnuplotPipe;
+	int		size_filename = 200;
+	char 	local_filename[size_filename];
+	char	filename[size_filename * number_of_e + 50];
+	int		spin_period;
+	int		orbit_period;
+	int		cb_range_min;
+	int		cb_range_max;
+	double 	*par = (double *)system.params;
+	double 	gamma = par[0];
+	double 	K = par[6];
+	double 	ec, e_step;
+
+	if (number_of_e < 2)
+	{
+		printf("Invalid range\n");
+		exit(2);
+	}
+
+	e_step = (e_final - e_initial) / (double)(number_of_e); 
+
+	sprintf(filename, "paste -d \"\n\"");
+
+	ec = e_initial;
+	for(int i = 0; i <= number_of_e; i++)
+	{
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+		strcat(filename, local_filename);
+		ec += e_step;
+	}
+
+	strcat(filename, " > output/basin_of_attraction/basins_size_combined.dat");
+
+	combineFiles = popen(filename, "w");
+
+	fclose(combineFiles);
+
+	cb_range_min = cantor_pairing_function(analysis.spin_period_min, analysis.orbit_period_min);
+	cb_range_max = cantor_pairing_function(analysis.spin_period_max, analysis.orbit_period_max);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	// fprintf(gnuplotPipe, 
+	// 	"set title \"       Size of multiple basin of attraction (D) for {/Symbol g} = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+	// 	gamma, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+
+	fprintf(gnuplotPipe, "set key opaque box outside top right width 1.1\n");
+
+	fprintf(gnuplotPipe, "unset colorbox\n");
+	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
+
+	fprintf(gnuplotPipe, "plot ");
+
+	// orbit_period = 1;
+	// spin_period = 1;
+	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
+	{
+		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
+		{
+			fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 title \"%d/%d\", ", 
+				spin_period, orbit_period, orbit_period + 4, spin_period, orbit_period);
+		}
+	}
+
+	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"sum\", ");
+
+	fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 title \"BE\", ");
+	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:3 w l lw 2 title \"UBE\"");
+
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
