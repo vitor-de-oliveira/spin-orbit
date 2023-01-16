@@ -1578,12 +1578,12 @@ int find_all_periodic_orbits(int *number_of_pos,
 						}
 					}
 					// check if p.o is stable
-					jacobian_eigenvalues_magnitude(&multiple_candidates[i], system, analysis);
-					if ((multiple_candidates[i].eigenvalues_absolute_value[0] > 1.0) ||
-						(multiple_candidates[i].eigenvalues_absolute_value[1] > 1.0))
-					{
-						goto skip;
-					}
+					// jacobian_eigenvalues_magnitude(&multiple_candidates[i], system, analysis);
+					// if ((multiple_candidates[i].eigenvalues_absolute_value[0] > 1.0) ||
+					// 	(multiple_candidates[i].eigenvalues_absolute_value[1] > 1.0))
+					// {
+					// 	goto skip;
+					// }
 					successful_candidates_indices[i] = 1;
 					*number_of_pos = *number_of_pos + 1;
 					if (*number_of_pos == 1)

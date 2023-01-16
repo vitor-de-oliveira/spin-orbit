@@ -73,31 +73,33 @@ int main(int argc, char **argv)
 
 	// system = system_rigid;
 	// system = system_linear_average;
-	// system = system_linear;
-	// double ic[system.dim];
+	system = system_linear;
+	double ic[system.dim];
 
-	// gamma = gamma_hyperion;
-	// e = e_hyperion;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-3;
-	// T = 2.0 * M_PI;
+	gamma = gamma_hyperion;
+	e = e_hyperion;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 1e-2;
+	T = 2.0 * M_PI;
 
-	// analysis.number_of_cycles = 8e2;		//1e3 6e3
-	// analysis.cycle_period = T; 			// T 1e-3
-	// analysis.evolve_box_size = 1e8;
+	analysis.number_of_cycles = 2e2;		//1e3 6e3
+	analysis.cycle_period = T; 			// T 1e-3
+	analysis.evolve_box_size = 1e8;
 
-	// // ic[0] = 1.314232926751730e+00;
-	// // ic[1] = 2.562500000000000e+00;
+	// ic[0] = 1.314232926751730e+00;
+	// ic[1] = 2.562500000000000e+00;
 	// ic[0] = 6.230825429619755e-01;
 	// ic[1] = 1.832500000000000e+00;
-	// // ic[0] = 0.0;
-	// // ic[1] = 1000.0;
-	// init_orbital(orbital, e);
-	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	// orbit_map(ic, system, analysis);
+	// ic[0] = 0.0;
+	// ic[1] = 1000.0;
+	ic[0] = -1.798942037030549e+00;
+	ic[1] = 1.617696160267112e+00;
+	init_orbital(orbital, e);
+	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	orbit_map(ic, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*				   	Periodic Orbit		   	           */
@@ -347,124 +349,124 @@ int main(int argc, char **argv)
 	// multiple_basin_of_attraction_undetermined (system, analysis);
 	// draw_multiple_basin_of_attraction_undetermined (system, analysis);
 
-	FILE	*in;
-	char	filename_main[200];
-	int 	number_of_pos;
-	perorb 	*multiple_pos;
-	int 	number_of_e;
-	double 	e_initial;
-	double 	e_final;
-	double 	e_step;
+	// FILE	*in;
+	// char	filename_main[200];
+	// int 	number_of_pos;
+	// perorb 	*multiple_pos;
+	// int 	number_of_e;
+	// double 	e_initial;
+	// double 	e_final;
+	// double 	e_step;
 
-	analysis.number_of_cycles = 1e3;
-	analysis.cycle_period = T;
-	analysis.evolve_box_size = 1e8;
+	// analysis.number_of_cycles = 1e3;
+	// analysis.cycle_period = T;
+	// analysis.evolve_box_size = 1e8;
 
-	analysis.max_distance = 
-		sqrt((M_PI - (-M_PI)) * (M_PI - (-M_PI)) +
-			 (3.0 - 0.0) * (3.0 - 0.0));
+	// analysis.max_distance = 
+	// 	sqrt((M_PI - (-M_PI)) * (M_PI - (-M_PI)) +
+	// 		 (3.0 - 0.0) * (3.0 - 0.0));
 
-	analysis.grid_resolution = 600;			// 600
-	analysis.grid_coordinate_min = -M_PI;	// -M_PI
-	analysis.grid_coordinate_max = M_PI;	// M_PI
-	analysis.grid_velocity_min = 0.0;		// 0.0
-	analysis.grid_velocity_max = 3.0;		// 3.0
+	// analysis.grid_resolution = 1000;		// 600
+	// analysis.grid_coordinate_min = -M_PI;	// -M_PI
+	// analysis.grid_coordinate_max = M_PI;	// M_PI
+	// analysis.grid_velocity_min = 0.0;		// 0.0
+	// analysis.grid_velocity_max = 3.0;		// 3.0
 
-	analysis.spin_period_min = 1;
-	analysis.orbit_period_min = 1;
-	analysis.spin_period_max = 5;
-	analysis.orbit_period_max = 4;
-	analysis.evolve_basin_time_tol = 100;
-	analysis.evolve_basin_eps = 1e-1;
+	// analysis.spin_period_min = 1;
+	// analysis.orbit_period_min = 1;
+	// analysis.spin_period_max = 5;
+	// analysis.orbit_period_max = 4;
+	// analysis.evolve_basin_time_tol = 100;
+	// analysis.evolve_basin_eps = 1e-1;
 
-	analysis.po_max_step = 1000;			// 1000
-	analysis.po_tol = 1e-8;					// 1e-13
+	// analysis.po_max_step = 1000;			// 1000
+	// analysis.po_tol = 1e-8;					// 1e-13
 
-	number_of_e = 20;
-	e_initial = 0.0;
-	e_final = 0.2;
+	// number_of_e = 20;
+	// e_initial = 0.0;
+	// e_final = 0.2;
 
-	e_step = (e_final - e_initial) / (double)(number_of_e);
+	// e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	// for (int i = 0; i <= number_of_e; i++)
-	{
-		// e = e_initial + (double)i * e_step;
+	// // for (int i = 0; i <= number_of_e; i++)
+	// {
+	// 	// e = e_initial + (double)i * e_step;
 
-		// sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
-		// gamma, e, system.name, K);
-		sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-			gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-		in = fopen(filename_main, "r");
+	// 	// sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+	// 	// gamma, e, system.name, K);
+	// 	sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	// 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// 	in = fopen(filename_main, "r");
 
-		if (in == NULL)
-		{
-			analysis.grid_resolution = 300;
-			find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
-		}
-		else
-		{
-			int 	wind_x, wind_y;
-			double	po_x, po_y;
+	// 	if (in == NULL)
+	// 	{
+	// 		// analysis.grid_resolution = 300;
+	// 		find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
+	// 	}
+	// 	else
+	// 	{
+	// 		int 	wind_x, wind_y;
+	// 		double	po_x, po_y;
 		
-			printf("Getting pos from printed file\n");
+	// 		printf("Getting pos from printed file\n");
 
-			number_of_pos = 0;
-			while(fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y) != EOF)
-			{
-				number_of_pos++;
+	// 		number_of_pos = 0;
+	// 		while(fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y) != EOF)
+	// 		{
+	// 			number_of_pos++;
 				
-				if (number_of_pos == 1)
-				{
-					multiple_pos = (perorb*) malloc(number_of_pos * sizeof(perorb));
-				}
-				else
-				{
-					multiple_pos = realloc(multiple_pos, number_of_pos * sizeof(perorb));
-				}
+	// 			if (number_of_pos == 1)
+	// 			{
+	// 				multiple_pos = (perorb*) malloc(number_of_pos * sizeof(perorb));
+	// 			}
+	// 			else
+	// 			{
+	// 				multiple_pos = realloc(multiple_pos, number_of_pos * sizeof(perorb));
+	// 			}
 				
-				multiple_pos[number_of_pos-1].period = wind_y;
-				multiple_pos[number_of_pos-1].seed[0] = po_x;
-				multiple_pos[number_of_pos-1].seed[1] = po_y;
-				multiple_pos[number_of_pos-1].initial_condition[0] = po_x;
-				multiple_pos[number_of_pos-1].initial_condition[1] = po_y;
-				multiple_pos[number_of_pos-1].winding_number_numerator = wind_x;
-				multiple_pos[number_of_pos-1].winding_number_denominator = wind_y;
+	// 			multiple_pos[number_of_pos-1].period = wind_y;
+	// 			multiple_pos[number_of_pos-1].seed[0] = po_x;
+	// 			multiple_pos[number_of_pos-1].seed[1] = po_y;
+	// 			multiple_pos[number_of_pos-1].initial_condition[0] = po_x;
+	// 			multiple_pos[number_of_pos-1].initial_condition[1] = po_y;
+	// 			multiple_pos[number_of_pos-1].winding_number_numerator = wind_x;
+	// 			multiple_pos[number_of_pos-1].winding_number_denominator = wind_y;
 				
-				alloc_2d_double(&multiple_pos[number_of_pos-1].orbit, multiple_pos[number_of_pos-1].period, 2);
-				multiple_pos[number_of_pos-1].orbit[0][0] = po_x;
-				multiple_pos[number_of_pos-1].orbit[0][1] = po_y;
-				for (int l = 1; l < multiple_pos[number_of_pos-1].period; l++)
-				{
-					fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
-					multiple_pos[number_of_pos-1].orbit[l][0] = po_x;
-					multiple_pos[number_of_pos-1].orbit[l][1] = po_y;
-				}
-			}
-			fclose(in);
-		}
+	// 			alloc_2d_double(&multiple_pos[number_of_pos-1].orbit, multiple_pos[number_of_pos-1].period, 2);
+	// 			multiple_pos[number_of_pos-1].orbit[0][0] = po_x;
+	// 			multiple_pos[number_of_pos-1].orbit[0][1] = po_y;
+	// 			for (int l = 1; l < multiple_pos[number_of_pos-1].period; l++)
+	// 			{
+	// 				fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
+	// 				multiple_pos[number_of_pos-1].orbit[l][0] = po_x;
+	// 				multiple_pos[number_of_pos-1].orbit[l][1] = po_y;
+	// 			}
+	// 		}
+	// 		fclose(in);
+	// 	}
 
-		if (number_of_pos > 0)
-		{
-			analysis.grid_resolution = 600;		// 600
-			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-			draw_multiple_basin_of_attraction_determined (system, analysis);
+	// 	if (number_of_pos > 0)
+	// 	{
+	// 		analysis.grid_resolution = 600;		// 600
+	// 		multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
+	// 		draw_multiple_basin_of_attraction_determined (system, analysis);
 
-			// double ic[system.dim];
-			// ic[0] = 6.278916520000000e-01;
-			// ic[1] = 1.830276500000000e+00;
-			// init_orbital(orbital, e);
-			// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-			// analysis.number_of_cycles = 2e3;
-			// orbit_map_convergence(ic, number_of_pos, multiple_pos, system, analysis);
-			// analysis.number_of_cycles = 1e3;
+	// 		// double ic[system.dim];
+	// 		// ic[0] = 6.278916520000000e-01;
+	// 		// ic[1] = 1.830276500000000e+00;
+	// 		// init_orbital(orbital, e);
+	// 		// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// 		// analysis.number_of_cycles = 2e3;
+	// 		// orbit_map_convergence(ic, number_of_pos, multiple_pos, system, analysis);
+	// 		// analysis.number_of_cycles = 1e3;
 
-			for (int j = 0; j < number_of_pos; j++)
-			{
-				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-			}
-			free(multiple_pos);
-		}
-	}
+	// 		for (int j = 0; j < number_of_pos; j++)
+	// 		{
+	// 			dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+	// 		}
+	// 		free(multiple_pos);
+	// 	}
+	// }
 
 	// analysis.grid_resolution = 600;
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
