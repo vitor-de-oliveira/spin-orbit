@@ -4477,6 +4477,23 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 
 	fclose(combineFiles);
 
+	sprintf(filename, "paste -s");
+
+	ec = e_initial;
+	for(int i = 0; i <= number_of_e; i++)
+	{
+		sprintf(local_filename, " output/basin_of_attraction/entropy_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+		strcat(filename, local_filename);
+		ec += e_step;
+	}
+
+	strcat(filename, " > output/basin_of_attraction/entropy_size_combined.dat");
+
+	combineFiles = popen(filename, "w");
+
+	fclose(combineFiles);
+
 	cb_range_min = cantor_pairing_function(analysis.spin_period_min, analysis.orbit_period_min);
 	cb_range_max = cantor_pairing_function(analysis.spin_period_max, analysis.orbit_period_max);
 
@@ -4501,21 +4518,22 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 
 	fprintf(gnuplotPipe, "plot ");
 
-	// orbit_period = 1;
-	// spin_period = 1;
-	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
+	orbit_period = 1;
+	spin_period = 1;
+	// for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
 	{
-		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
+		// for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
 		{
 			fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 title \"%d/%d\", ", 
 				spin_period, orbit_period, orbit_period + 4, spin_period, orbit_period);
 		}
 	}
 
-	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"sum\", ");
+	// fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"sum\", ");
 
-	fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 title \"BE\", ");
-	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:3 w l lw 2 title \"UBE\"");
+	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 title \"BE\", ");
+	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:3 w l lw 2 title \"UBE\", ");
+	fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:($2!=0?$2/$3:$2) w l lw 2 title \"NBE\", ");
 
 	fclose(gnuplotPipe);
 

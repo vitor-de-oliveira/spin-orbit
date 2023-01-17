@@ -629,12 +629,16 @@ int main(int argc, char **argv)
 	// 		int counter = 0;
 	// 		int number_attractors = 0;
 
+	// 		printf("e = %1.3e\n", e);
+
 	// 		while(counter < number_of_e)
 	// 		{
 	// 			fscanf(in, "%lf %d %d %lf %d\n", &ec, &fool_spin, &fool_orbit, &size_frac, &fool_cantor);
 	// 			if (size_frac > 0.0)
 	// 			{
 	// 				entropy += size_frac * log (1.0 / size_frac);
+	// 				printf("size_frac = %1.5e entropy = %1.5e total entropy = %1.5e\n",
+	// 					size_frac, size_frac * log (1.0 / size_frac), entropy);
 	// 				number_attractors++;
 	// 			}
 	// 			counter++;
