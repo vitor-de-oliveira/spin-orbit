@@ -295,6 +295,14 @@ void square_2d_matrix_inverse(double **inv, double **m)
 	}
 }
 
+double rand_number_in_interval(double x_min, double x_max)
+{
+	double rand_value;
+	double alpha = ((double)rand() / (double)RAND_MAX);
+	rand_value = x_min + alpha * (x_max - x_min);
+	return rand_value;
+}
+
 int alloc_1d_double(double **x, int n)
 {
 	*x = (double *)malloc(n * sizeof(double));

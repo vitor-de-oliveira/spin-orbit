@@ -661,9 +661,9 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_range_e_latex(number_of_e,
 	// 	e_initial, e_final, system, analysis);
 
-	analysis.grid_resolution = 600;
-	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
-		e_initial, e_final, system, analysis);
+	// analysis.grid_resolution = 600;
+	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
 
 	// // analysis.grid_resolution = 600;
 	// // plot_slope_basin_entropy_range_e(number_of_e,
@@ -677,6 +677,20 @@ int main(int argc, char **argv)
 	// {
 	// 	draw_multiple_basin_of_attraction_determined_clean (system, analysis);
 	// }
+
+	time_t t;
+	srand((unsigned) time(&t));
+	double x_min, x_max;
+	x_min = -M_PI;
+	x_max = M_PI;
+
+	printf("%d\n", RAND_MAX);
+	for (int i = 0; i < 10; i++)
+	{
+		// printf("%d\n", rand() % 10);
+		printf("%1.10e\n", rand_number_in_interval(x_min, x_max));
+	}
+
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */

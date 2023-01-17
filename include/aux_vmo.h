@@ -107,6 +107,10 @@ double square_2d_matrix_determinant(double **m);
 
 // returns the inverse of a 2d matrix
 void square_2d_matrix_inverse(double **inv, double **m);
+
+// returns a double rand number in the interval (x_min,x_max)
+double rand_number_in_interval(double x_min, double x_max);
+
 /**************************** memory handling *********************************/
 
 // allocates memory for one-dimensional double array x of size n
