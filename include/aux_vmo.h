@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define PBSTR "=================================================="
-#define PBWIDTH 50
+#define PBSTR "===================="
+#define PBWIDTH 20
 
 /*************************** makes life easier ********************************/
 

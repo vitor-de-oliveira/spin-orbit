@@ -46,7 +46,7 @@ typedef struct AnlSis{
     int nc, nv;
 	int number_of_cycles;
 	double cycle_period;
-    double evolve_box_size;     // maximum size of a variable
+    double evolve_box_size;         // maximum size of a variable
 	double coordinate_min;
 	double coordinate_max;
 	double velocity_min;
@@ -64,19 +64,24 @@ typedef struct AnlSis{
     int spin_period_max;
     int orbit_period_min;
     int orbit_period_max;
-    int evolve_basin_time_tol;  // time close to the reference for which we say an orbit converged
-    double evolve_basin_eps;    // distance from reference for which we say an orbit converged
+    int evolve_basin_time_tol;      // time close to the reference for which we say an orbit converged
+    double evolve_basin_eps;        // distance from reference for which we say an orbit converged
 
     // basin entropy
-    int sqrt_orbits_on_box;     // square root of the number of orbits on a box
+    int sqrt_orbits_on_box;         // square root of the number of orbits on a box
     
     // time series
-    int number_of_time_series;  // number of ICs for multiple time series
-    double time_series_delta;   // distance between ICs for multiple time series
+    int number_of_time_series;      // number of ICs for multiple time series
+    double time_series_delta;       // distance between ICs for multiple time series
 
     // periodic orbits
-    int po_max_step;            // maximum numbers of steps for the iterative method
-    double po_tol;              // maximum error allowed for the periodic orbit calculation
+    int po_max_step;                // maximum numbers of steps for the iterative method
+    double po_tol;                  // maximum error allowed for the periodic orbit calculation
+
+    // monte carlo simulation
+    int number_of_rand_orbits;
+    int convergence_window;
+    double convergence_precision;
 
 } anlsis;
 

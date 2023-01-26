@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <gsl/gsl_roots.h>
 
@@ -112,7 +113,10 @@ dynsys init_linear(void *params);
 dynsys init_linear_average(void *params);
 
 int init_orbital(double y[4],
-                double e);
+                 double e);
+
+int complete_orbital_part   (double y[],
+                             dynsys system);
 
 /**
  * poincare map
@@ -205,6 +209,16 @@ int multiple_basin_of_attraction_determined (int number_of_po,
                          					 dynsys system,
                          					 anlsis analysis);
 
+int multiple_basin_of_attraction_determined_monte_carlo (int number_of_po,
+											 			 perorb po[],
+                         					 			 dynsys system,
+                         					 			 anlsis analysis);
+
+int multiple_basin_of_attraction_determined_monte_carlo_v2	(int number_of_po,
+											 			 	 perorb po[],
+                         					 			 	 dynsys system,
+                         					 			 	 anlsis analysis);
+
 int evolve_multiple_basin_undetermined  (double *ic,
 									     bool *converged,
                                          int *attractor_period,
@@ -214,6 +228,12 @@ int evolve_multiple_basin_undetermined  (double *ic,
 
 int multiple_basin_of_attraction_undetermined   (dynsys system,
                          					     anlsis analysis);
+
+double basin_entropy(int number_of_orbits,
+					 int number_of_po,
+                     int *basin_size,
+                     perorb po[],
+					 anlsis analysis);
 
 /**
  * benchmark tests
@@ -317,5 +337,17 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 																 	 			 double e_final,
 																 	 			 dynsys system,
 																 	 			 anlsis analysis);
+
+int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
+												 double e_initial,
+												 double e_final,
+												 dynsys system,
+												 anlsis analysis);
+
+int plot_entropy_comparison_monte_carlo_v2_range_e	(int number_of_e,
+												 	 double e_initial,
+												 	 double e_final,
+												 	 dynsys system,
+												 	 anlsis analysis);
                                                                                    
 #endif
