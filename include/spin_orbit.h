@@ -209,11 +209,15 @@ int multiple_basin_of_attraction_determined (int number_of_po,
                          					 dynsys system,
                          					 anlsis analysis);
 
+// computes the size and entropy of basins of attraction using Monte Carlo method
+// it runs parallel and it stops when a predefined convergence criterium is met
 int multiple_basin_of_attraction_determined_monte_carlo (int number_of_po,
 											 			 perorb po[],
                          					 			 dynsys system,
                          					 			 anlsis analysis);
 
+// does the same as the previous verrsion, but also calculates the output
+// for the maxixum number of iterations. Uses #pragma omp for
 int multiple_basin_of_attraction_determined_monte_carlo_v2	(int number_of_po,
 											 			 	 perorb po[],
                          					 			 	 dynsys system,
