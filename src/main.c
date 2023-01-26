@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = 0.14;
+	e = e_hyperion;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -389,75 +389,75 @@ int main(int argc, char **argv)
 	// 	e = e_initial + (double)i * e_step;
 	// 	printf("e = %1.3f\n", e);
 
-	// // 	// sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
-	// // 	// gamma, e, system.name, K);
-	// 	sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-	// 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// 	in = fopen(filename_main, "r");
+	// 	// sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+	// 	// gamma, e, system.name, K);
+		sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+			gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+		in = fopen(filename_main, "r");
 
-	// 	if (in == NULL)
-	// 	{
-	// 		analysis.grid_resolution = 300;
-	// 		find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
-	// 	}
-	// 	else
-	// 	{
-	// 		int 	wind_x, wind_y;
-	// 		double	po_x, po_y;
+		if (in == NULL)
+		{
+			analysis.grid_resolution = 300;
+			find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
+		}
+		else
+		{
+			int 	wind_x, wind_y;
+			double	po_x, po_y;
 		
-	// 		printf("Getting pos from printed file\n");
+			printf("Getting pos from printed file\n");
 
-	// 		number_of_pos = 0;
-	// 		while(fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y) != EOF)
-	// 		{
-	// 			number_of_pos++;
+			number_of_pos = 0;
+			while(fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y) != EOF)
+			{
+				number_of_pos++;
 				
-	// 			if (number_of_pos == 1)
-	// 			{
-	// 				multiple_pos = (perorb*) malloc(number_of_pos * sizeof(perorb));
-	// 			}
-	// 			else
-	// 			{
-	// 				multiple_pos = realloc(multiple_pos, number_of_pos * sizeof(perorb));
-	// 			}
+				if (number_of_pos == 1)
+				{
+					multiple_pos = (perorb*) malloc(number_of_pos * sizeof(perorb));
+				}
+				else
+				{
+					multiple_pos = realloc(multiple_pos, number_of_pos * sizeof(perorb));
+				}
 				
-	// 			multiple_pos[number_of_pos-1].period = wind_y;
-	// 			multiple_pos[number_of_pos-1].seed[0] = po_x;
-	// 			multiple_pos[number_of_pos-1].seed[1] = po_y;
-	// 			multiple_pos[number_of_pos-1].initial_condition[0] = po_x;
-	// 			multiple_pos[number_of_pos-1].initial_condition[1] = po_y;
-	// 			multiple_pos[number_of_pos-1].winding_number_numerator = wind_x;
-	// 			multiple_pos[number_of_pos-1].winding_number_denominator = wind_y;
+				multiple_pos[number_of_pos-1].period = wind_y;
+				multiple_pos[number_of_pos-1].seed[0] = po_x;
+				multiple_pos[number_of_pos-1].seed[1] = po_y;
+				multiple_pos[number_of_pos-1].initial_condition[0] = po_x;
+				multiple_pos[number_of_pos-1].initial_condition[1] = po_y;
+				multiple_pos[number_of_pos-1].winding_number_numerator = wind_x;
+				multiple_pos[number_of_pos-1].winding_number_denominator = wind_y;
 				
-	// 			alloc_2d_double(&multiple_pos[number_of_pos-1].orbit, multiple_pos[number_of_pos-1].period, 2);
-	// 			multiple_pos[number_of_pos-1].orbit[0][0] = po_x;
-	// 			multiple_pos[number_of_pos-1].orbit[0][1] = po_y;
-	// 			for (int l = 1; l < multiple_pos[number_of_pos-1].period; l++)
-	// 			{
-	// 				fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
-	// 				multiple_pos[number_of_pos-1].orbit[l][0] = po_x;
-	// 				multiple_pos[number_of_pos-1].orbit[l][1] = po_y;
-	// 			}
-	// 		}
-	// 		fclose(in);
-	// 	}
+				alloc_2d_double(&multiple_pos[number_of_pos-1].orbit, multiple_pos[number_of_pos-1].period, 2);
+				multiple_pos[number_of_pos-1].orbit[0][0] = po_x;
+				multiple_pos[number_of_pos-1].orbit[0][1] = po_y;
+				for (int l = 1; l < multiple_pos[number_of_pos-1].period; l++)
+				{
+					fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
+					multiple_pos[number_of_pos-1].orbit[l][0] = po_x;
+					multiple_pos[number_of_pos-1].orbit[l][1] = po_y;
+				}
+			}
+			fclose(in);
+		}
 
-	// 	if (number_of_pos > 0)
-	// 	{
-	// 		// analysis.grid_resolution = 600;
-	// 		// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-	// 		// draw_multiple_basin_of_attraction_determined (system, analysis);
-	// 		// draw_basin_entropy (system, analysis);
+		if (number_of_pos > 0)
+		{
+			analysis.grid_resolution = 2;
+			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
+			draw_multiple_basin_of_attraction_determined (system, analysis);
+			// draw_basin_entropy (system, analysis);
 
-	// 		// multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
-	// 		multiple_basin_of_attraction_determined_monte_carlo_v2 (number_of_pos, multiple_pos, system, analysis);
+			// multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			// multiple_basin_of_attraction_determined_monte_carlo_v2 (number_of_pos, multiple_pos, system, analysis);
 
-	// 		for (int j = 0; j < number_of_pos; j++)
-	// 		{
-	// 			dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-	// 		}
-	// 		free(multiple_pos);
-	// 	}
+			for (int j = 0; j < number_of_pos; j++)
+			{
+				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+			}
+			free(multiple_pos);
+		}
 
 	// // 	// sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 	// // 	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
@@ -673,7 +673,7 @@ int main(int argc, char **argv)
 
 	// plot_entropy_comparison_monte_carlo_range_e(number_of_e, e_initial, e_final, system, analysis);
 
-	plot_entropy_comparison_monte_carlo_v2_range_e(number_of_e, e_initial, e_final, system, analysis);
+	// plot_entropy_comparison_monte_carlo_v2_range_e(number_of_e, e_initial, e_final, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */
