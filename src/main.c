@@ -444,7 +444,7 @@ int main(int argc, char **argv)
 
 		if (number_of_pos > 0)
 		{
-			analysis.grid_resolution = 2;
+			analysis.grid_resolution = 5;
 			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
 			draw_multiple_basin_of_attraction_determined (system, analysis);
 			// draw_basin_entropy (system, analysis);

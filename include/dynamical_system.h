@@ -96,13 +96,24 @@ int evolve_orbit(double *ic, double ***orbit,
 
 // returns the position of a double on a grid
 int double_to_grid  (int grid[2], 
-                    double x[2],
-                    anlsis analysis);
+                     double x[2],
+                     anlsis analysis);
 
 // returns the first double on a grid square
+// fixes the end positions
 int grid_to_double  (int grid[2], 
-                    double x[2],
-                    anlsis analysis);
+                     double x[2],
+                     anlsis analysis);
+
+// returns the position of a double on a grid
+int double_to_grid_v2   (int grid[2], 
+                         double x[2],
+                         anlsis analysis);
+
+// returns the middle double on a grid square
+int grid_to_double_v2   (int grid[2], 
+                         double x[2],
+                         anlsis analysis);
 
 /**
  * functions to handle GSL

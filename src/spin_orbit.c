@@ -2159,7 +2159,8 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 					grid[0] = i;
 					grid[1] = j;
 
-					grid_to_double(grid, rot_ini, analysis);
+					// grid_to_double(grid, rot_ini, analysis);
+					grid_to_double_v2(grid, rot_ini, analysis);
 
 					copy(y, rot_ini, 2);
 
@@ -2204,7 +2205,8 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		{
 			grid[0] = i;
 			grid[1] = j;
-			grid_to_double(grid, basin, analysis);
+			// grid_to_double(grid, basin, analysis);
+			grid_to_double_v2(grid, basin, analysis);
 
 			if (control_matrix[i][j] != -1)
 			{

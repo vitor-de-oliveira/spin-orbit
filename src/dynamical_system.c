@@ -191,6 +191,51 @@ int grid_to_double	(int grid[2],
 	x[1] = analysis.grid_velocity_min + 
 			(double)grid[1] * res_j;
 
+	return 0;
+}
+
+int double_to_grid_v2	(int grid[2], 
+					 	 double x[2],
+					 	 anlsis analysis)
+{
+	double res_i = (analysis.grid_coordinate_max -
+					analysis.grid_coordinate_min) / 
+					(double)(analysis.grid_resolution);
+	
+	double res_j = (analysis.grid_velocity_max -
+					analysis.grid_velocity_min) / 
+					(double)(analysis.grid_resolution);
+
+	double pos_i = 
+			(x[0] - analysis.grid_coordinate_min) / res_i;
+
+	double pos_j = 
+			(x[1] - analysis.grid_velocity_min) / res_j;
+
+	grid[0] = (int)floor(pos_i);
+	grid[1] = (int)floor(pos_j);
+
+	return 0;
+}
+
+int grid_to_double_v2	(int grid[2],
+					 	 double x[2],
+					 	 anlsis analysis)
+{
+	double res_i = (analysis.grid_coordinate_max -
+					analysis.grid_coordinate_min) / 
+					(double)(analysis.grid_resolution);
+	
+	double res_j = (analysis.grid_velocity_max -
+					analysis.grid_velocity_min) / 
+					(double)(analysis.grid_resolution);
+
+	x[0] = analysis.grid_coordinate_min + 
+			((double)grid[0] + 0.5) * res_i;
+	x[1] = analysis.grid_velocity_min + 
+			((double)grid[1] + 0.5) * res_j;
+
+	return 0;
 }
 
 int set_driver(gsl_odeiv2_driver **d, 
