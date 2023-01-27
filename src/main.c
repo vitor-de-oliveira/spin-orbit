@@ -398,7 +398,7 @@ int main(int argc, char **argv)
 		if (in == NULL)
 		{
 			analysis.grid_resolution = 300;
-			find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
+			find_all_periodic_attractors(&number_of_pos, &multiple_pos, system, analysis);
 		}
 		else
 		{

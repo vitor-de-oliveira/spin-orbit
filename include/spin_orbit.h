@@ -170,13 +170,14 @@ int look_for_resonance	(int number_of_candidates,
                          dynsys system, 
 						 anlsis analysis);
 
-// uses look_for_resonance to find all the spin-orbit resonances
-// on the phase space that have spin and orbit periods inside 
-// the range given in analysis
-int find_all_periodic_orbits(int *number_of_pos,
-							 perorb **multiple_pos,
-							 dynsys system,
-                         	 anlsis analysis);
+// uses look_for_resonance to find all the stable spin-orbit 
+// resonances on the phase space that have spin and orbit 
+// periods inside the range given in analysis
+// (can be easily modified to find all upos as well)
+int find_all_periodic_attractors(int *number_of_pos,
+							 	 perorb **multiple_pos,
+							 	 dynsys system,
+                         	 	 anlsis analysis);
 
 /**
  * basin of attraction

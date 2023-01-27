@@ -1516,10 +1516,10 @@ int look_for_resonance	(int number_of_candidates,
 	return 0;
 }
 
-int find_all_periodic_orbits(int *number_of_pos,
-							 perorb **multiple_pos,
-							 dynsys system,
-                         	 anlsis analysis)
+int find_all_periodic_attractors(int *number_of_pos,
+							 	 perorb **multiple_pos,
+							 	 dynsys system,
+                         	 	 anlsis analysis)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
