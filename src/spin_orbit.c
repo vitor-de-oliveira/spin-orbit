@@ -1659,6 +1659,74 @@ int find_all_periodic_attractors(int *number_of_pos,
 	return 0;
 }
 
+int fill_attractor_array(int *number_of_pos,
+						 perorb **multiple_pos,
+                         dynsys system,
+                         anlsis analysis)
+{
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	FILE	*in;
+	char	filename[200];
+
+	// sprintf(filename, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+	// 	gamma, e, system.name, K);
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	
+	in = fopen(filename, "r");
+	if (in == NULL)
+	{
+		find_all_periodic_attractors(number_of_pos, multiple_pos, system, analysis);
+	}
+	else
+	{
+		int 	wind_x, wind_y;
+		double	po_x, po_y;
+	
+		printf("Getting pos from printed file\n");
+
+		*number_of_pos = 0;
+		while(fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y) != EOF)
+		{
+			*number_of_pos = *number_of_pos + 1;
+			
+			if (*number_of_pos == 1)
+			{
+				*multiple_pos = (perorb*) malloc(*number_of_pos * sizeof(perorb));
+			}
+			else
+			{
+				*multiple_pos = realloc(*multiple_pos, *number_of_pos * sizeof(perorb));
+			}
+			
+			(*multiple_pos)[*number_of_pos-1].period = wind_y;
+			(*multiple_pos)[*number_of_pos-1].seed[0] = po_x;
+			(*multiple_pos)[*number_of_pos-1].seed[1] = po_y;
+			(*multiple_pos)[*number_of_pos-1].initial_condition[0] = po_x;
+			(*multiple_pos)[*number_of_pos-1].initial_condition[1] = po_y;
+			(*multiple_pos)[*number_of_pos-1].winding_number_numerator = wind_x;
+			(*multiple_pos)[*number_of_pos-1].winding_number_denominator = wind_y;
+			
+			alloc_2d_double(&(*multiple_pos)[*number_of_pos-1].orbit, (*multiple_pos)[*number_of_pos-1].period, 2);
+			(*multiple_pos)[*number_of_pos-1].orbit[0][0] = po_x;
+			(*multiple_pos)[*number_of_pos-1].orbit[0][1] = po_y;
+			for (int l = 1; l < (*multiple_pos)[*number_of_pos-1].period; l++)
+			{
+				fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
+				(*multiple_pos)[*number_of_pos-1].orbit[l][0] = po_x;
+				(*multiple_pos)[*number_of_pos-1].orbit[l][1] = po_y;
+			}
+		}
+		fclose(in);
+	}
+	return 0;
+}
+
 double dist_from_ref(double x[2],
                     double ref[2])
 {

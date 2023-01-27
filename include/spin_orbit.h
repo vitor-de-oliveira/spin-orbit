@@ -179,6 +179,13 @@ int find_all_periodic_attractors(int *number_of_pos,
 							 	 dynsys system,
                          	 	 anlsis analysis);
 
+// fills in the array of attractors multiple_pos[] looking for 
+// written files or using find_all_periodic_attractors()
+int fill_attractor_array(int *number_of_pos,
+						 perorb **multiple_pos,
+                         dynsys system,
+                         anlsis analysis);
+
 /**
  * basin of attraction
 **/
