@@ -186,6 +186,20 @@ int fill_attractor_array(int *number_of_pos,
                          dynsys system,
                          anlsis analysis);
 
+// retrieves the information of the basin of attraction
+// data file and produces a matrix of cantor values
+// representing the basins of SORs
+int fill_basin_matrix	(double	***basin_matrix,
+						 dynsys system,
+                         anlsis analysis);
+
+// retrieves the information of the basin of attraction
+// data file and produces a matrix of po ids
+// representing the basins of SORs
+int fill_control_matrix	(int	***control_matrix,
+						 dynsys system,
+                         anlsis analysis);
+
 /**
  * basin of attraction
 **/
@@ -230,6 +244,19 @@ int multiple_basin_of_attraction_determined_monte_carlo_v2	(int number_of_po,
 											 			 	 perorb po[],
                          					 			 	 dynsys system,
                          					 			 	 anlsis analysis);
+
+int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
+											 perorb po[],
+                         					 dynsys system,
+                         					 anlsis analysis);
+
+int basin_entropy_vs_box_size	(int number_of_po,
+								 perorb po[],
+                         		 dynsys system,
+                         		 anlsis analysis);
+
+int basin_entropy_from_data (dynsys system,
+                         	 anlsis analysis);
 
 int evolve_multiple_basin_undetermined  (double *ic,
 									     bool *converged,
@@ -329,8 +356,8 @@ int plot_size_multiple_basin_of_attraction_determined_range_e_latex	(int number_
 int draw_multiple_basin_of_attraction_undetermined  (dynsys system,
                                         		     anlsis analysis);
 
-int draw_basin_entropy  (dynsys system,
-                         anlsis analysis);
+int plot_basin_entropy_vs_box_size	(dynsys system,
+                         			 anlsis analysis);
 
 int plot_slope_basin_entropy_range_e(int number_of_e,
 									 double e_initial,
@@ -361,5 +388,8 @@ int plot_entropy_comparison_monte_carlo_v2_range_e	(int number_of_e,
 												 	 double e_final,
 												 	 dynsys system,
 												 	 anlsis analysis);
+
+int plot_comparison_entropy_grid_vs_monte_carlo	(dynsys system,
+												 anlsis analysis);
                                                                                    
 #endif

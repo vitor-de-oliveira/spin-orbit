@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = e_hyperion;
+	e = 0.14;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -374,7 +374,7 @@ int main(int argc, char **argv)
 	analysis.po_max_step = 1000;			// 1000
 	analysis.po_tol = 1e-8;					// 1e-13
 
-	analysis.number_of_rand_orbits = 1e5;
+	analysis.number_of_rand_orbits = 360000;
 	analysis.convergence_window = 1e4;
 	analysis.convergence_precision = 1e-2;
 
@@ -393,13 +393,23 @@ int main(int argc, char **argv)
 
 		if (number_of_pos > 0)
 		{
-			analysis.grid_resolution = 7;
-			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-			draw_multiple_basin_of_attraction_determined (system, analysis);
-			// draw_basin_entropy (system, analysis);
+		// 	// analysis.grid_resolution = 7;
+			// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
+		// 	// draw_multiple_basin_of_attraction_determined (system, analysis);
+		// 	// draw_basin_entropy (system, analysis);
 
-			// multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+		// 	// multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// multiple_basin_of_attraction_determined_monte_carlo_v2 (number_of_pos, multiple_pos, system, analysis);
+
+			// basin_entropy_from_data (system, analysis);
+
+			comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+
+			plot_comparison_entropy_grid_vs_monte_carlo (system, analysis);
+
+			// basin_entropy_vs_box_size (number_of_pos, multiple_pos, system, analysis);
+
+			// plot_basin_entropy_vs_box_size (system, analysis);
 
 			for (int j = 0; j < number_of_pos; j++)
 			{
@@ -407,192 +417,11 @@ int main(int argc, char **argv)
 			}
 			free(multiple_pos);
 		}
+		else
+		{
+			printf("Warning: null number of attractors.\n");
+		}
 
-	// // 	// sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-	// // 	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// // 	// in = fopen(filename_main, "r");
-
-	// // 	// if (in == NULL)
-	// // 	// {
-	// // 	// 	printf("Error, basin file not found.\n");
-	// // 	// 	exit(4);
-	// // 	// }
-	// // 	// else
-	// // 	// {
-	// // 	// 	int **control_matrix;
-	// // 	// 	alloc_2d_int(&control_matrix, 
-	// // 	// 	analysis.grid_resolution, analysis.grid_resolution);
-
-	// // 	// 	int 	*po_index_same_res;
-	// // 	// 	int 	counter, fool_spin, fool_orbit;
-	// // 	// 	double	basin_x, basin_y, cantor, fool_time;
-		
-	// // 	// 	printf("Getting basins from printed file\n");
-
-	// // 	// 	counter = 0;
-	// // 	// 	while(fscanf(in, "%lf %lf %lf %lf %d %d\n", 
-	// // 	// 		&basin_x, &basin_y, &cantor, &fool_time, &fool_spin, &fool_orbit) != EOF)
-	// // 	// 	{
-	// // 	// 		int local_i, local_j, local_grid[2];
-	// // 	// 		double local_basin[2] = {basin_x, basin_y};
-	// // 	// 		double_to_grid(local_grid, local_basin, analysis);
-	// // 	// 		local_i = local_grid[0];
-	// // 	// 		local_j = local_grid[1];
-
-	// // 	// 		if (cantor == cantor)
-	// // 	// 		{
-	// // 	// 			if (counter == 0)
-	// // 	// 			{
-	// // 	// 				po_index_same_res = (int*) malloc((counter + 1) * sizeof(int));
-	// // 	// 				po_index_same_res[counter] = cantor;
-	// // 	// 				counter++;
-	// // 	// 			}
-	// // 	// 			else
-	// // 	// 			{
-	// // 	// 				for (int c = 0; c < counter; c++)
-	// // 	// 				{
-	// // 	// 					if(po_index_same_res[c] == (int)cantor)
-	// // 	// 					{
-	// // 	// 						goto out;
-	// // 	// 					}
-	// // 	// 				}
-	// // 	// 				po_index_same_res = realloc(po_index_same_res, (counter + 1) * sizeof(int));
-	// // 	// 				po_index_same_res[counter] = cantor;
-	// // 	// 				counter++;
-	// // 	// 			}
-
-	// // 	// 			out:;
-
-	// // 	// 			for (int c = 0; c < counter; c++)
-	// // 	// 			{
-	// // 	// 				if(po_index_same_res[c] == (int)cantor)
-	// // 	// 				{
-	// // 	// 					control_matrix[local_i][local_j] = c + 1;
-	// // 	// 				}
-	// // 	// 			}
-	// // 	// 		}
-	// // 	// 		else
-	// // 	// 		{
-	// // 	// 			control_matrix[local_i][local_j] = -1;
-	// // 	// 		}
-	// // 	// 	}
-	// // 	// 	fclose(in);
-
-	// // 	// 	free(po_index_same_res);
-
-	// // 	// 	int number_of_po = counter;
-		
-	// // 	// 	sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-	// // 	// 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// // 	// 	FILE *out_entropy = fopen(filename_main, "w");
-
-	// // 	// 	// basin entropy
-	// // 	// 	for (int step = 1; step < (analysis.grid_resolution / analysis.sqrt_orbits_on_box); step++)
-	// // 	// 	{
-	// // 	// 		if ((analysis.grid_resolution % (analysis.sqrt_orbits_on_box * step)) == 0)
-	// // 	// 		{
-	// // 	// 			int box_number = 0;
-	// // 	// 			double gibbs_entropy = 0.0;
-	// // 	// 			for (int n = 0; n <= (analysis.grid_resolution / analysis.sqrt_orbits_on_box) - step; n = n + step)
-	// // 	// 			{
-	// // 	// 				for (int m = 0; m <= (analysis.grid_resolution / analysis.sqrt_orbits_on_box) - step; m = m + step)
-	// // 	// 				{
-	// // 	// 					int non_zero_prob[number_of_po];
-	// // 	// 					double prob[number_of_po];
-	// // 	// 					for (int p = 0; p < number_of_po; p++)
-	// // 	// 					{
-	// // 	// 						non_zero_prob[p] = -1;
-	// // 	// 						prob[p] = 0.0;
-	// // 	// 					}
-	// // 	// 					for (int i = n * analysis.sqrt_orbits_on_box; i < (n + step) * analysis.sqrt_orbits_on_box; i = i + step)
-	// // 	// 					{
-	// // 	// 						for (int j = m * analysis.sqrt_orbits_on_box; j < (m + step) * analysis.sqrt_orbits_on_box; j = j + step)
-	// // 	// 						{
-	// // 	// 							if (control_matrix[i][j] != -1)
-	// // 	// 							{
-	// // 	// 								prob[control_matrix[i][j] - 1] += 1.0;
-	// // 	// 								non_zero_prob[control_matrix[i][j] - 1] = 1;
-	// // 	// 							}
-	// // 	// 						}
-	// // 	// 					}
-	// // 	// 					double gibbs_entropy_on_box = 0.0;
-	// // 	// 					for (int p = 0; p < number_of_po; p++)
-	// // 	// 					{
-	// // 	// 						if (non_zero_prob[p] != -1)
-	// // 	// 						{
-	// // 	// 							// printf("Prob[%d] = %1.5e\n", p, prob[p]);
-	// // 	// 							prob[p] /= ((double)(analysis.sqrt_orbits_on_box * analysis.sqrt_orbits_on_box));
-	// // 	// 							// printf("Prob[%d] = %1.5e\n", p, prob[p]);
-	// // 	// 							gibbs_entropy_on_box += prob[p] * log (1.0 / prob[p]);
-	// // 	// 							// printf("Gibbs entropy on box = %1.5e\n", gibbs_entropy_on_box);
-	// // 	// 						}
-	// // 	// 					}
-	// // 	// 					// printf("Gibbs entropy on box = %1.5e\n", gibbs_entropy_on_box);
-	// // 	// 					gibbs_entropy += gibbs_entropy_on_box;
-	// // 	// 					box_number++;
-	// // 	// 				}
-	// // 	// 			}
-	// // 	// 			double sqrt_number_of_boxes = (double) (analysis.grid_resolution / (analysis.sqrt_orbits_on_box * step));
-	// // 	// 			double number_of_boxes = sqrt_number_of_boxes * sqrt_number_of_boxes;
-	// // 	// 			// printf("step = %d number_of_boxes = %f\n", step, number_of_boxes);
-	// // 	// 			// printf("box number = %d\n", box_number);
-	// // 	// 			// gibbs_entropy /= number_of_boxes;
-	// // 	// 			// printf("Gibbs entropy = %1.5e\n", gibbs_entropy);
-	// // 	// 			// gibbs_entropy /= (double)(analysis.grid_resolution * analysis.grid_resolution);
-	// // 	// 			fprintf(out_entropy, "%1.5e %1.5e\n",  
-	// // 	// 				log(1.0 / sqrt_number_of_boxes), 
-	// // 	// 				log(gibbs_entropy));
-	// // 	// 		}
-	// // 	// 	}
-	// // 	// 	fclose(out_entropy);
-	// // 	// 	dealloc_2d_int(&control_matrix, analysis.grid_resolution);
-	// // 	// }
-
-	// // 	// draw_basin_entropy (system, analysis);
-
-	// // 	// sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-	// // 	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// // 	// in = fopen(filename_main, "r");
-
-	// // 	// if (in == NULL)
-	// // 	// {
-	// // 	// 	printf("Error, basin size file not found.\n");
-	// // 	// 	exit(5);
-	// // 	// }
-	// // 	// else
-	// // 	// {
-	// // 	// 	int 	fool_spin, fool_orbit, fool_cantor;
-	// // 	// 	double	ec, size_frac, entropy;
-		
-	// // 	// 	printf("Getting size of basins from printed file\n");
-
-	// // 		// entropy = 0.0;
-
-	// // 		// int counter = 0;
-	// // 		// int number_attractors = 0;
-
-	// // 		// printf("e = %1.3e\n", e);
-
-	// // 		// while(counter < number_of_e)
-	// // 		// {
-	// // 		// 	fscanf(in, "%lf %d %d %lf %d\n", &ec, &fool_spin, &fool_orbit, &size_frac, &fool_cantor);
-	// // 		// 	if (size_frac > 0.0)
-	// // 		// 	{
-	// // 		// 		entropy += size_frac * log (1.0 / size_frac);
-	// // 		// 		printf("size_frac = %1.5e entropy = %1.5e total entropy = %1.5e\n",
-	// // 		// 			size_frac, size_frac * log (1.0 / size_frac), entropy);
-	// // 		// 		number_attractors++;
-	// // 		// 	}
-	// // 		// 	counter++;
-	// // 		// }
-	// // 		// fclose(in);
-
-	// // 		// sprintf(filename_main, "output/basin_of_attraction/entropy_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-	// // 		// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// // 		// FILE *out_entropy_size = fopen(filename_main, "w");
-	// // 		// fprintf(out_entropy_size, "%1.3f %1.4f %1.4f\n", ec, entropy, log(number_attractors));
-	// // 		// fclose(out_entropy_size);
-	// // 	// }
 	// }
 
 	// analysis.grid_resolution = 600;
