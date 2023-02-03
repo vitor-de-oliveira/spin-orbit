@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = 0.14;
+	e = e_hyperion;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -343,8 +343,6 @@ int main(int argc, char **argv)
 	// multiple_basin_of_attraction_undetermined (system, analysis);
 	// draw_multiple_basin_of_attraction_undetermined (system, analysis);
 
-	FILE	*in;
-	char	filename_main[200];
 	int 	number_of_pos;
 	perorb 	*multiple_pos;
 	int 	number_of_e;
@@ -393,23 +391,26 @@ int main(int argc, char **argv)
 
 		if (number_of_pos > 0)
 		{
-		// 	// analysis.grid_resolution = 7;
+			/* calculation on grid */
+	
 			// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-		// 	// draw_multiple_basin_of_attraction_determined (system, analysis);
-		// 	// draw_basin_entropy (system, analysis);
+			draw_multiple_basin_of_attraction_determined (system, analysis);
+			basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
+			basin_entropy_from_data (system, analysis);
+			// basin_entropy_vs_box_size (number_of_pos, multiple_pos, system, analysis);
+			// plot_basin_entropy_vs_box_size (system, analysis);
 
-		// 	// multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
-			// multiple_basin_of_attraction_determined_monte_carlo_v2 (number_of_pos, multiple_pos, system, analysis);
+			/* calculation monte carlo */
 
-			// basin_entropy_from_data (system, analysis);
+			multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			basin_size_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			basin_entropy_from_data_monte_carlo (system, analysis);
+			basin_entropy_progress_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+
+			/* comparison between grid and monte carlo */
 
 			comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system, analysis);
-
 			plot_comparison_entropy_grid_vs_monte_carlo (system, analysis);
-
-			// basin_entropy_vs_box_size (number_of_pos, multiple_pos, system, analysis);
-
-			// plot_basin_entropy_vs_box_size (system, analysis);
 
 			for (int j = 0; j < number_of_pos; j++)
 			{
