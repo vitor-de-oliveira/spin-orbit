@@ -269,6 +269,11 @@ int basin_entropy_from_data (dynsys system,
 int basin_entropy_from_data_monte_carlo (dynsys system,
                          	 			 anlsis analysis);
 
+int basin_entropy_progress_from_data(int number_of_po,
+						 			 perorb po[],
+                         			 dynsys system,
+                         			 anlsis analysis);
+
 int basin_entropy_progress_from_data_monte_carlo(int number_of_po,
 						 			 			 perorb po[],
                          			 			 dynsys system,
