@@ -7,8 +7,6 @@ são a minha órbita final mesmo e só calculo winding number.
 isso é, a simples distancia entre elementos da orbita jah
 define a sua convergencia
 
-- implement histogram for times
-
 - remove reference to K from everything that concerns the
 rigid case. Maybe add a type to the field to differentiate it between
 conservative and dissipative and use it to improve the data file names
@@ -31,17 +29,10 @@ of the last ~100 cycles of every initial condition
 
 ADITIONAL STUFF
 
+- revise control_id for all functions in spin_orbit.c
+
 - maybe change f_e for f in all functions. Understand why I wrote it as f_e in 
 the first place
-
-- improve look for resonance function in spin orbit.
-It does not work very well. Maybe put it on tests
-Run it again using stats e see if results keep changing or not
-
-- write a python lib to analyse the histogram of convergence times, in
-order to find tendences and to see if the sim time is big enough
-
-- Maybe use Monte-Carlos for time series of high velocity i.c.s
 
 - move time series to tests. Or rather, transform time series
 to a drawing of orbits only

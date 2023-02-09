@@ -2209,7 +2209,7 @@ int evolve_multiple_basin_determined(double *ic,
 
 	if (*converged_po_id != -1)
 	{
-		*convergence_time = orbit_counter;
+		*convergence_time = orbit_counter - analysis.evolve_basin_time_tol;
 	}
 	else
 	{
@@ -2308,8 +2308,8 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+		omp_set_dynamic(0);     	// Explicitly disable dynamic teams
+		omp_set_num_threads(12);	// Use 12 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
@@ -5747,6 +5747,39 @@ int plot_comparison_entropy_grid_vs_monte_carlo	(dynsys system,
 		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits);
 
 	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int plot_histogram_python	(dynsys system,
+							 anlsis analysis)
+{
+	FILE 	*pythonPipe;
+	int		size_filename = 400;
+	char 	filename[size_filename];
+	char 	filename_input[size_filename];
+	char 	filename_output[size_filename];
+	char 	filename_parameter[size_filename];
+	double 	*par = (double *)system.params;
+	double 	gamma = par[0];
+	double	e = par[1];
+	double 	K = par[6];
+
+	printf("Plotting histogram for e = %1.3f and gamma = %1.3f\n", e, gamma);
+
+	sprintf(filename, "python3 python_tools/plot_histogram.py");
+	sprintf(filename_input, " --input output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	strcat(filename, filename_input);
+	sprintf(filename_output, " --output output/basin_of_attraction/fig_histogram_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	strcat(filename, filename_output);
+	sprintf(filename_parameter, " --parameter e=%1.3f", e);
+	strcat(filename, filename_parameter);
+	pythonPipe = popen(filename, "w");
+	fclose(pythonPipe);
 
 	printf("Done!\n");
 

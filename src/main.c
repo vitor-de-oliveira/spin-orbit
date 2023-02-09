@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = e_hyperion;
+	e = 0.14;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -350,7 +350,7 @@ int main(int argc, char **argv)
 	double 	e_final;
 	double 	e_step;
 
-	analysis.number_of_cycles = 1e3;
+	analysis.number_of_cycles = 3e3;		// 1e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -423,6 +423,8 @@ int main(int argc, char **argv)
 		// {
 		// 	printf("Warning: null number of attractors.\n");
 		// }
+
+		// plot_histogram_python (system, analysis);
 
 	// }
 
