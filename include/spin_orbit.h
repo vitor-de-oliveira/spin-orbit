@@ -406,5 +406,12 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 
 int plot_comparison_entropy_grid_vs_monte_carlo	(dynsys system,
 												 anlsis analysis);
+
+/**
+ * Python pipe
+**/
+
+int plot_histogram_python	(dynsys system,
+							 anlsis analysis);
                                                                                    
 #endif
