@@ -387,10 +387,10 @@ int main(int argc, char **argv)
 	// 	e = e_initial + (double)i * e_step;
 	// 	printf("e = %1.3f\n", e);
 
-		fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
+		// fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
-		if (number_of_pos > 0)
-		{
+		// if (number_of_pos > 0)
+		// {
 			/* calculation on grid */
 	
 			// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
@@ -413,18 +413,18 @@ int main(int argc, char **argv)
 			// comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// plot_comparison_entropy_grid_vs_monte_carlo (system, analysis);
 
-			for (int j = 0; j < number_of_pos; j++)
-			{
-				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-			}
-			free(multiple_pos);
-		}
-		else
-		{
-			printf("Warning: null number of attractors.\n");
-		}
+		// 	for (int j = 0; j < number_of_pos; j++)
+		// 	{
+		// 		dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+		// 	}
+		// 	free(multiple_pos);
+		// }
+		// else
+		// {
+		// 	printf("Warning: null number of attractors.\n");
+		// }
 
-		plot_histogram_python (system, analysis);
+		// plot_histogram_python (system, analysis);
 
 	// }
 

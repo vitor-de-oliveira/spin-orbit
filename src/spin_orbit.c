@@ -2719,14 +2719,17 @@ int basin_entropy_vs_box_size	(int number_of_po,
 						}
 					}
 					double gibbs_entropy_on_box = 0.0;
+					int number_of_at = 0;
 					for (int p = 0; p < number_of_po; p++)
 					{
 						if (non_zero_prob[p] != -1)
 						{
 							prob[p] /= ((double)(analysis.sqrt_orbits_on_box * analysis.sqrt_orbits_on_box));
 							gibbs_entropy_on_box += prob[p] * log (1.0 / prob[p]);
+							number_of_at++;
 						}
 					}
+					gibbs_entropy_on_box /= (double)number_of_at; // don't know if this helps or not
 					gibbs_entropy += gibbs_entropy_on_box;
 				}
 			}
