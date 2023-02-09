@@ -16,6 +16,13 @@ int main(int argc, char **argv)
 		double begin_time_omp = omp_get_wtime(), end_time_omp;
 	#endif
 
+	/******************* Create output **********************/
+
+	struct stat st = {0};
+	if (stat("output", &st) == -1) {
+		mkdir("output", 0700);
+	}
+
 	/***************** Declared variables ******************/
 
     double gamma;			// equatorial flattening
