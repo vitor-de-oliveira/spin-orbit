@@ -267,7 +267,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = 0.0;
+	e = 0.14;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -343,8 +343,6 @@ int main(int argc, char **argv)
 	// multiple_basin_of_attraction_undetermined (system, analysis);
 	// draw_multiple_basin_of_attraction_undetermined (system, analysis);
 
-	FILE	*in;
-	char	filename_main[200];
 	int 	number_of_pos;
 	perorb 	*multiple_pos;
 	int 	number_of_e;
@@ -352,7 +350,7 @@ int main(int argc, char **argv)
 	double 	e_final;
 	double 	e_step;
 
-	analysis.number_of_cycles = 1e3;
+	analysis.number_of_cycles = 3e3;		// 1e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -361,6 +359,8 @@ int main(int argc, char **argv)
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
 	analysis.grid_velocity_max = 3.0;
+
+	analysis.sqrt_orbits_on_box = 10;
 	
 	analysis.spin_period_min = 1;
 	analysis.orbit_period_min = 1;
@@ -372,87 +372,88 @@ int main(int argc, char **argv)
 	analysis.po_max_step = 1000;			// 1000
 	analysis.po_tol = 1e-8;					// 1e-13
 
+	analysis.number_of_rand_orbits = 360000;
+	analysis.convergence_window = 1e4;
+	analysis.convergence_precision = 1e-2;
+
 	number_of_e = 20;
 	e_initial = 0.0;
 	e_final = 0.2;
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	for (int i = 0; i <= number_of_e; i++)
-	{
-		e = e_initial + (double)i * e_step;
+	// for (int i = 0; i <= number_of_e; i++)
+	// {
+	// 	e = e_initial + (double)i * e_step;
+	// 	printf("e = %1.3f\n", e);
 
-		sprintf(filename_main, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
-		gamma, e, system.name, K);
-		// sprintf(filename_main, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
-		// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-		in = fopen(filename_main, "r");
+		// fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
-		if (in == NULL)
-		{
-			analysis.grid_resolution = 300;
-			find_all_periodic_orbits(&number_of_pos, &multiple_pos, system, analysis);
-		}
-		else
-		{
-			int 	wind_x, wind_y;
-			double	po_x, po_y;
-		
-			printf("Getting pos from printed file\n");
+		// if (number_of_pos > 0)
+		// {
+			/* calculation on grid */
+	
+			// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
+			// draw_multiple_basin_of_attraction_determined (system, analysis);
+			// basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
+			// basin_entropy_from_data (system, analysis);
+			// basin_entropy_progress_from_data (number_of_pos, multiple_pos, system, analysis);
+			// basin_entropy_vs_box_size (number_of_pos, multiple_pos, system, analysis);
+			// plot_basin_entropy_vs_box_size (system, analysis);
 
-			number_of_pos = 0;
-			while(fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y) != EOF)
-			{
-				number_of_pos++;
-				
-				if (number_of_pos == 1)
-				{
-					multiple_pos = (perorb*) malloc(number_of_pos * sizeof(perorb));
-				}
-				else
-				{
-					multiple_pos = realloc(multiple_pos, number_of_pos * sizeof(perorb));
-				}
-				
-				multiple_pos[number_of_pos-1].period = wind_y;
-				multiple_pos[number_of_pos-1].seed[0] = po_x;
-				multiple_pos[number_of_pos-1].seed[1] = po_y;
-				multiple_pos[number_of_pos-1].initial_condition[0] = po_x;
-				multiple_pos[number_of_pos-1].initial_condition[1] = po_y;
-				multiple_pos[number_of_pos-1].winding_number_numerator = wind_x;
-				multiple_pos[number_of_pos-1].winding_number_denominator = wind_y;
-				
-				alloc_2d_double(&multiple_pos[number_of_pos-1].orbit, multiple_pos[number_of_pos-1].period, 2);
-				multiple_pos[number_of_pos-1].orbit[0][0] = po_x;
-				multiple_pos[number_of_pos-1].orbit[0][1] = po_y;
-				for (int l = 1; l < multiple_pos[number_of_pos-1].period; l++)
-				{
-					fscanf(in, "%lf %lf %d %d", &po_x, &po_y, &wind_x, &wind_y);
-					multiple_pos[number_of_pos-1].orbit[l][0] = po_x;
-					multiple_pos[number_of_pos-1].orbit[l][1] = po_y;
-					printf("%1.15e %1.15e %d %d\n", po_x, po_y, wind_x, wind_y);
-				}
-			}
-			fclose(in);
-		}
+			/* calculation monte carlo */
 
-		if (number_of_pos > 0)
-		{
-			analysis.grid_resolution = 600;
-			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-			draw_multiple_basin_of_attraction_determined (system, analysis);
+			// multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			// basin_size_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			// basin_entropy_from_data_monte_carlo (system, analysis);
+			// basin_entropy_progress_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 
-			for (int j = 0; j < number_of_pos; j++)
-			{
-				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-			}
-			free(multiple_pos);
-		}
-	}
+			/* comparison between grid and monte carlo */
 
-	analysis.grid_resolution = 600;
-	plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
-		e_initial, e_final, system, analysis);
+			// comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			// plot_comparison_entropy_grid_vs_monte_carlo (system, analysis);
+
+		// 	for (int j = 0; j < number_of_pos; j++)
+		// 	{
+		// 		dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+		// 	}
+		// 	free(multiple_pos);
+		// }
+		// else
+		// {
+		// 	printf("Warning: null number of attractors.\n");
+		// }
+
+		// plot_histogram_python (system, analysis);
+
+	// }
+
+	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
+
+	// analysis.grid_resolution = 600;
+	// plot_size_multiple_basin_of_attraction_determined_range_e_latex(number_of_e,
+	// 	e_initial, e_final, system, analysis);
+
+	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
+
+	// analysis.grid_resolution = 600;
+	// plot_slope_basin_entropy_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
+
+	// analysis.grid_resolution = 600;
+	// plot_basin_entropy_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
+
+	// for (e = 0.0; e < 0.21; e += 0.01)
+	// {
+	// 	draw_multiple_basin_of_attraction_determined_clean (system, analysis);
+	// }
+
+	// plot_entropy_comparison_monte_carlo_range_e(number_of_e, e_initial, e_final, system, analysis);
+
+	// plot_entropy_comparison_monte_carlo_v2_range_e(number_of_e, e_initial, e_final, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*						Benchmark		   	           */

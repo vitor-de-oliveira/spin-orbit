@@ -46,7 +46,7 @@ typedef struct AnlSis{
     int nc, nv;
 	int number_of_cycles;
 	double cycle_period;
-    double evolve_box_size;     // maximum size of a variable
+    double evolve_box_size;         // maximum size of a variable
 	double coordinate_min;
 	double coordinate_max;
 	double velocity_min;
@@ -59,21 +59,29 @@ typedef struct AnlSis{
 	double grid_velocity_min;
 	double grid_velocity_max;
 
-    // basin of attraction    
+    // basins of attraction    
     int spin_period_min;
     int spin_period_max;
     int orbit_period_min;
     int orbit_period_max;
-    int evolve_basin_time_tol;  // time close to the reference for which we say an orbit converged
-    double evolve_basin_eps;    // distance from reference for which we say an orbit converged
+    int evolve_basin_time_tol;      // time close to the reference for which we say an orbit converged
+    double evolve_basin_eps;        // distance from reference for which we say an orbit converged
 
+    // basin entropy
+    int sqrt_orbits_on_box;         // square root of the number of orbits on a box
+    
     // time series
-    int number_of_time_series;  // number of ICs for multiple time series
-    double time_series_delta;   // distance between ICs for multiple time series
+    int number_of_time_series;      // number of ICs for multiple time series
+    double time_series_delta;       // distance between ICs for multiple time series
 
     // periodic orbits
-    int po_max_step;            // maximum numbers of steps for the iterative method
-    double po_tol;              // maximum error allowed for the periodic orbit calculation
+    int po_max_step;                // maximum numbers of steps for the iterative method
+    double po_tol;                  // maximum error allowed for the periodic orbit calculation
+
+    // monte carlo simulation
+    int number_of_rand_orbits;
+    int convergence_window;
+    double convergence_precision;
 
 } anlsis;
 
@@ -88,13 +96,24 @@ int evolve_orbit(double *ic, double ***orbit,
 
 // returns the position of a double on a grid
 int double_to_grid  (int grid[2], 
-                    double x[2],
-                    anlsis analysis);
+                     double x[2],
+                     anlsis analysis);
 
 // returns the first double on a grid square
+// fixes the end positions
 int grid_to_double  (int grid[2], 
-                    double x[2],
-                    anlsis analysis);
+                     double x[2],
+                     anlsis analysis);
+
+// returns the position of a double on a grid
+int double_to_grid_v2   (int grid[2], 
+                         double x[2],
+                         anlsis analysis);
+
+// returns the middle double on a grid square
+int grid_to_double_v2   (int grid[2], 
+                         double x[2],
+                         anlsis analysis);
 
 /**
  * functions to handle GSL
