@@ -1,37 +1,56 @@
-- automatically create output dir. test if it is not overwritable
-- understand how the specific values to the moon (or any other)
-satellite comes into play in the initial conditions. There are
-also the masses
-- stabilish the right values for G and m. Como adimensionalizar
-as massas, tendo em mente que existe a parte orbital e a parte
-do spin e um usa a soma das massas e o outro a massa do primario
-- pass I as a parameter in the void param (Olhar no dir temp)
-- melhorar flexibilidade da função phase space
-- correct badckward integration on phase space function
-- check if check_period is necessary according to the 
-    equations
-- adicionar alguma verificação de erro. Pode ser a parte orbital,
-mas seria melhor se envolvesse a parte rotacional também
-- define a structure called phase space and pass it to draw PS
-- verify if dfdt should be zero in the jacobian_rigid
-- autogenerate output folder (write a create dir function)
-- write a create file function
-- see what to do with system dimension and what variables transform
-into global or something like this
-- check where and how I am using auxiliar_functions_gsl 
-    and if they are useful, for example, in auxiliar_functions.
-     Maybe write a structure to set all relevant information to 
-     the integrator. Maybe write a structure for the system, 
-     with system dimension, parameters and cycle period, 
-     for example, and use this structure inside the integrator 
-     structure
-- update all commentaries on header files
-- review includes in header files
-- write functions for orbital motion using GSL's 
-    Newton method and test them separately
-- maybe write a run into makefile
-- think about using C++ and objects. In particular, put the evolve
-functions inside the classes.
-- verify which mass to use in field_rigid spin orbit equation
-- if we implement classes and objects, associate functions like
-constant of motion to these classes
+IMPORTANT STUFF
+
+- pensando na serie de cauchy, fazer uma versao do basin 
+undetermined onde eu nem uso o resultado final para calcular 
+as órbitas periódicas pelo método, eu considero que elas 
+são a minha órbita final mesmo e só calculo winding number.
+isso é, a simples distancia entre elementos da orbita jah
+define a sua convergencia
+
+- remove reference to K from everything that concerns the
+rigid case. Maybe add a type to the field to differentiate it between
+conservative and dissipative and use it to improve the data file names
+and figure labels
+
+- do not let p.o. calculation give NANs
+
+- acertar quando o periodo da po é na verdade menor
+do que o dado. Por exemplo, o metodo acha ponto fixo
+quando procura po de periodo 2. Diferenciar. Não sei como.
+
+- write a basin which keeps the temporal series theta, theta_dot and n 
+of the last ~100 cycles of every initial condition
+
+- Use terminal eps in scripts and pipes (or both versions on pipe and script)
+
+- fazer uma coluna de tempos multiplicado pelo passo no orbit
+
+- calculate p.o stability and put it in the data file name.
+
+ADITIONAL STUFF
+
+- revise control_id for all functions in spin_orbit.c
+
+- maybe change f_e for f in all functions. Understand why I wrote it as f_e in 
+the first place
+
+- move time series to tests. Or rather, transform time series
+to a drawing of orbits only
+
+- Organize tests
+
+- move two-body system to tests
+
+- implement automan. No manifolds.h, colocar um check function 
+para verificar se a orbita passada para o programa representa 
+uma orbita periodica para uma certa tolerancia
+
+FUTURE STUFF
+
+- Talvez, mais para frente, deixar o ponteiro params mais
+especifico para cada caso, associando quais valores entram
+lah e em qual posicao com os campos vetoriais, ajustando
+eles no init. Isso vai deixar o programa como um todo bem
+mais generico
+
+- maybe, in the future, use heap memory for everything

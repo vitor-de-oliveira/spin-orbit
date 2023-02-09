@@ -1,298 +1,319 @@
 #include "dynamical_system.h"
 
-int field_two_body(double t, const double y[], double f[], 
-				void *params)
+dynsys copy_dynsys(dynsys system)
 {
-	(void)t;
-
-	double *par = (double *)params;
-
-	double e 			= par[1];
-	double m_primary 	= par[2]; 
-	double m_secondary 	= par[3];
-	double G 			= par[4];
-
-	double total_mass = m_primary + m_secondary;
-
-    double r = sqrt((y[0] * y[0]) + (y[1] * y[1]));
-	double r_cube = r * r * r;
-
-	f[0] = y[2];
-	f[1] = y[3];
-	f[2] = -1.0 * G * total_mass * y[0] / r_cube;
-	f[3] = -1.0 * G * total_mass * y[1] / r_cube;
-
-	return GSL_SUCCESS;
+	dynsys cp_system;
+	cp_system.name = system.name;
+	cp_system.field = system.field;
+	cp_system.jac = system.jac;
+	cp_system.dim = system.dim;
+	cp_system.params = system.params;
+	return cp_system;
 }
 
-int jacobian_two_body(double t, const double y[], double *dfdy, 
-					double dfdt[], void *params)
+anlsis copy_anlsis(anlsis analysis)
 {
-	(void)t;
-
-	double *par = (double *)params;
-
-	double e 			= par[1];
-	double m_primary 	= par[2]; 
-	double m_secondary 	= par[3];
-	double G 			= par[4];
-
-	double total_mass = m_primary + m_secondary;
-
-    double r = sqrt((y[0] * y[0]) + (y[1] * y[1]));
-	double r_fifth = r * r * r * r * r;
-
-	double alpha_1 = G * total_mass * 
-			(2.0 * y[0] * y[0] - y[1] * y[1]) / r_fifth;
-
-	double alpha_2 = 3.0 * G * total_mass * y[0] * y[1] 
-					/ r_fifth;
-
-	double alpha_3 = alpha_2;
-
-	double alpha_4 = G * total_mass *  
-			(2.0 * y[1] * y[1] - y[0] * y[0]) / r_fifth;
-
-	gsl_matrix_view dfdy_mat 
-		= gsl_matrix_view_array(dfdy, 4, 4);
-	gsl_matrix *mat = &dfdy_mat.matrix;
-	gsl_matrix_set(mat, 0, 0, 0.0);
-	gsl_matrix_set(mat, 0, 1, 0.0);
-	gsl_matrix_set(mat, 0, 2, 1.0);
-	gsl_matrix_set(mat, 0, 3, 0.0);
-	gsl_matrix_set(mat, 1, 0, 0.0);
-	gsl_matrix_set(mat, 1, 1, 0.0);
-	gsl_matrix_set(mat, 1, 2, 0.0);
-	gsl_matrix_set(mat, 1, 3, 1.0);
-	gsl_matrix_set(mat, 2, 0, alpha_1);
-	gsl_matrix_set(mat, 2, 1, alpha_2);
-	gsl_matrix_set(mat, 2, 2, 0.0);
-	gsl_matrix_set(mat, 2, 3, 0.0);
-	gsl_matrix_set(mat, 3, 0, alpha_3);
-	gsl_matrix_set(mat, 3, 1, alpha_4);
-	gsl_matrix_set(mat, 3, 2, 1.0);
-	gsl_matrix_set(mat, 3, 3, 0.0);
-
-	dfdt[0] = 0.0;
-	dfdt[1] = 0.0;
-	dfdt[2] = 0.0;
-	dfdt[3] = 0.0;
-
-	return GSL_SUCCESS;
-}
-
-int field_rigid(double t, const double y[], double f[], 
-				void *params)
-{
-	(void)t;
-
-	double *par = (double *)params;
-
-	double gamma 		= par[0];
-	double e 			= par[1];
-	double m_primary 	= par[2]; 
-	double m_secondary 	= par[3];
-	double G 			= par[4];
-
-	double total_mass = m_primary + m_secondary;
-
-    double r = sqrt((y[2] * y[2]) + (y[3] * y[3]));
-    double f_e = atan2(y[3], y[2]);
-
-	double aux = (-3.0/2.0) * gamma * G * m_primary;
-	double r_cube = r * r * r;
-
-	// y[0] = theta
-	// y[1] = theta_dot
-	// y[2] = x
-	// y[3] = y
-	// y[4] = x_dot
-	// y[5] = y_dot
-
-	f[0] = y[1];
-	f[1] = aux * sin(2.0 * (y[0] - f_e)) / r_cube;
-	f[2] = y[4];
-	f[3] = y[5];
-	f[4] = -1.0 * G * total_mass * y[2] / r_cube;
-	f[5] = -1.0 * G * total_mass * y[3] / r_cube;
-
-	return GSL_SUCCESS;
-}
-
-int jacobian_rigid(double t, const double y[], double *dfdy, 
-					double dfdt[], void *params)
-{
-	(void)t;
-
-	double *par = (double *)params;
-
-	double gamma 		= par[0];
-	double e 			= par[1];
-	double m_primary 	= par[2]; 
-	double m_secondary 	= par[3];
-	double G 			= par[4];
-
-	double total_mass = m_primary + m_secondary;
-
-    double r = sqrt((y[2] * y[2]) + (y[3] * y[3]));
-    double f_e = atan2(y[3], y[2]);
-
-	double aux = (-3.0/2.0) * gamma * G * m_primary;
-	double r_cube = r * r * r;
-
-	double r_fifth = r * r * r * r * r;
-	double alpha_1 = G * total_mass * 
-			(2.0 * y[2] * y[2] - y[3] * y[3]) / r_fifth;
-	double alpha_2 = 3.0 * G * total_mass * y[2] * y[3] 
-					/ r_fifth;
-	double alpha_3 = alpha_2;
-	double alpha_4 = G * total_mass *  
-			(2.0 * y[3] * y[3] - y[2] * y[2]) / r_fifth;
-
-	double mixed_1 = (aux / r_fifth) * 
-			(2.0*y[3]*cos(2.0*(y[0]-f_e)) - 
-			 3.0*y[2]*sin(2.0*(y[0]-f_e)));
-
-	double mixed_2 = (aux / r_fifth) * 
-			(-3.0*y[3]*sin(2.0*(y[0]-f_e)) 
-			 -2.0*y[2]*cos(2.0*(y[0]-f_e)));
-
-	gsl_matrix_view dfdy_mat 
-		= gsl_matrix_view_array(dfdy, 2, 2);
-	gsl_matrix *mat = &dfdy_mat.matrix;
-
-	gsl_matrix_set(mat, 0, 0, 0.0);
-	gsl_matrix_set(mat, 0, 1, 1.0);
-	gsl_matrix_set(mat, 1, 0, 2.0 * aux 
-					*cos(2.0 * (y[0] - f_e)) / r_cube );
-	gsl_matrix_set(mat, 1, 1, 0.0);
-
-	gsl_matrix_set(mat, 2, 2, 0.0);
-	gsl_matrix_set(mat, 2, 3, 0.0);
-	gsl_matrix_set(mat, 2, 4, 1.0);
-	gsl_matrix_set(mat, 2, 5, 0.0);
-	gsl_matrix_set(mat, 3, 2, 0.0);
-	gsl_matrix_set(mat, 3, 3, 0.0);
-	gsl_matrix_set(mat, 3, 4, 0.0);
-	gsl_matrix_set(mat, 3, 5, 1.0);
-	gsl_matrix_set(mat, 4, 2, alpha_1);
-	gsl_matrix_set(mat, 4, 3, alpha_2);
-	gsl_matrix_set(mat, 4, 4, 0.0);
-	gsl_matrix_set(mat, 4, 5, 0.0);
-	gsl_matrix_set(mat, 5, 2, alpha_3);
-	gsl_matrix_set(mat, 5, 3, alpha_4);
-	gsl_matrix_set(mat, 5, 4, 1.0);
-	gsl_matrix_set(mat, 5, 5, 0.0);
-
-	gsl_matrix_set(mat, 0, 2, 0.0);
-	gsl_matrix_set(mat, 0, 3, 0.0);
-	gsl_matrix_set(mat, 0, 4, 0.0);
-	gsl_matrix_set(mat, 0, 5, 0.0);
-	gsl_matrix_set(mat, 1, 2, mixed_1);
-	gsl_matrix_set(mat, 1, 3, mixed_2);
-	gsl_matrix_set(mat, 1, 4, 0.0);
-	gsl_matrix_set(mat, 1, 5, 0.0);
-	gsl_matrix_set(mat, 2, 0, 0.0);
-	gsl_matrix_set(mat, 2, 1, 0.0);
-	gsl_matrix_set(mat, 3, 0, 0.0);
-	gsl_matrix_set(mat, 3, 1, 0.0);
-	gsl_matrix_set(mat, 4, 0, 0.0);
-	gsl_matrix_set(mat, 4, 1, 0.0);
-	gsl_matrix_set(mat, 5, 0, 0.0);
-	gsl_matrix_set(mat, 5, 1, 0.0);
-
-	dfdt[0] = 0.0;
-	dfdt[1] = 0.0;
-	dfdt[2] = 0.0;
-	dfdt[3] = 0.0;
-	dfdt[4] = 0.0;
-	dfdt[5] = 0.0;
-
-	return GSL_SUCCESS;
-}
-
-int field_rigid_kepler(double t, const double y[], 
-							double f[], void *params)
-{
-
-	double *par = (double *)params;
-
-	double gamma 		= par[0];
-	double e 			= par[1];
-	double m_primary 	= par[2]; 
-	double m_secondary 	= par[3];
-	double G 			= par[4];
-
-	double u = kepler_equation(e,t);
-    double r = 1.0 - e * cos(u);
-    double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
-			* tan(0.5 * u));
-
-	double aux = (-3.0/2.0) * gamma * G * m_primary;
-	double r_cube = r * r * r;
+	anlsis cp_anlsis;
 	
-	f[0] = y[1];
-	f[1] = aux * sin(2.0 * (y[0] - f_e)) / r_cube;
+	// orbit evolution
+	cp_anlsis.nc = analysis.nc;
+	cp_anlsis.nv = analysis.nv;
+	cp_anlsis.number_of_cycles = analysis.number_of_cycles;
+	cp_anlsis.cycle_period = analysis.cycle_period;
+	cp_anlsis.evolve_box_size = analysis.evolve_box_size;
+	cp_anlsis.coordinate_min = analysis.coordinate_min;
+	cp_anlsis.coordinate_max = analysis.coordinate_max;
+	cp_anlsis.velocity_min = analysis.velocity_min;
+	cp_anlsis.velocity_max = analysis.velocity_max;
 
-	return GSL_SUCCESS;
+	// grid variables
+    cp_anlsis.grid_resolution = analysis.grid_resolution;
+    cp_anlsis.grid_coordinate_min = analysis.grid_coordinate_min;
+	cp_anlsis.grid_coordinate_max = analysis.grid_coordinate_max;
+	cp_anlsis.grid_velocity_min = analysis.grid_velocity_min;
+	cp_anlsis.grid_velocity_max = analysis.grid_velocity_max;
+
+	// basin of attraction  
+    cp_anlsis.evolve_basin_time_tol = analysis.evolve_basin_time_tol;
+    cp_anlsis.evolve_basin_eps = analysis.evolve_basin_eps;
+
+	// time series
+    cp_anlsis.number_of_time_series = analysis.number_of_time_series;
+    cp_anlsis.time_series_delta = analysis.time_series_delta;
+
+    // periodic orbits
+    cp_anlsis.po_max_step = analysis.po_max_step;
+    cp_anlsis.po_tol = analysis.po_tol;
+
+	return cp_anlsis;
 }
 
-int jacobian_rigid_kepler(double t, const double y[], 
-				double *dfdy, double dfdt[], void *params)
+int evolve_cycle(double *y, double *t,
+				 dynsys system, anlsis analysis)
 {
-	double *par = (double *)params;
+	// declare variables
+	int status;
+	double h, h_max, h_min;
+	double error_abs, error_rel;
+	char *method, *control;
 
-	double gamma 		= par[0];
-	double e 			= par[1];
-	double m_primary 	= par[2]; 
-	double m_secondary 	= par[3];
-	double G 			= par[4];
+	// initialize control variables
+	h = 1e-3 * sign(analysis.cycle_period);
+	error_abs = 1e-14;
+	error_rel = 0.0;
+	h_max = 1e-1;
+	h_min = 1e-11;
+	method = "rk8pd";
+	control = "adaptive";
 
-	double u = kepler_equation(e,t);
-    double r = 1.0 - e * cos(u);
-    double f_e = 2.0 * atan(sqrt((1.0 + e)/(1.0 - e)) 
-			* tan(0.5 * u));
+	// set system, integrator and driver
+	gsl_odeiv2_system sys;
+	set_system(&sys, system);
 
-	double aux = (-3.0/2.0) * gamma * G * m_primary;
-	double r_cube = r * r * r;
+	const gsl_odeiv2_step_type *T;
+	set_integrator(&T, method);
 
-	gsl_matrix_view dfdy_mat 
-		= gsl_matrix_view_array(dfdy, 2, 2);
-	gsl_matrix *mat = &dfdy_mat.matrix;
-	gsl_matrix_set(mat, 0, 0, 0.0);
-	gsl_matrix_set(mat, 0, 1, 1.0);
-	gsl_matrix_set(mat, 1, 0, 2.0 * aux 
-					*cos(2.0 * (y[0] - f_e)) / r_cube );
-	gsl_matrix_set(mat, 1, 1, 0.0);
+	gsl_odeiv2_driver *d;
+	set_driver(&d, &sys, T, h, h_max, h_min,
+			   error_abs, error_rel, control);
 
-	dfdt[0] = 0.0;
-	dfdt[1] = 0.0;
+	// cycle evolution
+	status = gsl_odeiv2_driver_apply (d, t, 
+		*t + analysis.cycle_period, y);
 
-	return GSL_SUCCESS;
+	// check if integration was successfull
+	if (status != GSL_SUCCESS)
+	{
+		printf("Warning: %s\n", gsl_strerror(status));
+		exit(2);
+	}
+
+	// free memory
+	gsl_odeiv2_driver_free(d);
+
+	return 0;
 }
 
-double angular_momentum_two_body(double y[4])
+int evolve_orbit(double *ic, double ***orbit, int *orbit_size,
+				dynsys system, anlsis analysis)
 {
-	double h;
+	// declare variables
+	double y[system.dim];
+	double t = 0.0;
 
-	h = y[0] * y[3] - y[1] * y[2];
+	// allocate memory and initializes exit data
+	if (orbit != NULL)
+	{
+		// takes into consideration initial condition
+		alloc_2d_double(orbit, analysis.number_of_cycles + 1, 
+			system.dim);
+		copy((*orbit)[0], ic, system.dim);
+	}
+	else
+	{
+		printf("Error: NULL orbit.");
+		exit(2);
+	}
+	
+	// takes into consideration initial condition
+	int counter = 1;
 
-	return h;
+	// orbit evolution
+	copy(y, ic, system.dim);
+	for (int i = 0; i < analysis.number_of_cycles; i++)
+	{
+		evolve_cycle(y, &t, system, analysis);
+	
+		// check if orbit diverges
+		for (int j = 0; j < system.dim; j++)
+		{
+			if (fabs(y[j]) > analysis.evolve_box_size)
+			{
+				printf("Warning: box limit reached\n");
+				printf("y[%d] = %1.10e\n", j, y[j]);
+				printf("Box size = %1.2e\n", 
+						analysis.evolve_box_size);
+				goto out;
+			}
+		}
+
+		counter++;
+
+		// write orbit element
+		copy((*orbit)[i + 1], y, system.dim);
+	}
+
+	out:;
+
+	*orbit_size = counter;
+
+	return 0;
 }
 
-double vis_viva_two_body(double y[4], double T, double a)
+int double_to_grid	(int grid[2], 
+					 double x[2],
+					 anlsis analysis)
 {
-	double n, mu, r, v, C;
+	double res_i = (analysis.grid_coordinate_max -
+					analysis.grid_coordinate_min) / 
+					(double)(analysis.grid_resolution - 1);
+	
+	double res_j = (analysis.grid_velocity_max -
+					analysis.grid_velocity_min) / 
+					(double)(analysis.grid_resolution - 1);
 
-	n = 2.0 * M_PI / T;
+	double pos_i = 
+			(x[0] - analysis.grid_coordinate_min) / res_i;
 
-	mu = n * n * a * a * a;
+	double pos_j = 
+			(x[1] - analysis.grid_velocity_min) / res_j;
 
-	r = sqrt(y[0] * y[0] + y[1] * y[1]);
+	grid[0] = (int)floor(pos_i);
+	grid[1] = (int)floor(pos_j);
 
-	v = sqrt(y[2] * y[2] + y[3] * y[3]);
+	return 0;
+}
 
-	C = 0.5 * v * v - mu / r;
+int grid_to_double	(int grid[2],
+					 double x[2],
+					 anlsis analysis)
+{
+	double res_i = (analysis.grid_coordinate_max -
+					analysis.grid_coordinate_min) / 
+					(double)(analysis.grid_resolution - 1);
+	
+	double res_j = (analysis.grid_velocity_max -
+					analysis.grid_velocity_min) / 
+					(double)(analysis.grid_resolution - 1);
 
-	return C;
+	x[0] = analysis.grid_coordinate_min + 
+			(double)grid[0] * res_i;
+	x[1] = analysis.grid_velocity_min + 
+			(double)grid[1] * res_j;
+
+	return 0;
+}
+
+int double_to_grid_v2	(int grid[2], 
+					 	 double x[2],
+					 	 anlsis analysis)
+{
+	double res_i = (analysis.grid_coordinate_max -
+					analysis.grid_coordinate_min) / 
+					(double)(analysis.grid_resolution);
+	
+	double res_j = (analysis.grid_velocity_max -
+					analysis.grid_velocity_min) / 
+					(double)(analysis.grid_resolution);
+
+	double pos_i = 
+			(x[0] - analysis.grid_coordinate_min) / res_i;
+
+	double pos_j = 
+			(x[1] - analysis.grid_velocity_min) / res_j;
+
+	grid[0] = (int)floor(pos_i);
+	grid[1] = (int)floor(pos_j);
+
+	return 0;
+}
+
+int grid_to_double_v2	(int grid[2],
+					 	 double x[2],
+					 	 anlsis analysis)
+{
+	double res_i = (analysis.grid_coordinate_max -
+					analysis.grid_coordinate_min) / 
+					(double)(analysis.grid_resolution);
+	
+	double res_j = (analysis.grid_velocity_max -
+					analysis.grid_velocity_min) / 
+					(double)(analysis.grid_resolution);
+
+	x[0] = analysis.grid_coordinate_min + 
+			((double)grid[0] + 0.5) * res_i;
+	x[1] = analysis.grid_velocity_min + 
+			((double)grid[1] + 0.5) * res_j;
+
+	return 0;
+}
+
+int set_driver(gsl_odeiv2_driver **d, 
+			   gsl_odeiv2_system *sys, 
+			   const gsl_odeiv2_step_type *T, 
+			   double h, double h_max, double h_min,
+			   double error_abs, double error_rel, 
+			   char *control)
+{
+	*d = gsl_odeiv2_driver_alloc_y_new(sys, 
+		T, h, error_abs, error_rel);
+		
+	if (strcmp(control, "adaptive") == 0)
+	{
+		gsl_odeiv2_driver_set_hmax(*d, h_max);
+		gsl_odeiv2_driver_set_hmin(*d, h_min);
+	}
+	else if (strcmp(control, "fixed") != 0)
+	{
+		printf("Warning: invalid GSL error control\n");
+		exit(2);
+	}
+	return 0;
+}
+
+int set_integrator(const gsl_odeiv2_step_type **T, 
+				   char *integrator)
+{
+    if (strcmp(integrator, "rk2") == 0)
+	{
+		*T = gsl_odeiv2_step_rk2;
+	}
+	else if (strcmp(integrator, "rk4") == 0)
+	{
+		*T = gsl_odeiv2_step_rk4;
+	}
+	else if (strcmp(integrator, "rk45") == 0)
+	{
+		*T = gsl_odeiv2_step_rkf45;
+	}
+	else if (strcmp(integrator, "rkck") == 0)
+	{
+		*T = gsl_odeiv2_step_rkck;
+	}
+	else if (strcmp(integrator, "rk8pd") == 0)
+	{
+		*T = gsl_odeiv2_step_rk8pd;
+	}
+	else if (strcmp(integrator, "rk4imp") == 0)
+	{
+		*T = gsl_odeiv2_step_rk4imp;
+	}
+	else if (strcmp(integrator, "bsimp") == 0)
+	{
+		*T = gsl_odeiv2_step_bsimp;
+	}
+	else if (strcmp(integrator, "msadams") == 0)
+	{
+		*T = gsl_odeiv2_step_msadams;
+	}
+	else if (strcmp(integrator, "msbdf") == 0)
+	{
+		*T = gsl_odeiv2_step_msbdf;	
+	}
+	else
+	{
+		printf("Warning: invalid GSL integrator\n");
+		exit(2);
+	}
+	return 0;
+}
+
+int set_system(gsl_odeiv2_system *sys, 
+			   dynsys system)
+{
+	sys->function = system.field;
+	sys->jacobian = system.jac;
+	sys->dimension = system.dim;
+	sys->params = system.params;
+	return 0;
 }
