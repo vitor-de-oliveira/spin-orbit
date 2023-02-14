@@ -49,7 +49,7 @@ def data_parse(flname):
                 data.append(float(line.split()[3]))
     return data
 
-def plot_histogram(data, Nbins, output_name, par_value):
+def plot_histogram(data, output_name, par_value):
     plt.rc('text', usetex = True)  # LaTeX text
     plt.rc('font', family = 'serif', size = 70)
     fig, ax = plt.subplots(figsize = (30, 28))
@@ -64,7 +64,7 @@ def plot_histogram(data, Nbins, output_name, par_value):
     # ax.xaxis.set_major_locator(XMt)
     # ax.xaxis.set_minor_locator(Xmt)
     # ax.xaxis.set_major_formatter(X_format)
-    ax.set_xlabel(r'Convergence time', rotation = 0, labelpad = 15, fontsize = 70)
+    # ax.set_xlabel(r'Convergence time', rotation = 0, labelpad = 15, fontsize = 70)
 
     # Set frequency axes #
     # frq_min = 0.0
@@ -76,7 +76,7 @@ def plot_histogram(data, Nbins, output_name, par_value):
     # ax.yaxis.set_major_locator(frq_Mt)
     # ax.yaxis.set_minor_locator(frq_mt)
     # ax.yaxis.set_major_formatter(frq_format)
-    ax.set_ylabel(r'Frequency', rotation = 90, labelpad = 15, fontsize = 70)
+    # ax.set_ylabel(r'Frequency', rotation = 90, labelpad = 15, fontsize = 70)
 
     # Set global features #
     plt.tick_params(which = 'major', direction = 'in', length = 18, width = 2.8, 
@@ -87,8 +87,11 @@ def plot_histogram(data, Nbins, output_name, par_value):
         ax.spines[axis].set_linewidth(4.0)
 
     # Plot histogram #
-    plt.hist(data, bins = Nbins, histtype = 'bar', align = 'left',
-                   color = 'dodgerblue', density = False, zorder = 1)
+    Xmin_plot = int(min(data))
+    Xmax_plot = int(max(data))
+    plt.hist(data, bins = range(Xmin_plot, Xmax_plot), histtype = 'bar', 
+                   align = 'left', color = 'dodgerblue', density = False, 
+                   zorder = 1)
 
     plt.title(par_value, x = 0.5, y = 1.01, fontsize = 70)
     plt.savefig(output_name, bbox_inches='tight')
@@ -96,12 +99,11 @@ def plot_histogram(data, Nbins, output_name, par_value):
     plt.close()
 
 def __main():
-    bins = 150
     input_name = get_input()
     data = data_parse(input_name)
     output_name = get_output()
     par_value = get_parameter()
-    plot_histogram(data, bins, output_name, par_value)
+    plot_histogram(data, output_name, par_value)
 
 if __name__ == "__main__":
     __main()

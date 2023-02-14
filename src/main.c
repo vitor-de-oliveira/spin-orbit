@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = 0.14;
+	e = 0.0;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -400,10 +400,10 @@ int main(int argc, char **argv)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	// for (int i = 0; i <= number_of_e; i++)
-	// {
-	// 	e = e_initial + (double)i * e_step;
-	// 	printf("e = %1.3f\n", e);
+	for (int i = 0; i <= number_of_e; i++)
+	{
+		e = e_initial + (double)i * e_step;
+		// printf("e = %1.3f\n", e);
 
 	// 	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
@@ -442,9 +442,9 @@ int main(int argc, char **argv)
 		// 	printf("Warning: null number of attractors.\n");
 		// }
 
-	// 	plot_histogram_python (system, analysis);
+		plot_histogram_python (system, analysis);
 
-	// }
+	}
 
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
@@ -453,8 +453,8 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_range_e_latex(number_of_e,
 	// 	e_initial, e_final, system, analysis);
 
-	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
-		e_initial, e_final, system, analysis);
+	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
 
 	// analysis.grid_resolution = 600;
 	// plot_slope_basin_entropy_range_e(number_of_e,
