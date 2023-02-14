@@ -16,6 +16,13 @@ int main(int argc, char **argv)
 		double begin_time_omp = omp_get_wtime(), end_time_omp;
 	#endif
 
+	/******************* Create output **********************/
+
+	struct stat st = {0};
+	if (stat("output", &st) == -1) {
+		mkdir("output", 0700);
+	}
+
 	/***************** Declared variables ******************/
 
     double gamma;			// equatorial flattening
@@ -75,9 +82,10 @@ int main(int argc, char **argv)
 	// system = system_linear_average;
 	// system = system_linear;
 	// double ic[system.dim];
+	// int grid[2];
 
 	// gamma = gamma_hyperion;
-	// e = 0.105;
+	// e = 0.14;
 	// m_secondary = 0.;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
@@ -85,12 +93,22 @@ int main(int argc, char **argv)
 	// K = 1e-2;
 	// T = 2.0 * M_PI;
 
-	// analysis.number_of_cycles = 5e3;		//1e3 6e3
+	// analysis.number_of_cycles = 5.5e3;		//1e3 6e3
 	// analysis.cycle_period = T; 				// 1e-3
 	// analysis.evolve_box_size = 1e8;
 
-	// ic[0] = -6.696425553095295e-01 + M_PI;
-	// ic[1] = 2.102460925123672e+00;
+	// analysis.grid_resolution = 600;
+	// analysis.grid_coordinate_min = -M_PI;
+	// analysis.grid_coordinate_max = M_PI;
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
+	// grid[0] = 562;
+	// grid[1] = 288;
+	// // grid_to_double(grid, basin, analysis);
+	// grid_to_double_v2(grid, ic, analysis);
+	// // ic[0] = -1.92161;
+	// // ic[1] = 0.58750;
+	// // printf("%1.5f %1.5f\n", ic[0], ic[1]);
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
@@ -267,7 +285,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = 0.14;
+	e = 0.0;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -350,7 +368,7 @@ int main(int argc, char **argv)
 	double 	e_final;
 	double 	e_step;
 
-	analysis.number_of_cycles = 3e3;		// 1e3
+	analysis.number_of_cycles = 5e3;		// 1e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -383,11 +401,11 @@ int main(int argc, char **argv)
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
 	// for (int i = 0; i <= number_of_e; i++)
-	// {
-	// 	e = e_initial + (double)i * e_step;
-	// 	printf("e = %1.3f\n", e);
+	{
+		// e = e_initial + (double)i * e_step;
+		// printf("e = %1.3f\n", e);
 
-		// fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
+	// 	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
 		// if (number_of_pos > 0)
 		// {
@@ -413,20 +431,20 @@ int main(int argc, char **argv)
 			// comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// plot_comparison_entropy_grid_vs_monte_carlo (system, analysis);
 
-		// 	for (int j = 0; j < number_of_pos; j++)
-		// 	{
-		// 		dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-		// 	}
-		// 	free(multiple_pos);
+			// for (int j = 0; j < number_of_pos; j++)
+			// {
+			// 	dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+			// }
+			// free(multiple_pos);
 		// }
 		// else
 		// {
 		// 	printf("Warning: null number of attractors.\n");
 		// }
 
-		// plot_histogram_python (system, analysis);
+		plot_histogram_python (system, analysis);
 
-	// }
+	}
 
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);

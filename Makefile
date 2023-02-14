@@ -42,6 +42,9 @@ clean:
 	-rm -f $(TARGET)
 	-rm -f $(TARGET_TEST)
 
+python_requirements:
+	pip install -r python_tools/requirements.txt
+
 #prerequisites
 compile: main.c $(DEPENDENCIES) -lgsl -lgslcblas -lm  
 		   @$(CC) $(CFLAGS) -o $(TARGET) $^

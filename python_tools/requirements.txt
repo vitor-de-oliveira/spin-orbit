@@ -1,0 +1,11 @@
+contourpy==1.0.7
+cycler==0.11.0
+fonttools==4.38.0
+kiwisolver==1.4.4
+matplotlib==3.6.3
+numpy==1.24.2
+packaging==23.0
+pandas==1.5.3
+patsy==0.5.3
+scipy==1.10.0
+statsmodels==0.13.5

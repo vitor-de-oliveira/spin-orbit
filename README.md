@@ -6,11 +6,15 @@ Author: V. M. de Oliveira
 
 Last update on this file: Aug 17th 2022
 
-## Requirements
+## Main requirements
 ```sh
 * gcc
-* GSL
+* GNU Scientific Library (GSL)
+```
+## Additional requirements
+```sh
 * Gnuplot
+* pip
 ```
 ## Compile & Run
 ```sh
