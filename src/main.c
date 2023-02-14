@@ -400,9 +400,9 @@ int main(int argc, char **argv)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	for (int i = 0; i <= number_of_e; i++)
+	// for (int i = 0; i <= number_of_e; i++)
 	{
-		e = e_initial + (double)i * e_step;
+		// e = e_initial + (double)i * e_step;
 		// printf("e = %1.3f\n", e);
 
 	// 	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
