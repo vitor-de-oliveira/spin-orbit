@@ -721,7 +721,7 @@ int phase_space(dynsys system, anlsis analysis)
 		printf("Calculating set %d of %d\n", i + 1, analysis.nc);
 
 		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+		omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, \
 				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb)
@@ -1383,7 +1383,7 @@ int look_for_resonance	(int number_of_candidates,
 					i + 1, analysis.grid_resolution);
 
 		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+		omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, y0, grid, rot_ini, t) shared(orbit_distance, spin_distance)
 		{
@@ -2033,7 +2033,7 @@ int basin_of_attraction (perorb po,
 					i + 1, analysis.grid_resolution);
 
 		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+		omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged, convergence_time, orb, rot_ini) shared(basin_matrix, \
@@ -2309,7 +2309,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 					i + 1, analysis.grid_resolution);
 
 		omp_set_dynamic(0);     	// Explicitly disable dynamic teams
-		omp_set_num_threads(12);	// Use 12 threads for all consecutive parallel regions
+		omp_set_num_threads(100);	// Use 12 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
@@ -2479,7 +2479,7 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 	fclose(out_ref);
 
 	omp_set_dynamic(0);     	// Explicitly disable dynamic teams
-	omp_set_num_threads(12); 	// Use 12 threads for all consecutive parallel regions
+	omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
 
 	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, test_convergence)
 	{
@@ -3332,7 +3332,7 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 					i + 1, analysis.grid_resolution);
 
 		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(12); // Use 4 threads for all consecutive parallel regions
+		omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, grid, converged, po_already_found, attractor_period, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
