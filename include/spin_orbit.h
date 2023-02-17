@@ -207,6 +207,11 @@ int fill_control_monte_carlo(int	**control,
 						 	 dynsys system,
                          	 anlsis analysis);
 
+int fill_control_monte_carlo_with_break(int *control_size,
+										int	**control,
+						 	 			dynsys system,
+                         	 			anlsis analysis);
+
 /**
  * basin of attraction
 **/
@@ -243,6 +248,11 @@ int multiple_basin_of_attraction_determined_monte_carlo (int number_of_po,
                          					 			 dynsys system,
                          					 			 anlsis analysis);
 
+int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_of_po,
+											 			 			 perorb po[],
+                         					 			 			 dynsys system,
+                         					 			 			 anlsis analysis);
+
 int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 											 perorb po[],
                          					 dynsys system,
@@ -263,11 +273,19 @@ int basin_size_from_data_monte_carlo(int number_of_po,
                          			 dynsys system,
                          			 anlsis analysis);
 
+int basin_size_from_data_monte_carlo_with_break(int number_of_po,
+						 			 			perorb po[],
+                         			 			dynsys system,
+                         			 			anlsis analysis);
+
 int basin_entropy_from_data (dynsys system,
                          	 anlsis analysis);
 
 int basin_entropy_from_data_monte_carlo (dynsys system,
                          	 			 anlsis analysis);
+
+int basin_entropy_from_data_monte_carlo_with_break	(dynsys system,
+                         	 			 			 anlsis analysis);
 
 int basin_entropy_progress_from_data(int number_of_po,
 						 			 perorb po[],
@@ -278,6 +296,11 @@ int basin_entropy_progress_from_data_monte_carlo(int number_of_po,
 						 			 			 perorb po[],
                          			 			 dynsys system,
                          			 			 anlsis analysis);
+
+int basin_entropy_progress_from_data_monte_carlo_with_break(int number_of_po,
+						 			 			 			perorb po[],
+                         			 			 			dynsys system,
+                         			 			 			anlsis analysis);
 
 int evolve_multiple_basin_undetermined  (double *ic,
 									     bool *converged,
@@ -397,6 +420,12 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 																 	 			 double e_final,
 																 	 			 dynsys system,
 																 	 			 anlsis analysis);
+
+int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(int number_of_e,
+																 	 			 						double e_initial,
+																 	 			 						double e_final,
+																 	 			 						dynsys system,
+																 	 			 						anlsis analysis);
 
 int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 												 double e_initial,

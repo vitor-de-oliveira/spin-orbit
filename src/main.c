@@ -368,7 +368,7 @@ int main(int argc, char **argv)
 	double 	e_final;
 	double 	e_step;
 
-	analysis.number_of_cycles = 5e3;		// 1e3
+	analysis.number_of_cycles = 1e3;		// 1e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -391,7 +391,7 @@ int main(int argc, char **argv)
 	analysis.po_tol = 1e-8;					// 1e-13
 
 	analysis.number_of_rand_orbits = 360000;
-	analysis.convergence_window = 1e4;
+	analysis.convergence_window = 5e4;
 	analysis.convergence_precision = 1e-2;
 
 	number_of_e = 20;
@@ -401,11 +401,11 @@ int main(int argc, char **argv)
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
 	// for (int i = 0; i <= number_of_e; i++)
-	{
+	// {
 		// e = e_initial + (double)i * e_step;
 		// printf("e = %1.3f\n", e);
 
-	// 	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
+		// fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
 		// if (number_of_pos > 0)
 		// {
@@ -425,6 +425,10 @@ int main(int argc, char **argv)
 			// basin_size_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data_monte_carlo (system, analysis);
 			// basin_entropy_progress_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			// multiple_basin_of_attraction_determined_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
+			// basin_size_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
+			// basin_entropy_from_data_monte_carlo_with_break (system, analysis);
+			// basin_entropy_progress_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
 
 			/* comparison between grid and monte carlo */
 
@@ -442,9 +446,9 @@ int main(int argc, char **argv)
 		// 	printf("Warning: null number of attractors.\n");
 		// }
 
-		plot_histogram_python (system, analysis);
+		// plot_histogram_python (system, analysis);
 
-	}
+	// }
 
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
@@ -455,6 +459,9 @@ int main(int argc, char **argv)
 
 	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
+
+	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(number_of_e,
+		e_initial, e_final, system, analysis);
 
 	// analysis.grid_resolution = 600;
 	// plot_slope_basin_entropy_range_e(number_of_e,
