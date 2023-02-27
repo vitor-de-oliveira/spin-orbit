@@ -5803,6 +5803,7 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 }
 
 int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(int number_of_e,
+																										double e_step_ext,
 																 	 			 						double e_initial,
 																 	 			 						double e_final,
 																 	 			 						dynsys system,
@@ -5810,9 +5811,9 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_c
 {
 	FILE 	*combineFiles;
 	FILE 	*gnuplotPipe;
-	int		size_filename = 200;
+	int		size_filename = 300;
 	char 	local_filename[size_filename];
-	char	filename[size_filename * number_of_e + 50];
+	char	filename[50000];
 	int		spin_period;
 	int		orbit_period;
 	int		cb_range_min;
@@ -5822,25 +5823,23 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_c
 	double 	K = par[6];
 	double 	ec, e_step;
 
-	if (number_of_e < 2)
+	if (number_of_e > 0)
 	{
-		printf("Invalid range\n");
-		exit(2);
+		e_step = (e_final - e_initial) / (double)(number_of_e);
 	}
-
-	e_step = (e_final - e_initial) / (double)(number_of_e); 
-
-	sprintf(filename, "paste -d \"\n\"");
-
+	else
+	{
+		e_step = e_step_ext;
+	}
 	ec = e_initial;
-	for(int i = 0; i <= number_of_e; i++)
+	sprintf(filename, "paste -d \"\n\"");
+	while(ec < e_final + e_step/2.0)
 	{
 		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
 		strcat(filename, local_filename);
 		ec += e_step;
 	}
-
 	strcat(filename, " > output/basin_of_attraction/basins_size_combined_monte_carlo_with_break.dat");
 
 	combineFiles = popen(filename, "w");
@@ -5850,7 +5849,7 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_c
 	sprintf(filename, "paste -s");
 
 	ec = e_initial;
-	for(int i = 0; i <= number_of_e; i++)
+	while(ec < e_final + e_step/2.0)
 	{
 		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);

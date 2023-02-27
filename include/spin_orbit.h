@@ -422,6 +422,7 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 																 	 			 anlsis analysis);
 
 int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(int number_of_e,
+																										double e_step_ext,
 																 	 			 						double e_initial,
 																 	 			 						double e_final,
 																 	 			 						dynsys system,

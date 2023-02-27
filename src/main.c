@@ -400,10 +400,10 @@ int main(int argc, char **argv)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	for (int i = 0; i <= number_of_e; i++)
-	{
-		e = e_initial + (double)i * e_step;
-		printf("e = %1.3f\n", e);
+	// for (int i = 0; i <= number_of_e; i++)
+	// {
+	// 	e = e_initial + (double)i * e_step;
+	// 	printf("e = %1.3f\n", e);
 
 		// fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
@@ -448,7 +448,7 @@ int main(int argc, char **argv)
 
 		// plot_histogram_python (system, analysis);
 
-	}
+	// }
 
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
@@ -460,8 +460,8 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
 
-	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(number_of_e,
-		e_initial, e_final, system, analysis);
+	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
+		0.0, 0.25, system, analysis);
 
 	// analysis.grid_resolution = 600;
 	// plot_slope_basin_entropy_range_e(number_of_e,
