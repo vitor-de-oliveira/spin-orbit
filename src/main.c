@@ -368,7 +368,7 @@ int main(int argc, char **argv)
 	double 	e_final;
 	double 	e_step;
 
-	analysis.number_of_cycles = 1.5e3;		// 1e3 5e3
+	analysis.number_of_cycles = 4.5e3;		// 1e3 5e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -394,18 +394,18 @@ int main(int argc, char **argv)
 	analysis.convergence_window = 5e4;
 	analysis.convergence_precision = 1e-2;
 
-	number_of_e = 40;
+	number_of_e = 20;
 	e_initial = 0.0;	// 0.0
-	e_final = 0.4;		// 0.2
+	e_final = 0.2;		// 0.2
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	// for (int i = 0; i <= number_of_e; i++)
-	// {
-	// 	e = e_initial + (double)i * e_step;
-	// 	printf("e = %1.3f\n", e);
+	for (int i = 10; i <= 11; i++)	// (int i = 0; i <= number_of_e; i++)
+	{
+		e = e_initial + (double)i * e_step;
+		printf("e = %1.3f\n", e);
 
-		// fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
+		fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
 		// if (number_of_pos > 0)
 		// {
@@ -425,7 +425,7 @@ int main(int argc, char **argv)
 			// basin_size_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data_monte_carlo (system, analysis);
 			// basin_entropy_progress_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
-			// multiple_basin_of_attraction_determined_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
+			multiple_basin_of_attraction_determined_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
 			// basin_size_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data_monte_carlo_with_break (system, analysis);
 			// basin_entropy_progress_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
@@ -435,11 +435,11 @@ int main(int argc, char **argv)
 			// comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// plot_comparison_entropy_grid_vs_monte_carlo (system, analysis);
 
-			// for (int j = 0; j < number_of_pos; j++)
-			// {
-			// 	dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-			// }
-			// free(multiple_pos);
+			for (int j = 0; j < number_of_pos; j++)
+			{
+				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+			}
+			free(multiple_pos);
 		// }
 		// else
 		// {
@@ -447,9 +447,9 @@ int main(int argc, char **argv)
 		// }
 
 		// plot_histogram_python (system, analysis);
-		plot_histogram_python_monte_carlo_with_break (system, analysis);
+		// plot_histogram_python_monte_carlo_with_break (system, analysis);
 
-	// }
+	}
 
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
