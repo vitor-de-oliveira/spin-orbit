@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 	system = system_linear;
 
 	gamma = gamma_hyperion;
-	e = 0.0;
+	e = e_hyperion;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -368,7 +368,7 @@ int main(int argc, char **argv)
 	double 	e_final;
 	double 	e_step;
 
-	analysis.number_of_cycles = 5e3;		// 1e3
+	analysis.number_of_cycles = 1.5e3;		// 1e3 5e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -447,6 +447,7 @@ int main(int argc, char **argv)
 		// }
 
 		// plot_histogram_python (system, analysis);
+		plot_histogram_python_monte_carlo_with_break (system, analysis);
 
 	// }
 
@@ -460,8 +461,8 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
 
-	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
-		0.0, 0.25, system, analysis);
+	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
+	// 	0.0, 0.25, system, analysis);
 
 	// analysis.grid_resolution = 600;
 	// plot_slope_basin_entropy_range_e(number_of_e,

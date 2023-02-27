@@ -443,5 +443,8 @@ int plot_comparison_entropy_grid_vs_monte_carlo	(dynsys system,
 
 int plot_histogram_python	(dynsys system,
 							 anlsis analysis);
+
+int plot_histogram_python_monte_carlo_with_break(dynsys system,
+							 					 anlsis analysis);
                                                                                    
 #endif

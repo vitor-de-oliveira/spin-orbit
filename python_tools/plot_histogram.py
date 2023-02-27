@@ -20,7 +20,10 @@ def __get_arg() -> argparse.ArgumentParser:
                         dest = 'output_path')
     parser.add_argument('--parameter',
                         action = 'store',
-                        dest = 'parameter_value') 
+                        dest = 'parameter_value')
+    parser.add_argument('--method',
+                        action = 'store',
+                        dest = 'method_type') 
     return parser
 
 def get_input() -> str:
@@ -41,12 +44,21 @@ def get_parameter() -> str:
     par = args.parameter_value
     return par
 
-def data_parse(flname):
+def get_method() -> str:
+    parser = __get_arg()
+    args = parser.parse_args()
+    met = args.method_type
+    return met
+
+def data_parse(flname, metname):
     data = []
     with open(flname, 'r') as inpt:
         for line in inpt:
             if line != '' and line != '\n':
-                data.append(float(line.split()[3]))
+                if metname == 'MC':
+                    data.append(float(line.split()[1]))
+                else:
+                    data.append(float(line.split()[3]))
     return data
 
 def plot_histogram(data, output_name, par_value):
@@ -99,10 +111,11 @@ def plot_histogram(data, output_name, par_value):
     plt.close()
 
 def __main():
-    input_name = get_input()
-    data = data_parse(input_name)
     output_name = get_output()
     par_value = get_parameter()
+    method_name = get_method()
+    input_name = get_input()
+    data = data_parse(input_name, method_name)
     plot_histogram(data, output_name, par_value)
 
 if __name__ == "__main__":

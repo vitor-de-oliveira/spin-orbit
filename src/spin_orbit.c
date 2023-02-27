@@ -2621,7 +2621,7 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	double K = par[6];
 
 	// prepare and open exit files
-	FILE	*out_control, *out_ref, *out_converged_time;
+	FILE	*out_control, *out_ref, *out_converged_number, *out_times;
 	char	filename[300];
 
 	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
@@ -2632,9 +2632,13 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
 	out_ref = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_converged_time_with_break_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_method_converged_number_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
-	out_converged_time = fopen(filename, "w");
+	out_converged_number = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_times_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	out_times = fopen(filename, "w");
 
 	// declare variables
 	double y[system.dim];
@@ -2649,7 +2653,9 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	time_t t;	srand((unsigned) time(&t));
 	int converged_orbit_number;
 	int *control;
+	double *times;
 	alloc_1d_int(&control, analysis.number_of_rand_orbits);
+	alloc_1d_double(&times, analysis.number_of_rand_orbits);
 
 	for (int i = 0; i < number_of_po; i++)
 	{
@@ -2705,10 +2711,12 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 				{
 					basin_size[converged_po_id]++;
 					control[orbits_counter-1] = converged_po_id + 1;
+					times[orbits_counter-1] = (double)(convergence_time);
 				}
 				else
 				{
 					control[orbits_counter-1] = -1;
+					times[orbits_counter-1] = NAN;
 				}
 
 				entropy_progress[orbits_counter-1] = 
@@ -2746,16 +2754,19 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	for (int i = 0; i < converged_orbit_number + 1; i++)
 	{
 		fprintf(out_control, "%d %d\n", i, control[i]);
+		fprintf(out_times, "%d %1.5e\n", i, times[i]);
 	}
 	fclose(out_control);
+	fclose(out_times);
 
-	fprintf(out_converged_time, "%1.3f %d %d\n", 
+	fprintf(out_converged_number, "%1.3f %d %d\n", 
 		e, converged_orbit_number, converged_orbit_number-analysis.convergence_window);
-	fclose(out_converged_time);
+	fclose(out_converged_number);
 
 	// free memory
 	dealloc_1d_int(&basin_size);
 	dealloc_1d_int(&control);
+	dealloc_1d_double(&times);
 	dealloc_1d_double(&entropy_progress);
 
 	printf("Data written in output/basin_of_attraction/\n");
@@ -6275,6 +6286,42 @@ int plot_histogram_python	(dynsys system,
 	strcat(filename, filename_output);
 	sprintf(filename_parameter, " --parameter e=%1.3f", e);
 	strcat(filename, filename_parameter);
+	pythonPipe = popen(filename, "w");
+	fclose(pythonPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int plot_histogram_python_monte_carlo_with_break(dynsys system,
+							 					 anlsis analysis)
+{
+	FILE 	*pythonPipe;
+	int		size_filename = 400;
+	char 	filename[size_filename];
+	char 	filename_input[size_filename];
+	char 	filename_output[size_filename];
+	char 	filename_parameter[size_filename];
+	char 	filename_method[size_filename];
+	double 	*par = (double *)system.params;
+	double 	gamma = par[0];
+	double	e = par[1];
+	double 	K = par[6];
+
+	printf("Plotting histogram for e = %1.3f and gamma = %1.3f\n", e, gamma);
+
+	sprintf(filename, "python3 python_tools/plot_histogram.py");
+	sprintf(filename_input, " --input output/basin_of_attraction/multiple_basin_determined_times_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	strcat(filename, filename_input);
+	sprintf(filename_output, " --output output/basin_of_attraction/fig_histogram_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	strcat(filename, filename_output);
+	sprintf(filename_parameter, " --parameter e=%1.3f", e);
+	strcat(filename, filename_parameter);
+	sprintf(filename_method, " --method MC");
+	strcat(filename, filename_method);
 	pythonPipe = popen(filename, "w");
 	fclose(pythonPipe);
 
