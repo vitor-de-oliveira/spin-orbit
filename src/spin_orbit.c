@@ -1723,6 +1723,7 @@ int fill_attractor_array(int *number_of_pos,
 			}
 		}
 		fclose(in);
+		printf("Done\n");
 	}
 	return 0;
 }
