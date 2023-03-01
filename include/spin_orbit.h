@@ -112,11 +112,27 @@ dynsys init_linear(void *params);
 
 dynsys init_linear_average(void *params);
 
-int init_orbital(double y[4],
-                 double e);
+// gives the position and velocity on periapsis
+int init_orbital(double orb[4],
+                 dynsys system);
 
 int complete_orbital_part   (double y[],
                              dynsys system);
+
+// returns the orbital period based on keplers
+// 3rd law 
+double kepler_period(double m1,
+					 double m2,
+					 double G,
+					 double a);
+
+/**
+ * orbit
+**/
+
+int orbit_two_body	(double *ic,
+					 dynsys system,
+					 anlsis analysis);
 
 /**
  * poincare map
@@ -324,6 +340,9 @@ double basin_entropy(int number_of_orbits,
 
 // comparison between field_linear and field_linar_average
 int linear_average_benchmark();
+
+// for comparison with the solution for the two body problem
+int trace_ellipse();
 
 /**
  * Gnuplot pipe

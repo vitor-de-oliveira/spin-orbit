@@ -287,6 +287,7 @@ int field_linear(double t, const double y[],
 	double G 			= par[4];
 	double a			= par[5];
 	double K			= par[6];
+	double T			= par[7];
 
 	double total_mass = m_primary + m_secondary;
 
@@ -299,7 +300,7 @@ int field_linear(double t, const double y[],
 	double a_over_r = a / r;
 	double aux_2 = pow(a_over_r, 6.0);
 	
-	double n = 1.0;
+	double n = 2.0 * M_PI / T;
 	double f_dot = a_over_r * a_over_r * n * sqrt(1.0 - (e * e));
 
 	double L = aux_2;
@@ -530,20 +531,22 @@ dynsys init_linear_average(void *params)
     return linear_average;
 }
 
-int init_orbital(double orb[4], double e)
+int init_orbital(double orb[4],
+                 dynsys system)
 {
-	double a = 1.0;
-	
-	double x = a * (1.0 - e * e) / (1.0 + e);
-	double y = 0.0;
+	double	*par = (double *)system.params;
+	double	gamma = par[0];
+	double	e = par[1];
+	double	a = par[5];
+	double	T = par[7];
 
-	double f_e = atan2(y, x);
+	double	n = 2.0 * M_PI / T;
 	
-	double x_dot = 0.0;
-	double y_dot = (e + cos(f_e))/sqrt(1.0-e*e);
-	// double y_dot = (e + 1.0 / 
-	// 	sqrt(y[3]*y[3]/(y[2]*y[2])+1.0)) /
-	// 	sqrt(1.0-e*e);
+	// position and velocity at periapsis from Murray
+	double	x = a * (1.0 - e);
+	double	y = 0.0;	
+	double	x_dot = 0.0;
+	double	y_dot = n * a * sqrt((1.0 + e)/(1.0 - e));
 
 	orb[0] = x;
 	orb[1] = y;
@@ -556,10 +559,8 @@ int init_orbital(double orb[4], double e)
 int complete_orbital_part   (double y[],
                              dynsys system)
 {
-	double *par = (double *)system.params;
-	double e = par[1];
 	double orb_ini[4];
-	init_orbital(orb_ini, e);
+	init_orbital(orb_ini, system);
 	if (system.dim == 6)
 	{
 		for (int k = 0; k < 4; k++)
@@ -567,6 +568,97 @@ int complete_orbital_part   (double y[],
 			y[k+2] = orb_ini[k];
 		}
 	}
+	return 0;
+}
+
+double kepler_period(double m1,
+					 double m2,
+					 double G,
+					 double a)
+{
+	return sqrt(4.0 * M_PI * M_PI * a * a * a / (G * (m1 + m2)));
+}
+
+int orbit_two_body	(double *ic,
+					 dynsys system,
+					 anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/orbit", &st) == -1) {
+		mkdir("output/orbit", 0700);
+	}
+
+	if (system.name != "two_body")
+	{
+		printf("Warning: cannot use this function.\n");
+		exit(2);
+	}
+
+	printf("Calculating orbit\n");
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files 
+	FILE	*out_orb, *out_orb_ic, 
+			*out_orb_err;
+	char	filename[150];
+
+	sprintf(filename, "output/orbit/orbit_two_body_e_%1.3f.dat", e);
+	out_orb = fopen(filename, "w");
+
+	sprintf(filename, "output/orbit/orbit_ic_two_body_e_%1.3f.dat", e);
+	out_orb_ic = fopen(filename, "w");
+
+	sprintf(filename, "output/orbit/orbit_orbital_error_angular_momentum_two_body_e_%1.3f.dat", e);
+	out_orb_err = fopen(filename, "w");
+	
+	// declare variables
+	int orbit_size;
+	int gcd, numerator, denominator;
+	double **orbit;
+	double orb[4], orb_ini[4];
+	double last_angle_dif;
+
+	for (int i = 0; i < 4; i++)
+	{
+		orb_ini[i] = ic[i];
+	}
+
+	// evolve system
+	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+
+	// write orbit and constant error to file
+	fprintf(out_orb_ic, "%1.15e %1.15e\n", 
+			orbit[0][0], orbit[0][1]);
+
+	for (int i = 0; i < orbit_size; i++)
+	{
+		fprintf(out_orb, "%1.15e %1.15e\n", 
+				orbit[i][0], orbit[i][1]);
+		
+		for (int j = 0; j < 4; j++)
+		{
+			orb[j] = orbit[i][j];
+		}
+		fprintf(out_orb_err, "%d %1.15e\n", 
+				i, fabs(angular_momentum_two_body(orb)-
+				angular_momentum_two_body(orb_ini)));
+	}
+
+	// free memory
+	dealloc_2d_double(&orbit, analysis.number_of_cycles);
+
+	// close files
+	fclose(out_orb);
+	fclose(out_orb_ic);
+	fclose(out_orb_err);
+
+	printf("Data written in output/orbit/\n");
+
 	return 0;
 }
 
@@ -705,7 +797,7 @@ int phase_space(dynsys system, anlsis analysis)
 	int orbit_fw_size, orbit_bw_size;
 	double **orbit_fw, **orbit_bw;
 	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
+	init_orbital(orb_ini, system);
 	anlsis analysis_fw, analysis_bw;
 
 	analysis_fw = copy_anlsis(analysis);
@@ -892,7 +984,7 @@ int time_series(dynsys system,
 
 	if (system.dim == 6)
 	{
-		init_orbital(orb, e);
+		init_orbital(orb, system);
 		for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
 	}
 
@@ -963,7 +1055,7 @@ int multiple_time_series(dynsys system,
 
 			if (system.dim == 6)
 			{
-				init_orbital(orb, e);
+				init_orbital(orb, system);
 				for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
 			}
 
@@ -1036,7 +1128,7 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 
 			if (system.dim == 6)
 			{
-				init_orbital(orb, e);
+				init_orbital(orb, system);
 				for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
 			}
 
@@ -1111,7 +1203,7 @@ int multiple_time_series_delta_theta(dynsys system,
 
 			if (system.dim == 6)
 			{
-				init_orbital(orb, e);
+				init_orbital(orb, system);
 				for (int j = 0; j < 4; j++) ic[j+2] = orb[j];
 			}
 
@@ -1157,7 +1249,7 @@ int evolve_n_cycles_po  (double y0[2],
 
 	if (system.dim == 6)
 	{
-		init_orbital(orbital, e);
+		init_orbital(orbital, system);
 		for (int i = 0; i < 4; i++)
 		{
 			y[i+2] = orbital[i];
@@ -1221,7 +1313,7 @@ int periodic_orbit	(perorb *po,
     copy(y, (*po).initial_condition, 2);
 	if (system.dim == 6)
 	{
-		init_orbital(orbital, e);
+		init_orbital(orbital, system);
 		for (int i = 0; i < 4; i++)
 		{
 			y[i+2] = orbital[i];
@@ -1257,7 +1349,7 @@ int periodic_orbit	(perorb *po,
 	copy(y, (*po).initial_condition, 2);
 	if (system.dim == 6)
 	{
-		init_orbital(orbital, e);
+		init_orbital(orbital, system);
 		for (int i = 0; i < 4; i++)
 		{
 			y[i+2] = orbital[i];
@@ -1350,7 +1442,7 @@ int look_for_resonance	(int number_of_candidates,
 	// declare variables
 	double y[system.dim], y0[system.dim];
 	double rot_ini[2], orb_ini[4];
-	init_orbital(orb_ini, e);
+	init_orbital(orb_ini, system);
 	int grid[2];
 	double ic[2];
 	double t;
@@ -2034,7 +2126,7 @@ int basin_of_attraction (perorb po,
 	double coordinate, velocity;
 	double rot_ini[2];
 	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
+	init_orbital(orb_ini, system);
 	int basin_size = 0;
 	double basin_size_fraction;
 	int grid[2];
@@ -2301,7 +2393,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	double coordinate, velocity;
 	double rot_ini[2];
 	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
+	init_orbital(orb_ini, system);
 
 	int grid[2];
 	double basin[2];
@@ -3685,7 +3777,7 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 	double y[system.dim];
 	double rot_ini[2];
 	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, e);
+	init_orbital(orb_ini, system);
 	int grid[2];
 	double basin[2];
 	bool converged;
@@ -4106,7 +4198,7 @@ int linear_average_benchmark()
 	N_avg = (1.+(15./2.)*e_2+(45./8.)*e_4+
 			(5./16.)*e_6) / pow(1.-e_2,6.);
 
-	init_orbital(ic, e);
+	init_orbital(ic, system);
 
 	// evolve system
 	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
@@ -4149,7 +4241,7 @@ int linear_average_benchmark()
 	{
 		printf("Calculating distance for e = %1.3e\n", e);
 	
-		init_orbital(ic, e);
+		init_orbital(ic, system);
 		evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
 
 		L_num_avg = 0.0;
@@ -4193,6 +4285,44 @@ int linear_average_benchmark()
 	printf("Data written in output/test/\n");
 
 	return 0;
+
+	return 0;
+}
+
+int trace_ellipse()
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/tests", &st) == -1) {
+		mkdir("output/tests", 0700);
+	}
+
+	FILE *out = fopen("output/tests/ellipse.dat","w");
+
+	double a = 1.0;
+	double e = 0.2;
+	double b = sqrt(1.0 - e*e);
+	double delta = 1e-3;
+	double k = 0.0;
+	double h = -1.0 * e * a;
+	double x_max = h + a;
+	double x_min = h - a;
+
+	for (double x = x_max; x > x_min; x -= delta)
+	{
+		double y = k + sqrt(b*b * (1.0 - (x-h)*(x-h)/(a*a)));
+		fprintf(out, "%1.5e %1.5e\n", x, y);
+	}
+	for (double x = x_min; x < x_max; x += delta)
+	{
+		double y = k - sqrt(b*b * (1.0 - (x-h)*(x-h)/(a*a)));
+		fprintf(out, "%1.5e %1.5e\n", x, y);
+	}
+	double x = x_max;
+	double y = k + sqrt(b*b * (1.0 - (x-h)*(x-h)/(a*a)));
+	fprintf(out, "%1.5e %1.5e\n", x, y);
+
+	fclose(out);
 
 	return 0;
 }

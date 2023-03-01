@@ -78,37 +78,31 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
+	gamma = 0.0;
+	e = 0.2;
+	m_secondary = 0.;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+	K = 0.0;
+	T = kepler_period(m_primary, m_secondary, G, a);
+
+	analysis.number_of_cycles = 1e4;		//1e3 6e3
+	analysis.cycle_period = 1e-3; 			// T 1e-3
+	analysis.evolve_box_size = 1e8;
+
+	system = system_two_body;
+	init_orbital(orbital, system);
+	orbit_two_body(orbital, system, analysis);
+
 	// system = system_rigid;
 	// system = system_linear_average;
 	// system = system_linear;
 	// double ic[system.dim];
 	// int grid[2];
 
-	// gamma = gamma_hyperion;
-	// e = 0.14;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-2;
-	// T = 2.0 * M_PI;
-
-	// analysis.number_of_cycles = 5.5e3;		//1e3 6e3
-	// analysis.cycle_period = T; 				// 1e-3
-	// analysis.evolve_box_size = 1e8;
-
-	// analysis.grid_resolution = 600;
-	// analysis.grid_coordinate_min = -M_PI;
-	// analysis.grid_coordinate_max = M_PI;
-	// analysis.grid_velocity_min = 0.0;
-	// analysis.grid_velocity_max = 3.0;
-	// grid[0] = 562;
-	// grid[1] = 288;
-	// // grid_to_double(grid, basin, analysis);
-	// grid_to_double_v2(grid, ic, analysis);
-	// // ic[0] = -1.92161;
-	// // ic[1] = 0.58750;
-	// // printf("%1.5f %1.5f\n", ic[0], ic[1]);
+	// ic[0] = 0.1;
+	// ic[1] = 0.1;
 	// init_orbital(orbital, e);
 	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
 	// orbit_map(ic, system, analysis);
@@ -128,7 +122,7 @@ int main(int argc, char **argv)
 	// G = 1.0;
 	// a = 1.0;
 	// K = 1e-2;
-	// T = 2.0 * M_PI;
+	// T = kepler_period(m_primary, m_secondary, G, a);
 
 	// analysis.cycle_period = T;
 	// analysis.evolve_box_size = 1e8;
@@ -241,7 +235,7 @@ int main(int argc, char **argv)
 	// G = 1.0;
 	// a = 1.0;
  	// K = 1e-2;
-	// T = 2.0 * M_PI;
+	// T = kepler_period(m_primary, m_secondary, G, a);
 
 	// analysis.nc = 3;						// 3
 	// analysis.nv = 50;						// 50;
@@ -282,16 +276,16 @@ int main(int argc, char **argv)
 	/////////////////////////////////////////////////////////
 
 	// system = system_linear_average;
-	system = system_linear;
+	// system = system_linear;
 
-	gamma = gamma_hyperion;
-	e = e_hyperion;
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-2;
-	T = 2.0 * M_PI;
+	// gamma = gamma_hyperion;
+	// e = e_hyperion;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
+	// T = kepler_period(m_primary, m_secondary, G, a);
 
 	// analysis.number_of_cycles = 1e3; //1e3
 	// analysis.cycle_period = T;
@@ -361,51 +355,51 @@ int main(int argc, char **argv)
 	// multiple_basin_of_attraction_undetermined (system, analysis);
 	// draw_multiple_basin_of_attraction_undetermined (system, analysis);
 
-	int 	number_of_pos;
-	perorb 	*multiple_pos;
-	int 	number_of_e;
-	double 	e_initial;
-	double 	e_final;
-	double 	e_step;
+	// int 	number_of_pos;
+	// perorb 	*multiple_pos;
+	// int 	number_of_e;
+	// double 	e_initial;
+	// double 	e_final;
+	// double 	e_step;
 
-	analysis.number_of_cycles = 4.5e3;		// 1e3 5e3
-	analysis.cycle_period = T;
-	analysis.evolve_box_size = 1e8;
+	// analysis.number_of_cycles = 4.5e3;		// 1e3 5e3
+	// analysis.cycle_period = T;
+	// analysis.evolve_box_size = 1e8;
 
-	analysis.grid_resolution = 600;
-	analysis.grid_coordinate_min = -M_PI;	// -M_PI
-	analysis.grid_coordinate_max = M_PI;	// M_PI
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 3.0;
+	// analysis.grid_resolution = 600;
+	// analysis.grid_coordinate_min = -M_PI;	// -M_PI
+	// analysis.grid_coordinate_max = M_PI;	// M_PI
+	// analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 3.0;
 
-	analysis.sqrt_orbits_on_box = 10;
+	// analysis.sqrt_orbits_on_box = 10;
 	
-	analysis.spin_period_min = 1;
-	analysis.orbit_period_min = 1;
-	analysis.spin_period_max = 5;
-	analysis.orbit_period_max = 4;
-	analysis.evolve_basin_time_tol = 100;
-	analysis.evolve_basin_eps = 1e-1;
+	// analysis.spin_period_min = 1;
+	// analysis.orbit_period_min = 1;
+	// analysis.spin_period_max = 5;
+	// analysis.orbit_period_max = 4;
+	// analysis.evolve_basin_time_tol = 100;
+	// analysis.evolve_basin_eps = 1e-1;
 
-	analysis.po_max_step = 1000;			// 1000
-	analysis.po_tol = 1e-8;					// 1e-13
+	// analysis.po_max_step = 1000;			// 1000
+	// analysis.po_tol = 1e-8;					// 1e-13
 
-	analysis.number_of_rand_orbits = 360000;
-	analysis.convergence_window = 5e4;
-	analysis.convergence_precision = 1e-2;
+	// analysis.number_of_rand_orbits = 360000;
+	// analysis.convergence_window = 5e4;
+	// analysis.convergence_precision = 1e-2;
 
-	number_of_e = 20;
-	e_initial = 0.0;	// 0.0
-	e_final = 0.2;		// 0.2
+	// number_of_e = 20;
+	// e_initial = 0.0;	// 0.0
+	// e_final = 0.2;		// 0.2
 
-	e_step = (e_final - e_initial) / (double)(number_of_e);
+	// e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	for (int i = 10; i <= 11; i++)	// (int i = 0; i <= number_of_e; i++)
-	{
-		e = e_initial + (double)i * e_step;
-		printf("e = %1.3f\n", e);
+	// for (int i = 10; i <= 11; i++)	// (int i = 0; i <= number_of_e; i++)
+	// {
+	// 	e = e_initial + (double)i * e_step;
+	// 	printf("e = %1.3f\n", e);
 
-		fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
+	// 	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
 		// if (number_of_pos > 0)
 		// {
@@ -425,7 +419,7 @@ int main(int argc, char **argv)
 			// basin_size_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data_monte_carlo (system, analysis);
 			// basin_entropy_progress_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
-			multiple_basin_of_attraction_determined_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
+			// multiple_basin_of_attraction_determined_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
 			// basin_size_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data_monte_carlo_with_break (system, analysis);
 			// basin_entropy_progress_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
@@ -435,11 +429,11 @@ int main(int argc, char **argv)
 			// comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// plot_comparison_entropy_grid_vs_monte_carlo (system, analysis);
 
-			for (int j = 0; j < number_of_pos; j++)
-			{
-				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-			}
-			free(multiple_pos);
+			// for (int j = 0; j < number_of_pos; j++)
+			// {
+			// 	dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+			// }
+			// free(multiple_pos);
 		// }
 		// else
 		// {
@@ -449,7 +443,7 @@ int main(int argc, char **argv)
 		// plot_histogram_python (system, analysis);
 		// plot_histogram_python_monte_carlo_with_break (system, analysis);
 
-	}
+	// }
 
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
@@ -486,6 +480,8 @@ int main(int argc, char **argv)
 	/////////////////////////////////////////////////////////
 
 	// linear_average_benchmark();
+
+	trace_ellipse();
 
 	/******************** Stop clock ***********************/
 
