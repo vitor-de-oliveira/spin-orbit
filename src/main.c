@@ -78,22 +78,22 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	gamma = 0.0;
-	e = 0.2;
-	m_secondary = 0.;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
-	K = 0.0;
-	T = kepler_period(m_primary, m_secondary, G, a);
+	// gamma = 0.0;					// gamma = gamma_hyperion
+	// e = 0.5;						// e = e_hyperion
+	// m_secondary = 0.4;				// m_secondary = 0.0
+	// m_primary = 5.0 - m_secondary;
+	// G = 3.0;						// G = 1.0
+	// a = 2.0;						// a = 1.0
+	// K = 0.0;
+	// T = kepler_period(m_primary, m_secondary, G, a);
 
-	analysis.number_of_cycles = 1e4;		//1e3 6e3
-	analysis.cycle_period = 1e-3; 			// T 1e-3
-	analysis.evolve_box_size = 1e8;
+	// analysis.cycle_period = 1e-3; 								// T 1e-3
+	// analysis.number_of_cycles = T / analysis.cycle_period;		//1e3 6e3
+	// analysis.evolve_box_size = 1e8;
 
-	system = system_two_body;
-	init_orbital(orbital, system);
-	orbit_two_body(orbital, system, analysis);
+	// system = system_two_body;
+	// init_orbital(orbital, system);
+	// orbit_two_body(orbital, system, analysis);
 
 	// system = system_rigid;
 	// system = system_linear_average;
@@ -481,7 +481,7 @@ int main(int argc, char **argv)
 
 	// linear_average_benchmark();
 
-	trace_ellipse();
+	// trace_ellipse();
 
 	/******************** Stop clock ***********************/
 

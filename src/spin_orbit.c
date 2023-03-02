@@ -7,7 +7,6 @@ int field_two_body(double t, const double y[], double f[],
 
 	double *par = (double *)params;
 
-	double e 			= par[1];
 	double m_primary 	= par[2]; 
 	double m_secondary 	= par[3];
 	double G 			= par[4];
@@ -598,9 +597,7 @@ int orbit_two_body	(double *ic,
 	printf("Calculating orbit\n");
 
 	double *par = (double *)system.params;
-	double gamma = par[0];
 	double e = par[1];
-	double K = par[6];
 
 	// prepare and open exit files 
 	FILE	*out_orb, *out_orb_ic, 
@@ -618,7 +615,6 @@ int orbit_two_body	(double *ic,
 	
 	// declare variables
 	int orbit_size;
-	int gcd, numerator, denominator;
 	double **orbit;
 	double orb[4], orb_ini[4];
 	double last_angle_dif;
@@ -4299,9 +4295,9 @@ int trace_ellipse()
 
 	FILE *out = fopen("output/tests/ellipse.dat","w");
 
-	double a = 1.0;
-	double e = 0.2;
-	double b = sqrt(1.0 - e*e);
+	double a = 2.0;
+	double e = 0.5;
+	double b = a * sqrt(1.0 - e*e);
 	double delta = 1e-3;
 	double k = 0.0;
 	double h = -1.0 * e * a;
