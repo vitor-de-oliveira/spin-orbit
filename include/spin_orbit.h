@@ -142,8 +142,8 @@ int orbit_map (double *ic,
                dynsys system,
                anlsis analysis);
 
-int phase_space (dynsys system,
-                anlsis analysis);
+int phase_space	(dynsys system,
+                 anlsis analysis);
 
 /**
  * time series
@@ -350,7 +350,8 @@ int trace_ellipse();
 
 int draw_orbit_map  (dynsys system);
 
-int draw_phase_space(dynsys system);
+int draw_phase_space(dynsys system,
+					 anlsis analysis);
 
 int draw_phase_space_clean(dynsys system);
 
