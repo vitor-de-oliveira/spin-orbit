@@ -335,8 +335,8 @@ int main(int argc, char **argv)
 		{
 			/* calculation on grid */
 	
-			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-			draw_multiple_basin_of_attraction_determined (system, analysis);
+			// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
+			// draw_multiple_basin_of_attraction_determined (system, analysis);
 			// basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data (system, analysis);
 			// basin_entropy_progress_from_data (number_of_pos, multiple_pos, system, analysis);
@@ -370,7 +370,7 @@ int main(int argc, char **argv)
 			printf("Warning: null number of attractors.\n");
 		}
 
-		// plot_histogram_python (system, analysis);
+		plot_histogram_python (system, analysis);
 		// plot_histogram_python_monte_carlo_with_break (system, analysis);
 
 	// }
