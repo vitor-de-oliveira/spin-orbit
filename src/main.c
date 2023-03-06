@@ -50,39 +50,70 @@ int main(int argc, char **argv)
 	double K;				// dissipation parameter
 	double T;				// system period
 
-	gamma = gamma_hyperion;			// gamma = gamma_hyperion
-	e = e_hyperion;					// e = e_hyperion
-	m_secondary = 0.0;				// m_secondary = 0.0
+	gamma = (2.0/3.0) * 1e-3;
+	e = 0.2;
+	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
-	G = 1.0;						// G = 1.0
-	a = 1.0;						// a = 1.0
-	K = 0.0;
+	G = 1.0;
+	a = 1.0;
+ 	K = 1e-4;
 	T = kepler_period(m_primary, m_secondary, G, a);
+
+	/**************** Simulation parameters ******************/
+
+	anlsis	analysis;
+
+	analysis.number_of_cycles = 1e6;		// 1e3 5e3
+	analysis.cycle_period = T;
+	analysis.evolve_box_size = 1e8;
+
+	analysis.grid_resolution = 300;			// 600
+	analysis.grid_coordinate_min = -M_PI;	// -M_PI
+	analysis.grid_coordinate_max = M_PI;	// M_PI
+	analysis.grid_velocity_min = 0.0;
+	analysis.grid_velocity_max = 5.0;		// 3.0
+
+	analysis.sqrt_orbits_on_box = 10;
+	
+	analysis.spin_period_min = 1;
+	analysis.orbit_period_min = 1;
+	analysis.spin_period_max = 5;
+	analysis.orbit_period_max = 4;
+	analysis.evolve_basin_time_tol = 100;
+	analysis.evolve_basin_eps = 1e-1;
+
+	analysis.po_max_step = 1000;			// 1000
+	analysis.po_tol = 1e-8;					// 1e-13
+
+	analysis.number_of_rand_orbits = 360000;
+	analysis.convergence_window = 5e4;
+	analysis.convergence_precision = 1e-2;
 
 	/***************** Declared variables *******************/
 
-	dynsys system;
-	anlsis analysis;
-	perorb po;
+	perorb	po;
+	perorb 	*multiple_pos;
 
-	double orbital[4];
+	int 	number_of_pos;
+	int 	number_of_e;
+
+	double	orbital[4];
+	double 	e_initial;
+	double 	e_final;
+	double 	e_step;
 
 	/*************** System initialization ****************/
 
-	double params[8] = {gamma,
-						e,
-						m_primary,
-						m_secondary,
-						G,
-						a,
-						K,
-						T};
+	double	params[8] = {gamma, e, m_primary, m_secondary,
+						 G, a, K, T};
 
-	dynsys system_two_body = init_two_body(params);
-	dynsys system_rigid = init_rigid(params);
-	dynsys system_rigid_kepler = init_rigid_kepler(params);
-	dynsys system_linear = init_linear(params);
-	dynsys system_linear_average = init_linear_average(params);
+	dynsys	system;
+
+	dynsys	system_two_body = init_two_body(params);
+	dynsys	system_rigid = init_rigid(params);
+	dynsys	system_rigid_kepler = init_rigid_kepler(params);
+	dynsys	system_linear = init_linear(params);
+	dynsys	system_linear_average = init_linear_average(params);
 
 	/////////////////////////////////////////////////////////
 	/*				   		   Orbit		   	           */
@@ -272,58 +303,7 @@ int main(int argc, char **argv)
 	/*				Basin of attraction		   	           */
 	/////////////////////////////////////////////////////////
 
-	system = system_linear_average;
-	// system = system_linear;
-
-	gamma = (2.0/3.0) * 1e-3;
-	e = 0.2;
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-4;
-	T = kepler_period(m_primary, m_secondary, G, a);
-
-	analysis.number_of_cycles = 1e6;		// 1e3 5e3
-	analysis.cycle_period = T;
-	analysis.evolve_box_size = 1e8;
-
-	analysis.grid_resolution = 300;			// 600
-	analysis.grid_coordinate_min = -M_PI;	// -M_PI
-	analysis.grid_coordinate_max = M_PI;	// M_PI
-	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 5.0;		// 3.0
-
-	analysis.sqrt_orbits_on_box = 10;
-	
-	analysis.spin_period_min = 1;
-	analysis.orbit_period_min = 1;
-	analysis.spin_period_max = 5;
-	analysis.orbit_period_max = 4;
-	analysis.evolve_basin_time_tol = 100;
-	analysis.evolve_basin_eps = 1e-1;
-
-	analysis.po_max_step = 1000;			// 1000
-	analysis.po_tol = 1e-8;					// 1e-13
-
-	analysis.number_of_rand_orbits = 360000;
-	analysis.convergence_window = 5e4;
-	analysis.convergence_precision = 1e-2;
-
 	/* One periodic orbit */
-
-	// analysis.number_of_cycles = 1e3; //1e3
-	// analysis.cycle_period = T;
-	// analysis.evolve_box_size = 1e8;
-
-	// analysis.grid_resolution = 100;
-	// analysis.grid_coordinate_min = -M_PI;
-	// analysis.grid_coordinate_max = M_PI;
-	// analysis.grid_velocity_min = 0.0;
-	// analysis.grid_velocity_max = 3.0;
-	
-	// analysis.evolve_basin_time_tol = 100;
-	// analysis.evolve_basin_eps = 1e-1;
 
 	// // po.period = 1;
 	// // po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
@@ -337,13 +317,6 @@ int main(int argc, char **argv)
 	// dealloc_2d_double(&po.orbit, po.period);
 
 	/* Multiple periodic orbits */
-
-	int 	number_of_pos;
-	perorb 	*multiple_pos;
-	int 	number_of_e;
-	double 	e_initial;
-	double 	e_final;
-	double 	e_step;
 
 	// number_of_e = 20;
 	// e_initial = 0.0;	// 0.0
