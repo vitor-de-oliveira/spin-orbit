@@ -122,18 +122,18 @@ int main(int argc, char **argv)
 	// system = system_two_body;
 	// system = system_rigid;
 	// system = system_linear_average;
-	system = system_linear;
+	// system = system_linear;
 
-	analysis.cycle_period = T; 				// T 1e-3
-	analysis.number_of_cycles = 1e4;		//1e3 6e3
-	analysis.evolve_box_size = 1e8;
+	// analysis.cycle_period = T; 				// T 1e-3
+	// analysis.number_of_cycles = 1e4;		//1e3 6e3
+	// analysis.evolve_box_size = 1e8;
 
-	double ic[system.dim];
-	ic[0] = 0.1;
-	ic[1] = 0.1;
-	init_orbital(orbital, system);
-	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	orbit_map(ic, system, analysis);
+	// double ic[system.dim];
+	// ic[0] = 0.1;
+	// ic[1] = 0.1;
+	// init_orbital(orbital, system);
+	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// orbit_map(ic, system, analysis);
 
 	// orbit_two_body(orbital, system, analysis);
 
@@ -345,7 +345,7 @@ int main(int argc, char **argv)
 
 			/* calculation monte carlo */
 
-			// multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// basin_size_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data_monte_carlo (system, analysis);
 			// basin_entropy_progress_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
@@ -370,7 +370,7 @@ int main(int argc, char **argv)
 			printf("Warning: null number of attractors.\n");
 		}
 
-		plot_histogram_python (system, analysis);
+		// plot_histogram_python (system, analysis);
 		// plot_histogram_python_monte_carlo_with_break (system, analysis);
 
 	// }

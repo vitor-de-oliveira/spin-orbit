@@ -2604,7 +2604,7 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 	for (int i = 0; i < analysis.number_of_rand_orbits; i++) entropy_progress[i] = NAN;
 	int orbits_counter = 0;
 	time_t t;	srand((unsigned) time(&t));
-	bool test_convergence = true;
+	bool test_convergence = false;
 	int converged_orbit_number;
 	int *control;
 	alloc_1d_int(&control, analysis.number_of_rand_orbits);
