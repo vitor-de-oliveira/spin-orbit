@@ -23,7 +23,23 @@ int main(int argc, char **argv)
 		mkdir("output", 0700);
 	}
 
-	/***************** Declared variables ******************/
+	/*************** Some predefined values ****************/
+
+	/** Moon
+	 * e = 0.0549
+	**/
+
+	double e_moon = 0.0549;
+
+	/** Hyperion (Wisdom 1987)
+	 * e = 0.1 
+	 * gamma = (.89 * .89) / 3.
+	**/
+
+	double e_hyperion = 0.1;
+	double gamma_hyperion = ((.89 * .89) / 3.); //~0.264
+
+	/****************** System parameters *******************/
 
     double gamma;			// equatorial flattening
     double e;				// eccentricity
@@ -34,78 +50,61 @@ int main(int argc, char **argv)
 	double K;				// dissipation parameter
 	double T;				// system period
 
-	double *params[8] = {&gamma,
-						 &e,
-						 &m_primary,
-						 &m_secondary,
-						 &G,
-						 &a,
-						 &K,
-						 &T};
+	gamma = gamma_hyperion;			// gamma = gamma_hyperion
+	e = e_hyperion;					// e = e_hyperion
+	m_secondary = 0.0;				// m_secondary = 0.0
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;						// G = 1.0
+	a = 1.0;						// a = 1.0
+	K = 0.0;
+	T = kepler_period(m_primary, m_secondary, G, a);
+
+	/***************** Declared variables *******************/
 
 	dynsys system;
-	dynsys system_two_body = init_two_body(*params);
-	dynsys system_rigid = init_rigid(*params);
-	dynsys system_rigid_kepler = init_rigid_kepler(*params);
-	dynsys system_linear = init_linear(*params);
-	dynsys system_linear_average = init_linear_average(*params);
-
 	anlsis analysis;
-
 	perorb po;
 
 	double orbital[4];
 
-	/********************* Some values **********************/
+	/*************** System initialization ****************/
 
-	/** Moon
-	 * e = 0.0549
-	 * m_secondary = 1.215e-2
-	**/
+	double params[8] = {gamma,
+						e,
+						m_primary,
+						m_secondary,
+						G,
+						a,
+						K,
+						T};
 
-	double e_moon = 0.0549;
+	dynsys system_two_body = init_two_body(params);
+	dynsys system_rigid = init_rigid(params);
+	dynsys system_rigid_kepler = init_rigid_kepler(params);
+	dynsys system_linear = init_linear(params);
+	dynsys system_linear_average = init_linear_average(params);
 
-	/** Hyperion (Wisdom 1987)
-	 * e = 0.1 
-	 * gamma = (.89 * .89) / 3.
-	 * m_secondary = 0. (assuming for now)
-	**/
-
-	double e_hyperion = 0.1;
-	double gamma_hyperion = ((.89 * .89) / 3.); //~0.264
-	  
 	/////////////////////////////////////////////////////////
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// gamma = 0.0;					// gamma = gamma_hyperion
-	// e = 0.5;						// e = e_hyperion
-	// m_secondary = 0.4;				// m_secondary = 0.0
-	// m_primary = 5.0 - m_secondary;
-	// G = 3.0;						// G = 1.0
-	// a = 2.0;						// a = 1.0
-	// K = 0.0;
-	// T = kepler_period(m_primary, m_secondary, G, a);
-
-	// analysis.cycle_period = 1e-3; 								// T 1e-3
-	// analysis.number_of_cycles = T / analysis.cycle_period;		//1e3 6e3
-	// analysis.evolve_box_size = 1e8;
-
 	// system = system_two_body;
-	// init_orbital(orbital, system);
-	// orbit_two_body(orbital, system, analysis);
-
 	// system = system_rigid;
 	// system = system_linear_average;
-	// system = system_linear;
-	// double ic[system.dim];
-	// int grid[2];
+	system = system_linear;
 
-	// ic[0] = 0.1;
-	// ic[1] = 0.1;
-	// init_orbital(orbital, e);
-	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
-	// orbit_map(ic, system, analysis);
+	analysis.cycle_period = T; 				// T 1e-3
+	analysis.number_of_cycles = 1e4;		//1e3 6e3
+	analysis.evolve_box_size = 1e8;
+
+	double ic[system.dim];
+	ic[0] = 0.1;
+	ic[1] = 0.1;
+	init_orbital(orbital, system);
+	for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	orbit_map(ic, system, analysis);
+
+	// orbit_two_body(orbital, system, analysis);
 
 	/////////////////////////////////////////////////////////
 	/*				   	Periodic Orbit		   	           */
