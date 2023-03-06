@@ -59,11 +59,25 @@ int main(int argc, char **argv)
  	K = 1e-4;
 	T = kepler_period(m_primary, m_secondary, G, a);
 
+	/*************** System initialization ****************/
+
+	dynsys	system;
+	double	params[8] = {gamma, e, m_primary, m_secondary,
+						 G, a, K, T};
+
+	dynsys	system_two_body = init_two_body(params);
+	dynsys	system_rigid = init_rigid(params);
+	dynsys	system_rigid_kepler = init_rigid_kepler(params);
+	dynsys	system_linear = init_linear(params);
+	dynsys	system_linear_average = init_linear_average(params);
+
+	system = system_linear_average;
+
 	/**************** Simulation parameters ******************/
 
 	anlsis	analysis;
 
-	analysis.number_of_cycles = 1e6;		// 1e3 5e3
+	analysis.number_of_cycles = 1e7;		// 1e3 5e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -85,8 +99,8 @@ int main(int argc, char **argv)
 	analysis.po_max_step = 1000;			// 1000
 	analysis.po_tol = 1e-8;					// 1e-13
 
-	analysis.number_of_rand_orbits = 360000;
-	analysis.convergence_window = 5e4;
+	analysis.number_of_rand_orbits = 1000;
+	analysis.convergence_window = 10;		// 5e4
 	analysis.convergence_precision = 1e-2;
 
 	/***************** Declared variables *******************/
@@ -101,19 +115,6 @@ int main(int argc, char **argv)
 	double 	e_initial;
 	double 	e_final;
 	double 	e_step;
-
-	/*************** System initialization ****************/
-
-	double	params[8] = {gamma, e, m_primary, m_secondary,
-						 G, a, K, T};
-
-	dynsys	system;
-
-	dynsys	system_two_body = init_two_body(params);
-	dynsys	system_rigid = init_rigid(params);
-	dynsys	system_rigid_kepler = init_rigid_kepler(params);
-	dynsys	system_linear = init_linear(params);
-	dynsys	system_linear_average = init_linear_average(params);
 
 	/////////////////////////////////////////////////////////
 	/*				   		   Orbit		   	           */
@@ -348,7 +349,7 @@ int main(int argc, char **argv)
 			multiple_basin_of_attraction_determined_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// basin_size_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data_monte_carlo (system, analysis);
-			// basin_entropy_progress_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
+			basin_entropy_progress_from_data_monte_carlo (number_of_pos, multiple_pos, system, analysis);
 			// multiple_basin_of_attraction_determined_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
 			// basin_size_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system, analysis);
 			// basin_entropy_from_data_monte_carlo_with_break (system, analysis);
