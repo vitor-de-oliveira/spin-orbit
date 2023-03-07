@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 	anlsis	analysis;
 
-	analysis.number_of_cycles = 1e7;		// 1e3 5e3
+	analysis.number_of_cycles = (int) (1.0e7 / T);	// 1e3 5e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
