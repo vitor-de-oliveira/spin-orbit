@@ -796,8 +796,8 @@ int phase_space(dynsys system, anlsis analysis)
 	init_orbital(orb_ini, system);
 	anlsis analysis_fw, analysis_bw;
 
-	analysis_fw = copy_anlsis(analysis);
-	analysis_bw = copy_anlsis(analysis);
+	analysis_fw = analysis;
+	analysis_bw = analysis;
 	analysis_bw.cycle_period *= -1.0;
 
 	printf("Calculating phase space for e = %1.3f and gamma = %1.3f\n", e, gamma);
@@ -5930,20 +5930,20 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 
 	fprintf(gnuplotPipe, "plot ");
 
-	orbit_period = 1;
-	spin_period = 1;
-	// for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
-	// {
-	// 	for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
-	// 	{
+	// orbit_period = 1;
+	// spin_period = 1;
+	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
+	{
+		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
+		{
 			fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 title \"%d/%d\", ", 
 				spin_period, orbit_period, orbit_period + 4, spin_period, orbit_period);
-	// 	}
-	// }
+		}
+	}
 
 	// fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"sum\", ");
 
-	// fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"HO,QP\", ");
+	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"HO,QP\", ");
 
 	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 title \"BE\", ");
 	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:3 w l lw 2 title \"UBE\", ");

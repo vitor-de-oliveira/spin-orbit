@@ -37,8 +37,6 @@ typedef struct DynSys{
     void *params;
 } dynsys;
 
-dynsys copy_dynsys(dynsys system);
-
 // System analysis
 typedef struct AnlSis{
 
@@ -84,8 +82,6 @@ typedef struct AnlSis{
     double convergence_precision;
 
 } anlsis;
-
-anlsis copy_anlsis(anlsis analysis);
 
 int evolve_cycle(double *y, double *t,
                 dynsys system, anlsis analysis);
