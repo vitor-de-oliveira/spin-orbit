@@ -310,7 +310,7 @@ int main(int argc, char **argv)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	for(int i = 0; i <= number_of_e; i++)	// (int i = 0; i <= number_of_e; i++)
+	for(int i = 1; i <= number_of_e; i++)	// (int i = 0; i <= number_of_e; i++)
 	{
 		double e_loop = e_initial + (double)i * e_step;
 		printf("e = %1.3f\n", e_loop);
