@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 	dynsys	system_linear = init_linear(params);
 	dynsys	system_linear_average = init_linear_average(params);
 
-	system = system_rigid;
+	system = system_linear;
 
 	/**************** Simulation parameters ******************/
 
