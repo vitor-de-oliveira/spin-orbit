@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	analysis.grid_coordinate_min = -M_PI;	// -M_PI
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 5.0;		// 3.0
+	analysis.grid_velocity_max = 3.0;		// 3.0
 
 	analysis.sqrt_orbits_on_box = 10;
 	

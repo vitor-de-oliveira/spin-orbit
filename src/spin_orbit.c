@@ -1633,7 +1633,7 @@ int find_all_periodic_attractors(int *number_of_pos,
 
 	// distance value for which we say a periodic orbit of period n
 	// has actually period m where n is a multiple of m
-	tol_same_po = 1e-8;
+	tol_same_po = 1e-6;
 
 	// distance value for which we say two pos are actually the same one
 	tol_between_pos = 1e-3;		
