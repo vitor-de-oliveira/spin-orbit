@@ -1338,9 +1338,9 @@ int periodic_orbit	(perorb *po,
 	(*po).initial_condition[1] = (*po).orbit[index_theta_min][1];
 
 	// indexed file
-	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
-            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
-	out_orb = fopen(filename, "w");
+	// sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
+    //         gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
+	// out_orb = fopen(filename, "w");
 
 	copy(y, (*po).initial_condition, 2);
 	if (system.dim == 6)
@@ -1356,17 +1356,17 @@ int periodic_orbit	(perorb *po,
     {
         copy((*po).orbit[i], y, system.dim);
 
-		fprintf(out_orb, "%1.10e %1.10e\n", 
-            angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
+		// fprintf(out_orb, "%1.10e %1.10e\n", 
+        //     angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
 
 		evolve_cycle(y, &t, system, analysis);
     }
 
 	copy(po_ic_after_one_period, y, system.dim);
 
-	sprintf(filename, "output/periodic_orbit/periodic_orbit_resonance_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
-            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
-	out_orb_res = fopen(filename, "w");
+	// sprintf(filename, "output/periodic_orbit/periodic_orbit_resonance_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
+    //         gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
+	// out_orb_res = fopen(filename, "w");
 
 	// calculating the resonance
 	one_period_angular_diff = 
@@ -1377,31 +1377,31 @@ int periodic_orbit	(perorb *po,
 	(*po).winding_number_numerator = (int) round(number_of_spins);
 	(*po).winding_number_denominator = (*po).period;
 
-	fprintf(out_orb_res, "Orbit:\n\n");
+	// fprintf(out_orb_res, "Orbit:\n\n");
 
-	for (int i = 0; i < (*po).period; i++)
-    {
-        fprintf(out_orb_res, "%1.5e %1.5e\n", 
-            angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
-    }
+	// for (int i = 0; i < (*po).period; i++)
+    // {
+    //     fprintf(out_orb_res, "%1.5e %1.5e\n", 
+    //         angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
+    // }
 
-	fprintf(out_orb_res, "\n\n");
+	// fprintf(out_orb_res, "\n\n");
 
-	fprintf(out_orb_res, "Orbit period:\n\n%d\n\n\n", 
-		(*po).period);
+	// fprintf(out_orb_res, "Orbit period:\n\n%d\n\n\n", 
+	// 	(*po).period);
 
-	fprintf(out_orb_res, "Angular difference after 1 period:\n\n%1.10e\n\n\n", 
-		one_period_angular_diff);
+	// fprintf(out_orb_res, "Angular difference after 1 period:\n\n%1.10e\n\n\n", 
+	// 	one_period_angular_diff);
 
-	fprintf(out_orb_res, "Number of spins:\n\n%1.10e\n\n\n", 
-		number_of_spins);
+	// fprintf(out_orb_res, "Number of spins:\n\n%1.10e\n\n\n", 
+	// 	number_of_spins);
 
-	fprintf(out_orb_res, "Resonance:\n\n%d / %d\n\n\n", 
-		(*po).winding_number_numerator, 
-		(*po).winding_number_denominator);
+	// fprintf(out_orb_res, "Resonance:\n\n%d / %d\n\n\n", 
+	// 	(*po).winding_number_numerator, 
+	// 	(*po).winding_number_denominator);
 
-    fclose(out_orb);
-	fclose(out_orb_res);
+    // fclose(out_orb);
+	// fclose(out_orb_res);
 
 	return 0;
 }

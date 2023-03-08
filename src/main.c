@@ -327,11 +327,11 @@ int main(int argc, char **argv)
 		{
 			/* calculation on grid */
 	
-			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system_loop, analysis);
-			draw_multiple_basin_of_attraction_determined (system_loop, analysis);
-			// draw_multiple_basin_of_attraction_determined_clean (system_loop, analysis);
-			basin_size_from_data (number_of_pos, multiple_pos, system_loop, analysis);
-			basin_entropy_from_data (system_loop, analysis);
+			// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system_loop, analysis);
+			// draw_multiple_basin_of_attraction_determined (system_loop, analysis);
+			// // draw_multiple_basin_of_attraction_determined_clean (system_loop, analysis);
+			// basin_size_from_data (number_of_pos, multiple_pos, system_loop, analysis);
+			// basin_entropy_from_data (system_loop, analysis);
 			// basin_entropy_progress_from_data (number_of_pos, multiple_pos, system_loop, analysis);
 			// basin_entropy_vs_box_size (number_of_pos, multiple_pos, system_loop, analysis);
 			// plot_basin_entropy_vs_box_size (system_loop, analysis);
@@ -375,8 +375,8 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_range_e_latex(number_of_e,
 	// 	e_initial, e_final, system, analysis);
 
-	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
-		e_initial, e_final, system, analysis);
+	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
 
 	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
 	// 	0.0, 0.25, system, analysis);
