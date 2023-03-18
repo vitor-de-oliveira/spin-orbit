@@ -269,6 +269,16 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
                          					 			 			 dynsys system,
                          					 			 			 anlsis analysis);
 
+int evolve_multiple_basin_undetermined_winding	(double *ic,
+									 			 bool *converged,
+									 			 int *convergence_time,
+									 			 atrtor *A,
+									 			 dynsys system,
+									 			 anlsis analysis);
+
+int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys system,
+                         					 			 			 anlsis analysis);
+
 int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 											 perorb po[],
                          					 dynsys system,
@@ -447,6 +457,13 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_c
 																 	 			 						double e_final,
 																 	 			 						dynsys system,
 																 	 			 						anlsis analysis);
+
+int plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e	(int number_of_e,
+																											 double e_step_ext,
+																 	 			 							 double e_initial,
+																 	 			 							 double e_final,
+																 	 			 							 dynsys system,
+																 	 			 							 anlsis analysis);
 
 int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 												 double e_initial,

@@ -63,6 +63,8 @@ typedef struct AnlSis{
     int orbit_period_min;
     int orbit_period_max;
     int evolve_basin_time_tol;      // time close to the reference for which we say an orbit converged
+    int transient_time;             // transient time to start looking for higher order pos
+    int max_order_to_look_for;      // maximun order for higher order pos
     double evolve_basin_eps;        // distance from reference for which we say an orbit converged
 
     // basin entropy
@@ -78,10 +80,24 @@ typedef struct AnlSis{
 
     // monte carlo simulation
     int number_of_rand_orbits;
+
+    // convergence criteria
     int convergence_window;
+    int convergence_transient;
     double convergence_precision;
 
 } anlsis;
+
+typedef struct AtrTor{
+    double	basin_size;
+    double	winding_number;
+
+    int		res_spin;
+    int 	res_orbit;
+
+    double  theta;
+    double  theta_dot;
+} atrtor;
 
 int evolve_cycle(double *y, double *t,
                 dynsys system, anlsis analysis);

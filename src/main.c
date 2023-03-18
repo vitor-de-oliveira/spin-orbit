@@ -50,8 +50,17 @@ int main(int argc, char **argv)
 	double K;				// dissipation parameter
 	double T;				// system period
 
-	gamma = gamma_hyperion;	//(2.0/3.0) * 1e-3
-	e = e_hyperion;
+	// gamma = (2.0/3.0) * 1e-3;
+	// e = 0.2;	// 0.15
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-4;		//1e-4
+	// T = kepler_period(m_primary, m_secondary, G, a);
+
+	gamma = gamma_hyperion;
+	e = 0.160;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -73,44 +82,52 @@ int main(int argc, char **argv)
 	dynsys	system_linear_average = init_linear_average(params);
 
 	system = system_linear;
+	// system = system_linear_average;
 
 	/**************** Simulation parameters ******************/
 
 	anlsis	analysis;
 
-	analysis.number_of_cycles = 5e3;	// 1e3 5e3 (int) (1.0e7 / T)
+	// analysis.number_of_cycles = 1e7;	// (int) (1.0e7 / T)
+	analysis.number_of_cycles = 1e4;	// 1e3 5e3
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
 	analysis.nc = 3;					// 3
 	analysis.nv = 50;					// 50;
-	analysis.number_of_cycles = 1e3; 	// 1e3
 	analysis.coordinate_min = 0.0; 		// 0.0
 	analysis.coordinate_max = M_PI; 	// M_PI
 	analysis.velocity_min = 0.0;		// 0.0
+	// analysis.velocity_max = 5.0;		// 3.0
 	analysis.velocity_max = 3.0;		// 3.0
 
-	analysis.grid_resolution = 600;			// 600
+	analysis.grid_resolution = 300;			// 600
 	analysis.grid_coordinate_min = -M_PI;	// -M_PI
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
+	// analysis.grid_velocity_max = 5.0;		// 3.0
 	analysis.grid_velocity_max = 3.0;		// 3.0
 
 	analysis.sqrt_orbits_on_box = 10;
 	
 	analysis.spin_period_min = 1;
 	analysis.orbit_period_min = 1;
-	analysis.spin_period_max = 9;
+	// analysis.spin_period_max = 9;
+	analysis.spin_period_max = 5;
 	analysis.orbit_period_max = 4;
-	analysis.evolve_basin_time_tol = 100;
+	analysis.evolve_basin_time_tol = 500;
 	analysis.evolve_basin_eps = 1e-1;
+
+	analysis.transient_time = 1e3;
+	analysis.max_order_to_look_for = 20;
 
 	analysis.po_max_step = 1000;			// 1000
 	analysis.po_tol = 1e-8;					// 1e-13
 
-	analysis.number_of_rand_orbits = 1000;
-	analysis.convergence_window = 10;		// 5e4
-	analysis.convergence_precision = 1e-2;
+	analysis.number_of_rand_orbits = 10000;
+	analysis.convergence_window = 500;		// 5e4 5e3
+	analysis.convergence_transient = 6000;	// 1e4
+	analysis.convergence_precision = 1e-2;	// 1e-2
 
 	/***************** Declared variables *******************/
 
@@ -120,7 +137,7 @@ int main(int argc, char **argv)
 	int 	number_of_pos;
 	int 	number_of_e;
 
-	double	orbital[4];
+	double	ic[system.dim];
 	double 	e_initial;
 	double 	e_final;
 	double 	e_step;
@@ -129,91 +146,41 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// system = system_two_body;
-	// system = system_rigid;
-	// system = system_linear_average;
-	// system = system_linear;
-
-	// analysis.cycle_period = T; 				// T 1e-3
-	// analysis.number_of_cycles = 1e4;		//1e3 6e3
-	// analysis.evolve_box_size = 1e8;
-
-	// double ic[system.dim];
-	// ic[0] = 0.1;
-	// ic[1] = 0.1;
-	// init_orbital(orbital, system);
-	// for (int i = 0; i < 4; i++) ic[i+2] = orbital[i];
+	// ic[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
+	// ic[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
+	// ic[0] = -1.992866016322432e+00;
+	// ic[1] = 2.058354409438723e+00;
+	// complete_orbital_part(ic, system);
 	// orbit_map(ic, system, analysis);
 
-	// orbit_two_body(orbital, system, analysis);
+	// init_orbital(ic, system);
+	// orbit_two_body(ic, system, analysis);
+
+	// draw_orbit_map(system);
+	// draw_orbit_on_phase_space(system);
+	// draw_orbit_on_phase_space_latex(system);
 
 	/////////////////////////////////////////////////////////
 	/*				   	Periodic Orbit		   	           */
 	///////////////////////////////	//////////////////////////
 
-	// // system = system_rigid;
-	// // system = system_linear_average;
-	// system = system_linear;
-
-	// gamma = gamma_hyperion;
-	// e = 0.02;
-	// m_secondary = 0.;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
-	// K = 1e-2;
-	// T = kepler_period(m_primary, m_secondary, G, a);
-
-	// analysis.cycle_period = T;
-	// analysis.evolve_box_size = 1e8;
-
-	// analysis.po_max_step = 1000;			// 1000
-	// analysis.po_tol = 1e-8;					// 1e-13
-
-	// po.period = 2;
+	// po.period = 4;
 
 	// alloc_2d_double(&po.orbit, po.period, system.dim);
 	
-	// // po.seed[0] = 0.0; po.seed[1] = 0.551537; // e = 0.1 SFP 1/1 resonance
-	// // po.seed[0] = 0.0; po.seed[1] = 2.32185; // e = 0.1 SFP 2/1 resonance  
-	// // po.seed[0] = -1.56892; po.seed[1] = 0.868688; // e = 0.1 period 2 SPO 1/2 resonance 
-	// // po.seed[0] = 0.0; po.seed[1] = 1.87878; // e = 0.1 period 2 UPO 2/2 resonance
-	// // po.seed[0] = -1.57310; po.seed[1] =  1.71059; // e = 0.1 UFP 2/1 resonance 
-	// // po.seed[0] = -1.57246; po.seed[1] =  2.14877; // e = 0.1 UPO 5/2 resonance
-	// // po.seed[0] = -1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
-	// // po.seed[0] = 1.35558; po.seed[1] =  1.08285; // e = 0.1 UPO 2/2
-	// // po.seed[0] = 1.94124; po.seed[1] =  1.46147; // e = 0.1 period 2 UPO resonance 3/2
-	// // po.seed[0] = 0.0; po.seed[1] =  2.72177; // e = 0.1 SPO 5/2
-	// // po.seed[0] = -1.57079; po.seed[1] =  1.95929; // e = 0.1 SPO 9/4
-	// // po.seed[0] = -0.234070; po.seed[1] = 2.29795; // e = 0.1 SFP 2/1 system linear
-	// po.seed[0] = -1.50359; po.seed[1] = 0.860586; // e = 0.1 period 2 SPO 1/2 system linear
-	// // po.seed[0] = -0.0257629; po.seed[1] = 0.484803; // e = 0.140 period 3 UPO around 1/1 resonance
-	// // po.seed[0] = 0.7; po.seed[1] = 1.1; // e = 0.2 ?
-	// // po.seed[0] = 0.0; po.seed[1] = 0.380929; // e = 0.2 UFP 1/1 resonance
-	// // po.seed[0] = 0.0; po.seed[1] = 0.722967; // e = 0.2 SFP 2/2 resonance
-	// po.seed[0] = -2.335247192600534e-01;
-	// po.seed[1] = 1.906315169310492;
+	// po.seed[0] = -1.630068286090758e+00;
+	// po.seed[1] =  1.249822122223460e+00;
 	// periodic_orbit(&po, system, analysis);
 
-	// // // draw_periodic_orbit_on_phase_space (po, system);
-	// // // // draw_periodic_orbit_on_phase_space_clean (po, system);
+	// ic[0] = po.initial_condition[0];
+	// ic[1] = po.initial_condition[1];
+	// complete_orbital_part(ic, system);
+	// orbit_map(ic, system, analysis);
 
 	// dealloc_2d_double(&po.orbit, po.period);
 
-	// analysis.number_of_cycles = 1e2;
-	// // analysis.cycle_period = 1e-3;
-
-	// double ic_po[system.dim];
-	// ic_po[0] = po.initial_condition[0];
-	// ic_po[1] = po.initial_condition[1];
-	// init_orbital(orbital, e);
-	// for (int i = 0; i < 4; i++) ic_po[i+2] = orbital[i];
-	// orbit_map(ic_po, system, analysis);
-
-	// draw_orbit_map(system);
-
-	// draw_orbit_on_phase_space(system);
-	// draw_orbit_on_phase_space_latex(system);
+	// draw_periodic_orbit_on_phase_space (po, system);
+	// draw_periodic_orbit_on_phase_space_clean (po, system);
 
 	/////////////////////////////////////////////////////////
 	/*				   		Time series		   	           */
@@ -321,17 +288,17 @@ int main(int argc, char **argv)
 		params_loop[1] = e_loop;
 		system_loop.params = params_loop;
 
-		fill_attractor_array(&number_of_pos, &multiple_pos, system_loop, analysis);
+		// fill_attractor_array(&number_of_pos, &multiple_pos, system_loop, analysis);
 
-		if (number_of_pos > 0)
-		{
+	// 	if (number_of_pos > 0)
+	// 	{
 			/* calculation on grid */
 	
-			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system_loop, analysis);
-			draw_multiple_basin_of_attraction_determined (system_loop, analysis);
+			// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system_loop, analysis);
+			// draw_multiple_basin_of_attraction_determined (system_loop, analysis);
 			// draw_multiple_basin_of_attraction_determined_clean (system_loop, analysis);
-			basin_size_from_data (number_of_pos, multiple_pos, system_loop, analysis);
-			basin_entropy_from_data (system_loop, analysis);
+			// basin_size_from_data (number_of_pos, multiple_pos, system_loop, analysis);
+			// basin_entropy_from_data (system_loop, analysis);
 			// basin_entropy_progress_from_data (number_of_pos, multiple_pos, system_loop, analysis);
 			// basin_entropy_vs_box_size (number_of_pos, multiple_pos, system_loop, analysis);
 			// plot_basin_entropy_vs_box_size (system_loop, analysis);
@@ -346,22 +313,23 @@ int main(int argc, char **argv)
 			// basin_size_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system_loop, analysis);
 			// basin_entropy_from_data_monte_carlo_with_break (system_loop, analysis);
 			// basin_entropy_progress_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system_loop, analysis);
-
+			multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system_loop, analysis);
+			
 			/* comparison between grid and monte carlo */
 
 			// comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system_loop, analysis);
 			// plot_comparison_entropy_grid_vs_monte_carlo (system_loop, analysis);
 
-			for (int j = 0; j < number_of_pos; j++)
-			{
-				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-			}
-			free(multiple_pos);
-		}
-		else
-		{
-			printf("Warning: null number of attractors.\n");
-		}
+			// for (int j = 0; j < number_of_pos; j++)
+			// {
+			// 	dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+			// }
+			// free(multiple_pos);
+		// }
+		// else
+		// {
+		// 	printf("Warning: null number of attractors.\n");
+		// }
 
 		// plot_histogram_python (system_loop, analysis);
 		// plot_histogram_python_monte_carlo_with_break (system_loop, analysis);
@@ -375,11 +343,14 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_range_e_latex(number_of_e,
 	// 	e_initial, e_final, system, analysis);
 
-	plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
-		e_initial, e_final, system, analysis);
+	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e(number_of_e,
+	// 	e_initial, e_final, system, analysis);
 
 	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
 	// 	0.0, 0.25, system, analysis);
+
+	plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
+		e_initial, e_final, system, analysis);
 
 	// analysis.grid_resolution = 600;
 	// plot_slope_basin_entropy_range_e(number_of_e,
@@ -400,6 +371,129 @@ int main(int argc, char **argv)
 	// linear_average_benchmark();
 
 	// trace_ellipse();
+
+	/////////////////////////////////////////////////////////
+	/*				   		 Testing		   	           */
+	/////////////////////////////////////////////////////////
+
+	// FILE *out_tst;
+	// out_tst = fopen("output/tests/wn.dat", "w");
+
+	// int			trans = 1e4;
+	// int			number_of_orbits = 1000;
+
+	// typedef struct Attractor{
+	// 	double	basin_size;
+	// 	double	winding_number;
+	// 	// perorb	po;
+	// 	int		res_spin;
+	// 	int 	res_orbit;
+	// } attractor;
+
+	// attractor 	*A;
+	// int			number_of_attractors = 0;
+	// bool		attractor_found;
+
+
+	// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
+	// omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
+
+	// #pragma omp parallel private(attractor_found) shared(A, number_of_attractors)
+	// {
+	// #pragma omp for
+	// 	for (int i = 0; i < number_of_orbits; i++)
+	// 	{
+	// 		printf("i = %d\n", i);
+	// 		int 	orbit_size;
+	// 		double 	**orbit;
+	// 		double 	ic_local[system.dim];
+	// 		ic_local[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
+	// 		ic_local[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
+	// 		complete_orbital_part(ic_local, system);
+	// 		evolve_orbit(ic_local, &orbit, &orbit_size, system, analysis);
+	// 		double 	delta = orbit[orbit_size-1][0] - orbit[trans][0];
+	// 		int 	i_local = orbit_size-1-trans-1;
+	// 		double 	wn = angle_mod_pos(delta / (double) (i_local + 1));
+	// 		if(angular_dist(wn, 2.0*M_PI) < 1e-3) wn = 2.0*M_PI;
+	// 		int		wn_period = (int) round(2.0*M_PI/wn);
+	// 		double 	dist_from_int = fabs((2.0*M_PI/wn) - round(2.0*M_PI/wn));
+	// 		double 	one_period_angular_diff = 
+	// 					orbit[orbit_size-1][0] - orbit[orbit_size-1-wn_period][0];
+	// 		int 	number_of_spins = (int) round(one_period_angular_diff / T);
+	// 		dealloc_2d_double(&orbit, orbit_size);
+	// 		if (number_of_attractors == 0)
+	// 		{
+	// 			number_of_attractors++;
+	// 			A = (attractor*) malloc(number_of_attractors * sizeof(attractor));
+	// 			A[number_of_attractors-1].winding_number = wn;
+	// 			A[number_of_attractors-1].basin_size = 1;
+	// 			if(dist_from_int < 1e-3)
+	// 			{
+	// 				A[number_of_attractors-1].res_spin = number_of_spins;
+	// 				A[number_of_attractors-1].res_orbit = wn_period;
+	// 			}
+	// 			else
+	// 			{
+	// 				A[number_of_attractors-1].res_spin = 0;
+	// 				A[number_of_attractors-1].res_orbit = 0;
+	// 			}
+	// 		}
+	// 		else
+	// 		{
+	// 			attractor_found = false;
+	// 			for (int j = 0; j < number_of_attractors; j++)
+	// 			{
+	// 				if (angular_dist(wn, A[j].winding_number) < 1e-3)
+	// 				{
+	// 					if(A[j].res_orbit != 0)
+	// 					{
+	// 						if ((number_of_spins == A[j].res_spin) &&
+	// 							(wn_period == A[j].res_orbit))
+	// 						{
+	// 							A[j].basin_size++;
+	// 							attractor_found = true;
+	// 							break;
+	// 						}
+	// 					}
+	// 					else
+	// 					{
+	// 						A[j].basin_size++;
+	// 						attractor_found = true;
+	// 						break;
+	// 					}
+	// 				}
+	// 			}
+	// 			if(attractor_found == false)
+	// 			{
+	// 				number_of_attractors++;
+	// 				A = (attractor*) realloc(A, number_of_attractors * sizeof(attractor));
+	// 				A[number_of_attractors-1].winding_number = wn;
+	// 				A[number_of_attractors-1].basin_size = 1;
+	// 				if(dist_from_int < 1e-3)
+	// 				{
+	// 					A[number_of_attractors-1].res_spin = number_of_spins;
+	// 					A[number_of_attractors-1].res_orbit = wn_period;
+	// 				}
+	// 				else
+	// 				{
+	// 					A[number_of_attractors-1].res_spin = 0;
+	// 					A[number_of_attractors-1].res_orbit = 0;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// } // end pragma
+
+	// for (int i = 0; i < number_of_attractors; i++)
+	// {
+	// 	fprintf(out_tst, "w = %f s = %d o = %d size = %f\n", 
+	// 		A[i].winding_number,
+	// 		A[i].res_spin,
+	// 		A[i].res_orbit,
+	// 		A[i].basin_size/((double)number_of_orbits));
+	// }
+	
+	// fclose(out_tst);
 
 	/******************** Stop clock ***********************/
 
