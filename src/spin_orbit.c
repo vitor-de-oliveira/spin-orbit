@@ -3212,9 +3212,9 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 	// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
 	// omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
 
-	#pragma omp parallel private(y,	convergence_time, converged, A) shared(flag, A_all, number_of_attractors, index_for_not_converged, orbits_counter)
+	#pragma omp parallel num_threads(40) private(y,	convergence_time, converged, A) shared(flag, A_all, number_of_attractors, index_for_not_converged, orbits_counter)
 	{
-	#pragma omp for
+	#pragma omp for schedule(static)
 		for (int i = 0; i < analysis.number_of_rand_orbits; i++)
 		{
 
@@ -3250,26 +3250,13 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 						bool attractor_already_logged = false;
 						for (int j = 0; j < number_of_attractors; j++)
 						{
-							if (fabs(A.winding_number-A_all[j].winding_number) < 5e-2)
+							if ((A.res_spin == A_all[j].res_spin) &&
+								(A.res_orbit == A_all[j].res_orbit))
 							{
-								if(A.res_orbit != 0)
-								{
-									if ((A.res_spin == A_all[j].res_spin) &&
-										(A.res_orbit == A_all[j].res_orbit))
-									{
-										A_all[j].basin_size++;
-										attractor_already_logged = true;
-										control[orbits_counter-1] = j + 1;
-										break;
-									}
-								}
-								else
-								{
-									A_all[j].basin_size++;
-									attractor_already_logged = true;
-									control[orbits_counter-1] = j + 1;
-									break;
-								}
+								A_all[j].basin_size++;
+								attractor_already_logged = true;
+								control[orbits_counter-1] = j + 1;
+								break;
 							}
 						}
 						if(attractor_already_logged == false)
@@ -3407,49 +3394,6 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 	// }
 	// fclose(out_size_full);
 
-	double max_spin_found = A_all[0].res_spin;
-	double max_orbit_found = A_all[0].res_orbit;
-	for (int i = 1; i < number_of_attractors; i++)
-	{
-		if (A_all[i].res_spin > max_spin_found)
-		{
-			max_spin_found = A_all[i].res_spin;
-		}
-		if (A_all[i].res_orbit > max_orbit_found)
-		{
-			max_orbit_found = A_all[i].res_orbit;
-		}
-	}
-	for (int orbit_period = 1; orbit_period <= max_orbit_found; orbit_period++)
-	{
-		for (int spin_period = 1; spin_period <= max_spin_found; spin_period++)
-		{
-			for (int k = 0; k < number_of_attractors; k++)
-			{
-				if (A_all[k].res_spin == spin_period &&
-					A_all[k].res_orbit == orbit_period)
-				{
-					fprintf(out_size_full, "%1.3f %d %d %1.10f %d %1.5e\n", 
-						e, spin_period, orbit_period, A_all[k].basin_size/((double)orbits_counter),
-						cantor_pairing_function(spin_period, orbit_period),
-						A_all[k].winding_number);
-				}
-			}
-		}
-	}
-	for (int k = 0; k < number_of_attractors; k++)
-	{
-		if (A_all[k].res_spin == 0 &&
-			A_all[k].res_orbit == 0)
-		{
-			fprintf(out_size_full, "%1.3f %d %d %1.10f %d %1.5e %1.5e\n", 
-				e, A_all[k].res_spin, A_all[k].res_orbit, A_all[k].basin_size/((double)orbits_counter),
-				cantor_pairing_function(A_all[k].res_spin, A_all[k].res_orbit),
-				A_all[k].winding_number, angle_mod(A_all[k].winding_number));
-		}
-	}
-	fclose(out_size_full);
-
 	bool empty_res;
 	for (int orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
 	{
@@ -3475,6 +3419,7 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 			}
 		}
 	}
+	empty_res = true;
 	for (int k = 0; k < number_of_attractors; k++)
 	{
 		if (A_all[k].res_spin == 0 &&
@@ -3483,7 +3428,14 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 			fprintf(out_size, "%1.3f %d %d %1.10f %d\n", 
 				e, A_all[k].res_spin, A_all[k].res_orbit, A_all[k].basin_size/((double)orbits_counter),
 				cantor_pairing_function(A_all[k].res_spin, A_all[k].res_orbit));
+			empty_res = false;
 		}
+	}
+	if (empty_res == true)
+	{
+		fprintf(out_size, "%1.3f %d %d %1.10f %d\n", 
+			e, 0, 0, 0.0,
+			cantor_pairing_function(0, 0));
 	}
 	fclose(out_size);
 
@@ -6765,7 +6717,7 @@ int plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_undetermined_with_basin_entropy__monte_carlo_with_break_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_undetermined_with_basin_entropy_monte_carlo_with_break_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	// fprintf(gnuplotPipe, 
 	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_monte_carlo_with_break_synchronous_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 

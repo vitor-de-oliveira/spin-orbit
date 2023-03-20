@@ -50,23 +50,23 @@ int main(int argc, char **argv)
 	double K;				// dissipation parameter
 	double T;				// system period
 
-	// gamma = (2.0/3.0) * 1e-3;
-	// e = 0.2;	// 0.15
-	// m_secondary = 0.0;
-	// m_primary = 1.0 - m_secondary;
-	// G = 1.0;
-	// a = 1.0;
- 	// K = 1e-4;		//1e-4
-	// T = kepler_period(m_primary, m_secondary, G, a);
-
-	gamma = gamma_hyperion;
-	e = 0.090;
+	gamma = (2.0/3.0) * 1e-3;
+	e = 0.2;	// 0.15
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 	a = 1.0;
- 	K = 1e-2;
+ 	K = 1e-4;		//1e-4
 	T = kepler_period(m_primary, m_secondary, G, a);
+
+	// gamma = gamma_hyperion;
+	// e = 0.090;
+	// m_secondary = 0.0;
+	// m_primary = 1.0 - m_secondary;
+	// G = 1.0;
+	// a = 1.0;
+ 	// K = 1e-2;
+	// T = kepler_period(m_primary, m_secondary, G, a);
 
 	/*************** System initialization ****************/
 
@@ -82,15 +82,15 @@ int main(int argc, char **argv)
 	dynsys	system_linear_average = init_linear_average(params);
 
 	// system = system_rigid;
-	system = system_linear;
-	// system = system_linear_average;
+	// system = system_linear;
+	system = system_linear_average;
 
 	/**************** Simulation parameters ******************/
 
 	anlsis	analysis;
 
-	// analysis.number_of_cycles = 1e7;	// (int) (1.0e7 / T)
-	analysis.number_of_cycles = 6e3;	// 1e3 5e3 1e4
+	analysis.number_of_cycles = 1e7;	// (int) (1.0e7 / T)
+	// analysis.number_of_cycles = 6e3;	// 1e3 5e3 1e4
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -99,15 +99,15 @@ int main(int argc, char **argv)
 	analysis.coordinate_min = 0.0; 		// 0.0
 	analysis.coordinate_max = M_PI; 	// M_PI
 	analysis.velocity_min = 0.0;		// 0.0
-	// analysis.velocity_max = 5.0;		// 3.0
-	analysis.velocity_max = 3.0;		// 3.0
+	analysis.velocity_max = 5.0;		// 3.0
+	// analysis.velocity_max = 3.0;		// 3.0
 
 	analysis.grid_resolution = 600;			// 600
 	analysis.grid_coordinate_min = -M_PI;	// -M_PI
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
-	// analysis.grid_velocity_max = 5.0;		// 3.0
-	analysis.grid_velocity_max = 3.0;		// 3.0
+	analysis.grid_velocity_max = 5.0;		// 3.0
+	// analysis.grid_velocity_max = 3.0;		// 3.0
 
 	analysis.sqrt_orbits_on_box = 10;
 	
@@ -272,38 +272,38 @@ int main(int argc, char **argv)
 
 	/* Multiple periodic orbits */
 
-	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
+	// fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis);
 
-	multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
-	basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
+	// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
+	// basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
 
-	if (number_of_pos > 0)
-	{
-		for (int j = 0; j < number_of_pos; j++)
-		{
-			dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-		}
-		free(multiple_pos);
-	}
+	// if (number_of_pos > 0)
+	// {
+	// 	for (int j = 0; j < number_of_pos; j++)
+	// 	{
+	// 		dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+	// 	}
+	// 	free(multiple_pos);
+	// }
 
 	/* Multiple periodic orbits - loop over e */
 
-	// number_of_e = 20;
-	// e_initial = 0.0;	// 0.0
-	// e_final = 0.2;		// 0.2
+	number_of_e = 50;
+	e_initial = 0.0;	// 0.0
+	e_final = 0.5;		// 0.2
 
-	// e_step = (e_final - e_initial) / (double)(number_of_e);
+	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	// for(int i = 0; i <= number_of_e; i++)	// (int i = 0; i <= number_of_e; i++)
-	// {
-	// 	double e_loop = e_initial + (double)i * e_step;
-	// 	printf("e = %1.3f\n", e_loop);
+	for(int i = 0; i <= number_of_e; i++)	// (int i = 0; i <= number_of_e; i++)
+	{
+		double e_loop = e_initial + (double)i * e_step;
+		printf("e = %1.3f\n", e_loop);
 
-	// 	dynsys system_loop = system;
-	// 	double params_loop[number_of_params];
-	// 	copy(params_loop, params, number_of_params);
-	// 	params_loop[1] = e_loop;
-	// 	system_loop.params = params_loop;
+		dynsys system_loop = system;
+		double params_loop[number_of_params];
+		copy(params_loop, params, number_of_params);
+		params_loop[1] = e_loop;
+		system_loop.params = params_loop;
 
 		// fill_attractor_array(&number_of_pos, &multiple_pos, system_loop, analysis);
 
@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 			// basin_size_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system_loop, analysis);
 			// basin_entropy_from_data_monte_carlo_with_break (system_loop, analysis);
 			// basin_entropy_progress_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system_loop, analysis);
-			// multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system_loop, analysis);
+			multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system_loop, analysis);
 			
 			/* comparison between grid and monte carlo */
 
@@ -351,7 +351,7 @@ int main(int argc, char **argv)
 		// plot_histogram_python (system_loop, analysis);
 		// plot_histogram_python_monte_carlo_with_break (system_loop, analysis);
 
-	// }
+	}
 
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
@@ -366,8 +366,8 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
 	// 	0.0, 0.25, system, analysis);
 
-	// plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
-	// 	e_initial, e_final, system, analysis);
+	plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
+		e_initial, e_final, system, analysis);
 
 	// analysis.grid_resolution = 600;
 	// plot_slope_basin_entropy_range_e(number_of_e,
