@@ -2588,7 +2588,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 				control_matrix, time_matrix)
 		{
 
-		#pragma omp for
+		#pragma omp for schedule(dynamic)
 			// loop over velocity values
 			for (int j = 0; j < analysis.grid_resolution; j++)
 			{
