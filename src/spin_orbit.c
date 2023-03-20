@@ -819,7 +819,7 @@ int phase_space(dynsys system, anlsis analysis)
 	analysis_bw = analysis;
 	analysis_bw.cycle_period *= -1.0;
 
-	printf("Calculating phase space for e = %1.3f and gamma = %1.3f\n", e, gamma);
+	printf("Calculating phase space for e = %1.3f and gamma = %1.6f\n", e, gamma);
 
 	// loop over coordinate values
 	for (int i = 0; i < analysis.nc; i++)
