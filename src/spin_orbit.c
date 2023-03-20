@@ -3062,8 +3062,8 @@ int evolve_multiple_basin_undetermined_winding	(double *ic,
 
 					A->winding_number = wn_mod;
 					A->basin_size = 1;
-					A->theta = ic[0];
-					A->theta_dot = ic[1];
+					A->theta = y[0];
+					A->theta_dot = y[1];
 
 					double 	dist_from_int = fabs((2.0*M_PI/wn_mod) - round(2.0*M_PI/wn_mod));
 
