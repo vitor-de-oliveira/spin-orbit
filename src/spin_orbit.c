@@ -3214,7 +3214,7 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 
 	#pragma omp parallel num_threads(40) private(y,	convergence_time, converged, A) shared(flag, A_all, number_of_attractors, index_for_not_converged, orbits_counter)
 	{
-	#pragma omp for schedule(static)
+	#pragma omp for schedule(dynamic)
 		for (int i = 0; i < analysis.number_of_rand_orbits; i++)
 		{
 
@@ -3384,15 +3384,15 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 	}
 	fclose(out_ref);
 
-	// for (int i = 0; i < number_of_attractors; i++)
-	// {
-	// 	fprintf(out_size_full, "w = %f s = %d o = %d size = %f\n", 
-	// 		A_all[i].winding_number,
-	// 		A_all[i].res_spin,
-	// 		A_all[i].res_orbit,
-	// 		A_all[i].basin_size/((double)orbits_counter));
-	// }
-	// fclose(out_size_full);
+	for (int i = 0; i < number_of_attractors; i++)
+	{
+		fprintf(out_size_full, "w = %f s = %d o = %d size = %f\n", 
+			A_all[i].winding_number,
+			A_all[i].res_spin,
+			A_all[i].res_orbit,
+			A_all[i].basin_size/((double)orbits_counter));
+	}
+	fclose(out_size_full);
 
 	bool empty_res;
 	for (int orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)

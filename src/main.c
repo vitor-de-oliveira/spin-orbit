@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 	double T;				// system period
 
 	gamma = (2.0/3.0) * 1e-3;
-	e = 0.2;	// 0.15
+	e = 0.0;	// 0.15
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -126,8 +126,8 @@ int main(int argc, char **argv)
 	analysis.po_tol = 1e-8;					// 1e-13
 
 	analysis.number_of_rand_orbits = 10000;
-	analysis.convergence_window = 500;		// 5e4 5e3
-	analysis.convergence_transient = 6000;	// 1e4
+	analysis.convergence_window = 1e3;		// 5e4 5e3 500 (hyp)
+	analysis.convergence_transient = 1e4;	// 1e4 6000 (hyp)
 	analysis.convergence_precision = 1e-2;	// 1e-2
 
 	/***************** Declared variables *******************/
@@ -285,6 +285,8 @@ int main(int argc, char **argv)
 	// 	}
 	// 	free(multiple_pos);
 	// }
+
+	// multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system, analysis);
 
 	/* Multiple periodic orbits - loop over e */
 
