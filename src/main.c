@@ -286,26 +286,26 @@ int main(int argc, char **argv)
 	// 	free(multiple_pos);
 	// }
 
-	multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system, analysis);
+	// multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system, analysis);
 
 	/* Multiple periodic orbits - loop over e */
 
-	// number_of_e = 50;
-	// e_initial = 0.0;	// 0.0
-	// e_final = 0.5;		// 0.2
+	number_of_e = 20;	// 50 (moon) 20 (hyp)
+	e_initial = 0.0;	// 0.0 (moon) 0.0 (hyp)
+	e_final = 0.2;		// 0.5 (moon) 0.2 (hyp)
 
-	// e_step = (e_final - e_initial) / (double)(number_of_e);
+	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	// for(int i = 0; i <= number_of_e; i++)	// (int i = 0; i <= number_of_e; i++)
-	// {
-	// 	double e_loop = e_initial + (double)i * e_step;
-	// 	printf("e = %1.3f\n", e_loop);
+	for(int i = 0; i <= number_of_e; i++)	// (int i = 0; i <= number_of_e; i++)
+	{
+		double e_loop = e_initial + (double)i * e_step;
+		printf("e = %1.3f\n", e_loop);
 
-	// 	dynsys system_loop = system;
-	// 	double params_loop[number_of_params];
-	// 	copy(params_loop, params, number_of_params);
-	// 	params_loop[1] = e_loop;
-	// 	system_loop.params = params_loop;
+		dynsys system_loop = system;
+		double params_loop[number_of_params];
+		copy(params_loop, params, number_of_params);
+		params_loop[1] = e_loop;
+		system_loop.params = params_loop;
 
 		// fill_attractor_array(&number_of_pos, &multiple_pos, system_loop, analysis);
 
@@ -332,7 +332,7 @@ int main(int argc, char **argv)
 			// basin_size_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system_loop, analysis);
 			// basin_entropy_from_data_monte_carlo_with_break (system_loop, analysis);
 			// basin_entropy_progress_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system_loop, analysis);
-			// multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system_loop, analysis);
+			multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system_loop, analysis);
 			
 			/* comparison between grid and monte carlo */
 
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
 		// plot_histogram_python (system_loop, analysis);
 		// plot_histogram_python_monte_carlo_with_break (system_loop, analysis);
 
-	// }
+	}
 
 	// plot_size_multiple_basin_of_attraction_determined_range_e(number_of_e,
 	// 	e_initial, e_final, system, analysis);
@@ -368,8 +368,8 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
 	// 	0.0, 0.25, system, analysis);
 
-	// plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
-	// 	e_initial, e_final, system, analysis);
+	plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
+		e_initial, e_final, system, analysis);
 
 	// analysis.grid_resolution = 600;
 	// plot_slope_basin_entropy_range_e(number_of_e,
