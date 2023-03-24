@@ -3278,7 +3278,6 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 	#pragma omp for schedule(dynamic)
 		for (int i = 0; i < analysis.number_of_rand_orbits; i++)
 		{
-
 			if(flag) continue;
 
 			y[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
@@ -3294,6 +3293,8 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 
 			#pragma omp critical
 			{
+				if(flag) continue;
+
 				// print progress
 				print_prog((double)++orbits_counter/(double)analysis.number_of_rand_orbits);
 
@@ -3389,7 +3390,7 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 						&& flag == false)
 					{
 						flag = true;
-						printf("Method converged\n");
+						printf(" Method converged\n");
 						converged_orbit_number = orbits_counter-1;
 					}
 				}
