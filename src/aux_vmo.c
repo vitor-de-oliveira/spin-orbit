@@ -59,6 +59,14 @@ void print_prog(double percentage)
 	fflush(stdout);
 }
 
+void print_prog_float(double percentage)
+{
+	int lpad = (int)(percentage * PBWIDTH);
+	int rpad = PBWIDTH - lpad;
+	printf("\r%f%% [%.*s%*s]", percentage, lpad, PBSTR, rpad, "");
+	fflush(stdout);
+}
+
 double sign(double x)
 {
 	if (x >= 0)
@@ -297,9 +305,15 @@ void square_2d_matrix_inverse(double **inv, double **m)
 
 double rand_number_in_interval(double x_min, double x_max)
 {
+// 	FILE *out = fopen("output/tests/rand_values.dat", "a");
 	double rand_value;
-	double alpha = ((double)rand() / (double)RAND_MAX);
+	int rand_numerator = rand();
+	int rand_max = RAND_MAX;
+	double alpha = ((double)rand_numerator / (double)rand_max);
 	rand_value = x_min + alpha * (x_max - x_min);
+	// fprintf(out, "rand = %d rand_max = %d rand_value = %1.15e\n", 
+	// 	rand_numerator, rand_max, rand_value);
+	// fclose(out);
 	return rand_value;
 }
 

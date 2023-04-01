@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 	double T;				// system period
 
 	// gamma = (2.0/3.0) * 1e-3;
-	// e = 0.0;	// 0.15
+	// e = 0.0;
 	// m_secondary = 0.0;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 	// T = kepler_period(m_primary, m_secondary, G, a);
 
 	gamma = gamma_hyperion;
-	e = 0.090;
+	e = 0.180;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 
 	anlsis	analysis;
 
-	// analysis.number_of_cycles = 1e7;	// (int) (1.0e7 / T)
+	// analysis.number_of_cycles = 1e5;	// (int) (1.0e7 / T)
 	analysis.number_of_cycles = 6e3;	// 1e3 5e3 1e4 6e3 (hyp - strong)
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
@@ -113,22 +113,21 @@ int main(int argc, char **argv)
 	
 	analysis.spin_period_min = 1;
 	analysis.orbit_period_min = 1;
-	// analysis.spin_period_max = 9;
-	analysis.spin_period_max = 5;
-	analysis.orbit_period_max = 4;
+	analysis.spin_period_max = 8;			// 5
+	analysis.orbit_period_max = 4;			// 4
 	analysis.evolve_basin_time_tol = 500;
 	analysis.evolve_basin_eps = 1e-1;
-
-	analysis.transient_time = 1e3;
-	analysis.max_order_to_look_for = 20;
 
 	analysis.po_max_step = 1000;			// 1000
 	analysis.po_tol = 1e-8;					// 1e-13
 
-	analysis.number_of_rand_orbits = 10000;
-	analysis.convergence_window = 5e2;		// 1e3 (moon) 5e2 (hyp - weak) 1e3 (hyp - strong)
-	analysis.convergence_transient = 1e3;	// 1e4 (moon) 1e3 (hyp - weak) 4e3 (hyp - strong)
-	analysis.convergence_precision = 1e-2;	// 1e-2
+	analysis.number_of_rand_orbits_mc = 10000;
+	analysis.convergence_window_mc = 1e3;		// 1e3 (moon) 5e2 (hyp - weak) 1e3 (hyp - strong)
+	analysis.convergence_precision_mc = 1e-2;
+
+	analysis.convergence_transient_wn = 1e3; 	// 1e4 (moon) 1e3 (hyp - weak) 4e3 (hyp - strong)
+	analysis.convergence_window_wn = 1e3;	 	// 1e3 (moon) 5e2 (hyp - weak) 1e3 (hyp - strong)
+	analysis.convergence_precision_wn = 1e-4; 	// 1e-2
 
 	/***************** Declared variables *******************/
 
@@ -149,8 +148,8 @@ int main(int argc, char **argv)
 
 	// ic[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
 	// ic[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
-	// ic[0] = 0.3;
-	// ic[1] = 1.0;
+	// ic[0] = 0.15;
+	// ic[1] = 1.12;
 	// complete_orbital_part(ic, system);
 	// orbit_map(ic, system, analysis);
 
@@ -276,6 +275,7 @@ int main(int argc, char **argv)
 
 	// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis);
 	// basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
+	// draw_multiple_basin_of_attraction_determined (system, analysis);
 
 	// if (number_of_pos > 0)
 	// {
@@ -291,12 +291,12 @@ int main(int argc, char **argv)
 	/* Multiple periodic orbits - loop over e */
 
 	number_of_e = 20;	// 50 (moon) 20 (hyp)
-	e_initial = 0.0;	// 0.0 (moon) 0.0 (hyp)
-	e_final = 0.2;		// 0.5 (moon) 0.2 (hyp)
+	e_initial = 0.2;	// 0.0 (moon) 0.0 (hyp)
+	e_final = 0.4;		// 0.5 (moon) 0.2 (hyp)
 
 	e_step = (e_final - e_initial) / (double)(number_of_e);
 
-	for(int i = 0; i <= number_of_e; i++)	// (int i = 0; i <= number_of_e; i++)
+	for(int i = 1; i <= number_of_e; i++)	// (int i = 0; i <= number_of_e; i++)
 	{
 		double e_loop = e_initial + (double)i * e_step;
 		printf("e = %1.3f\n", e_loop);
@@ -307,13 +307,16 @@ int main(int argc, char **argv)
 		params_loop[1] = e_loop;
 		system_loop.params = params_loop;
 
-		// fill_attractor_array(&number_of_pos, &multiple_pos, system_loop, analysis);
+		anlsis analysis_res_300 = analysis;
+		analysis_res_300.grid_resolution = 300;
 
-	// 	if (number_of_pos > 0)
-	// 	{
+		fill_attractor_array(&number_of_pos, &multiple_pos, system_loop, analysis_res_300);
+
+		if (number_of_pos > 0)
+		{
 			/* calculation on grid */
 	
-			// multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system_loop, analysis);
+			multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system_loop, analysis);
 			// draw_multiple_basin_of_attraction_determined (system_loop, analysis);
 			// draw_multiple_basin_of_attraction_determined_clean (system_loop, analysis);
 			// basin_size_from_data (number_of_pos, multiple_pos, system_loop, analysis);
@@ -332,23 +335,23 @@ int main(int argc, char **argv)
 			// basin_size_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system_loop, analysis);
 			// basin_entropy_from_data_monte_carlo_with_break (system_loop, analysis);
 			// basin_entropy_progress_from_data_monte_carlo_with_break (number_of_pos, multiple_pos, system_loop, analysis);
-			multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system_loop, analysis);
+			// multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system_loop, analysis);
 			
 			/* comparison between grid and monte carlo */
 
 			// comparison_entropy_grid_vs_monte_carlo (number_of_pos, multiple_pos, system_loop, analysis);
 			// plot_comparison_entropy_grid_vs_monte_carlo (system_loop, analysis);
 
-			// for (int j = 0; j < number_of_pos; j++)
-			// {
-			// 	dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-			// }
-			// free(multiple_pos);
-		// }
-		// else
-		// {
-		// 	printf("Warning: null number of attractors.\n");
-		// }
+			for (int j = 0; j < number_of_pos; j++)
+			{
+				dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+			}
+			free(multiple_pos);
+		}
+		else
+		{
+			printf("Warning: null number of attractors.\n");
+		}
 
 		// plot_histogram_python (system_loop, analysis);
 		// plot_histogram_python_monte_carlo_with_break (system_loop, analysis);
@@ -368,8 +371,8 @@ int main(int argc, char **argv)
 	// plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
 	// 	0.0, 0.25, system, analysis);
 
-	plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
-		e_initial, e_final, system, analysis);
+	// plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e(0, 0.01,
+	// 	e_initial, e_final, system, analysis);
 
 	// analysis.grid_resolution = 600;
 	// plot_slope_basin_entropy_range_e(number_of_e,
