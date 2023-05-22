@@ -673,21 +673,22 @@ int orbit_map(double *ic, dynsys system,
 	double gamma = par[0];
 	double e = par[1];
 	double K = par[6];
+	double T = par[7];
 
 	// prepare and open exit files 
 	FILE	*out_orb, *out_orb_ic, 
 			*out_orb_err;
 	char	filename[150];
 
-	sprintf(filename, "output/orbit/orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+	sprintf(filename, "output/orbit/orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat", 
 		gamma, e, system.name, K);
 	out_orb = fopen(filename, "w");
 
-	sprintf(filename, "output/orbit/orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+	sprintf(filename, "output/orbit/orbit_ic_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat", 
 		gamma, e, system.name, K);
 	out_orb_ic = fopen(filename, "w");
 
-	sprintf(filename, "output/orbit/orbit_orbital_error_angular_momentum_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+	sprintf(filename, "output/orbit/orbit_orbital_error_angular_momentum_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat", 
 		gamma, e, system.name, K);
 	out_orb_err = fopen(filename, "w");
 	
@@ -708,14 +709,14 @@ int orbit_map(double *ic, dynsys system,
 
 	// write orbit and constant error to file
 	fprintf(out_orb_ic, "%1.15e %1.15e\n", 
-			angle_mod_pos(orbit[0][0]), orbit[0][1]);
+			angle_mod(orbit[0][0]), orbit[0][1]);
 
 	for (int i = 0; i < orbit_size; i++)
 	{
 		// fprintf(out_orb, "%1.15e %1.15e\n", 
 		// 		angle_mod_pos(orbit[i][0]), orbit[i][1]);
-		fprintf(out_orb, "%1.15e %1.15e %d\n", 
-				angle_mod(orbit[i][0]), orbit[i][1], i);
+		fprintf(out_orb, "%1.15e %1.15e\n", 
+				angle_mod(orbit[i][0]), orbit[i][1]);
 		
 		// if (strcmp(system.name, "rigid") == 0)
 		if (system.dim == 6)
@@ -728,6 +729,59 @@ int orbit_map(double *ic, dynsys system,
 					i, fabs(angular_momentum_two_body(orb)-
 					angular_momentum_two_body(orb_ini)));
 		}
+	}
+
+	if (analysis.convergence_transient_wn + analysis.convergence_window_wn < orbit_size)
+	{
+		FILE 	*out_wn = fopen("output/tests/orbit_progress_wn.dat", "w");
+		double 	winding_number_window[analysis.convergence_window_wn];
+		for (int i = analysis.convergence_transient_wn + 1; i < orbit_size; i++)
+		{
+			int 	i_local = i - (analysis.convergence_transient_wn + 1);
+			double 	delta_theta = orbit[i][0] - orbit[analysis.convergence_transient_wn][0];
+			double 	wn = (delta_theta / (double) (i_local + 1));
+			fprintf(out_wn, "%d %f\n", i, wn);
+
+			if(i_local < analysis.convergence_window_wn)
+			{
+				winding_number_window[i_local] = wn;
+			}
+			else
+			{
+				double max_winding_number = wn;
+				double min_winding_number = wn;
+				for (int j = 0; j < analysis.convergence_window_wn - 1; j++)
+				{
+					winding_number_window[j] = winding_number_window[j+1];
+					if(winding_number_window[j] > max_winding_number)
+					{
+						max_winding_number = winding_number_window[j];
+					}
+					if(winding_number_window[j] < min_winding_number)
+					{
+						min_winding_number = winding_number_window[j];
+					}
+				}
+				winding_number_window[analysis.convergence_window_wn - 1] = wn;
+				if (fabs(max_winding_number-min_winding_number) < analysis.convergence_precision_wn)
+				{
+					printf("Winding number converged at iterate number %d\n", i);
+					printf("wn = %1.10e\n", wn);
+					double precise_wn, pwn_numerator = 0.0, pwn_denominator = 0.0;
+					for (int l = analysis.convergence_transient_wn + 2; l < i; l++)
+					{
+						double twp = ((double) (l - analysis.convergence_transient_wn - 1)) / ((double) (i - analysis.convergence_transient_wn - 1));
+						double factor = 1.0/exp(1.0/(twp*(1.0-twp)));
+						pwn_numerator += (orbit[l][0] - orbit[l-1][0]) * factor;
+						pwn_denominator += factor;
+					}
+					precise_wn = pwn_numerator / pwn_denominator;
+					printf("precise_wn = %1.10e\n", precise_wn);
+					break;
+				}
+			}
+		}
+		fclose(out_wn);
 	}
 
 	// free memory
@@ -769,21 +823,21 @@ int phase_space(dynsys system, anlsis analysis)
 	char	filename[100];
 
 	sprintf(filename, 
-		"output/phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat", gamma, e);
+		"output/phase_space/phase_space_gamma_%1.6f_e_%1.3f.dat", gamma, e);
 	out_psp = fopen(filename, "w");
 
 	sprintf(filename, 
-		"output/phase_space/phase_space_initial_conditions_gamma_%1.3f_e_%1.3f.dat", 
+		"output/phase_space/phase_space_initial_conditions_gamma_%1.6f_e_%1.3f.dat", 
 		gamma, e);
 	out_ic = fopen(filename, "w");
 
 	sprintf(filename, 
-		"output/phase_space/phase_space_orbital_angular_momentum_error_gamma_%1.3f_e_%1.3f.dat",
+		"output/phase_space/phase_space_orbital_angular_momentum_error_gamma_%1.6f_e_%1.3f.dat",
 		gamma, e);
 	out_orb_ang_mom_err = fopen(filename, "w");
 
 	sprintf(filename, 
-		"output/phase_space/phase_space_vis_viva_error_gamma_%1.3f_e_%1.3f.dat",
+		"output/phase_space/phase_space_vis_viva_error_gamma_%1.6f_e_%1.3f.dat",
 		gamma, e);
 	out_vis_viva_err = fopen(filename, "w");
 
@@ -796,11 +850,11 @@ int phase_space(dynsys system, anlsis analysis)
 	init_orbital(orb_ini, system);
 	anlsis analysis_fw, analysis_bw;
 
-	analysis_fw = copy_anlsis(analysis);
-	analysis_bw = copy_anlsis(analysis);
+	analysis_fw = analysis;
+	analysis_bw = analysis;
 	analysis_bw.cycle_period *= -1.0;
 
-	printf("Calculating phase space for e = %1.3f and gamma = %1.3f\n", e, gamma);
+	printf("Calculating phase space for e = %1.3f and gamma = %1.6f\n", e, gamma);
 
 	// loop over coordinate values
 	for (int i = 0; i < analysis.nc; i++)
@@ -808,8 +862,8 @@ int phase_space(dynsys system, anlsis analysis)
 		// print progress on coordinate
 		printf("Calculating set %d of %d\n", i + 1, analysis.nc);
 
-		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
+		// omp_set_dynamic(0);     // Explicitly disable dynamic teams
+		// omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, \
 				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb)
@@ -1338,9 +1392,9 @@ int periodic_orbit	(perorb *po,
 	(*po).initial_condition[1] = (*po).orbit[index_theta_min][1];
 
 	// indexed file
-	sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
-            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
-	out_orb = fopen(filename, "w");
+	// sprintf(filename, "output/periodic_orbit/periodic_orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
+    //         gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
+	// out_orb = fopen(filename, "w");
 
 	copy(y, (*po).initial_condition, 2);
 	if (system.dim == 6)
@@ -1356,17 +1410,17 @@ int periodic_orbit	(perorb *po,
     {
         copy((*po).orbit[i], y, system.dim);
 
-		fprintf(out_orb, "%1.10e %1.10e\n", 
-            angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
+		// fprintf(out_orb, "%1.10e %1.10e\n", 
+        //     angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
 
 		evolve_cycle(y, &t, system, analysis);
     }
 
 	copy(po_ic_after_one_period, y, system.dim);
 
-	sprintf(filename, "output/periodic_orbit/periodic_orbit_resonance_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
-            gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
-	out_orb_res = fopen(filename, "w");
+	// sprintf(filename, "output/periodic_orbit/periodic_orbit_resonance_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat", 
+    //         gamma, e, system.name, K, (*po).period, angle_mod((*po).initial_condition[0]), (*po).initial_condition[1]);
+	// out_orb_res = fopen(filename, "w");
 
 	// calculating the resonance
 	one_period_angular_diff = 
@@ -1377,31 +1431,31 @@ int periodic_orbit	(perorb *po,
 	(*po).winding_number_numerator = (int) round(number_of_spins);
 	(*po).winding_number_denominator = (*po).period;
 
-	fprintf(out_orb_res, "Orbit:\n\n");
+	// fprintf(out_orb_res, "Orbit:\n\n");
 
-	for (int i = 0; i < (*po).period; i++)
-    {
-        fprintf(out_orb_res, "%1.5e %1.5e\n", 
-            angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
-    }
+	// for (int i = 0; i < (*po).period; i++)
+    // {
+    //     fprintf(out_orb_res, "%1.5e %1.5e\n", 
+    //         angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
+    // }
 
-	fprintf(out_orb_res, "\n\n");
+	// fprintf(out_orb_res, "\n\n");
 
-	fprintf(out_orb_res, "Orbit period:\n\n%d\n\n\n", 
-		(*po).period);
+	// fprintf(out_orb_res, "Orbit period:\n\n%d\n\n\n", 
+	// 	(*po).period);
 
-	fprintf(out_orb_res, "Angular difference after 1 period:\n\n%1.10e\n\n\n", 
-		one_period_angular_diff);
+	// fprintf(out_orb_res, "Angular difference after 1 period:\n\n%1.10e\n\n\n", 
+	// 	one_period_angular_diff);
 
-	fprintf(out_orb_res, "Number of spins:\n\n%1.10e\n\n\n", 
-		number_of_spins);
+	// fprintf(out_orb_res, "Number of spins:\n\n%1.10e\n\n\n", 
+	// 	number_of_spins);
 
-	fprintf(out_orb_res, "Resonance:\n\n%d / %d\n\n\n", 
-		(*po).winding_number_numerator, 
-		(*po).winding_number_denominator);
+	// fprintf(out_orb_res, "Resonance:\n\n%d / %d\n\n\n", 
+	// 	(*po).winding_number_numerator, 
+	// 	(*po).winding_number_denominator);
 
-    fclose(out_orb);
-	fclose(out_orb_res);
+    // fclose(out_orb);
+	// fclose(out_orb_res);
 
 	return 0;
 }
@@ -1428,10 +1482,10 @@ int look_for_resonance	(int number_of_candidates,
 	FILE	*out_dist, *out_cand;
 	char	filename[300];
 
-	// sprintf(filename, "output/periodic_orbit/resonance_distances_gamma_%1.3f_e_%1.3f_spin_orbit_%d_%d.dat", 
+	// sprintf(filename, "output/periodic_orbit/resonance_distances_gamma_%1.6f_e_%1.3f_spin_orbit_%d_%d.dat", 
 	// 	gamma, e, spin_period, orbit_period);
 	// out_dist = fopen(filename, "w");
-	// sprintf(filename, "output/periodic_orbit/resonance_candidates_gamma_%1.3f_e_%1.3f_spin_orbit_%d_%d.dat", 
+	// sprintf(filename, "output/periodic_orbit/resonance_candidates_gamma_%1.6f_e_%1.3f_spin_orbit_%d_%d.dat", 
 	// 	gamma, e, spin_period, orbit_period);
 	// out_cand = fopen(filename, "w");
 
@@ -1470,8 +1524,8 @@ int look_for_resonance	(int number_of_candidates,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
+		// omp_set_dynamic(0);     // Explicitly disable dynamic teams
+		// omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, y0, grid, rot_ini, t) shared(orbit_distance, spin_distance)
 		{
@@ -1624,15 +1678,19 @@ int find_all_periodic_attractors(int *number_of_pos,
 	FILE	*out;
 	char	filename[300];
 
-	sprintf(filename, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+	sprintf(filename, "output/periodic_orbit/all_periodic_orbits_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat", 
 		gamma, e, system.name, K);
 
 	int spin_period, orbit_period;
 	int number_of_candidates;
-	double tol_between_pos;
+	double tol_same_po, tol_between_pos;
+
+	// distance value for which we say a periodic orbit of period n
+	// has actually period m where n is a multiple of m
+	tol_same_po = 1e-6;
 
 	// distance value for which we say two pos are actually the same one
-	tol_between_pos = 1e-5;		
+	tol_between_pos = 1e-3;		
 
 	*number_of_pos = 0;
 
@@ -1688,6 +1746,23 @@ int find_all_periodic_attractors(int *number_of_pos,
 					{
 						goto skip;
 					}
+					// check if orbit period is actually lower
+					int number_of_similar_points = 1;
+					for(int k = 0; k < multiple_candidates[i].period - 1; k++)
+					{
+						for(int l = k + 1; l < multiple_candidates[i].period; l++)
+						{
+							if (dist_from_ref(multiple_candidates[i].orbit[k], multiple_candidates[i].orbit[l]) 
+									< tol_same_po)
+							{
+								number_of_similar_points++;
+							}
+						}
+						if (number_of_similar_points > 1)
+						{
+							break;
+						}
+					}
 					successful_candidates_indices[i] = 1;
 					*number_of_pos = *number_of_pos + 1;
 					if (*number_of_pos == 1)
@@ -1699,15 +1774,15 @@ int find_all_periodic_attractors(int *number_of_pos,
 						*multiple_pos = realloc(*multiple_pos, *number_of_pos * sizeof(perorb));
 					}
 
-					(*multiple_pos)[*number_of_pos-1].period = multiple_candidates[i].period;
+					(*multiple_pos)[*number_of_pos-1].period = multiple_candidates[i].period/number_of_similar_points;
 					(*multiple_pos)[*number_of_pos-1].seed[0] = multiple_candidates[i].seed[0];
 					(*multiple_pos)[*number_of_pos-1].seed[1] = multiple_candidates[i].seed[1];
 					(*multiple_pos)[*number_of_pos-1].initial_condition[0] = multiple_candidates[i].initial_condition[0];
 					(*multiple_pos)[*number_of_pos-1].initial_condition[1] = multiple_candidates[i].initial_condition[1];
-					(*multiple_pos)[*number_of_pos-1].eigenvalues_absolute_value[0] = multiple_candidates[i].eigenvalues_absolute_value[0];
-					(*multiple_pos)[*number_of_pos-1].eigenvalues_absolute_value[1] = multiple_candidates[i].eigenvalues_absolute_value[1];
-					(*multiple_pos)[*number_of_pos-1].winding_number_numerator = multiple_candidates[i].winding_number_numerator;
-					(*multiple_pos)[*number_of_pos-1].winding_number_denominator = multiple_candidates[i].winding_number_denominator;
+					(*multiple_pos)[*number_of_pos-1].eigenvalues_absolute_value[0] = pow(multiple_candidates[i].eigenvalues_absolute_value[0],1.0/number_of_similar_points);
+					(*multiple_pos)[*number_of_pos-1].eigenvalues_absolute_value[1] = pow(multiple_candidates[i].eigenvalues_absolute_value[1],1.0/number_of_similar_points);
+					(*multiple_pos)[*number_of_pos-1].winding_number_numerator = multiple_candidates[i].winding_number_numerator/number_of_similar_points;
+					(*multiple_pos)[*number_of_pos-1].winding_number_denominator = multiple_candidates[i].winding_number_denominator/number_of_similar_points;
 
 					alloc_2d_double(&(*multiple_pos)[*number_of_pos-1].orbit, (*multiple_pos)[*number_of_pos-1].period, system.dim);
 					for (int j = 0; j < (*multiple_pos)[*number_of_pos-1].period; j++)
@@ -1759,10 +1834,10 @@ int fill_attractor_array(int *number_of_pos,
 	FILE	*in;
 	char	filename[300];
 
-	sprintf(filename, "output/periodic_orbit/all_periodic_orbits_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat", 
+	sprintf(filename, "output/periodic_orbit/all_periodic_orbits_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat", 
 		gamma, e, system.name, K);
 
-	// sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	// sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	
 	in = fopen(filename, "r");
@@ -1827,7 +1902,7 @@ int fill_basin_matrix	(double	***basin_matrix,
 	FILE	*in;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	
 	in = fopen(filename, "r");
@@ -1870,7 +1945,7 @@ int fill_control_matrix	(int	***control_matrix,
 	FILE	*in;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 
 	in = fopen(filename, "r");
@@ -1913,8 +1988,8 @@ int fill_control_monte_carlo(int	**control,
 	FILE	*in;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 
 	in = fopen(filename, "r");
 	if (in == NULL)
@@ -1924,7 +1999,7 @@ int fill_control_monte_carlo(int	**control,
 	}
 	else
 	{
-		alloc_1d_int(control, analysis.number_of_rand_orbits);
+		alloc_1d_int(control, analysis.number_of_rand_orbits_mc);
 
 		int	i, control_i;
 	
@@ -1953,8 +2028,8 @@ int fill_control_monte_carlo_with_break(int *control_size,
 	FILE	*in;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 
 	in = fopen(filename, "r");
 	if (in == NULL)
@@ -1964,7 +2039,7 @@ int fill_control_monte_carlo_with_break(int *control_size,
 	}
 	else
 	{
-		alloc_1d_int(control, analysis.number_of_rand_orbits);
+		alloc_1d_int(control, analysis.number_of_rand_orbits_mc);
 
 		int	i, control_i;
 	
@@ -2105,15 +2180,15 @@ int basin_of_attraction (perorb po,
 	FILE	*out_boa, *out_ref, *out_size;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/basin_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_boa = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/basin_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_ref = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/basin_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/basin_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_size = fopen(filename, "w");
 
@@ -2161,8 +2236,8 @@ int basin_of_attraction (perorb po,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
+		// omp_set_dynamic(0);     // Explicitly disable dynamic teams
+		// omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged, convergence_time, orb, rot_ini) shared(basin_matrix, \
@@ -2270,16 +2345,20 @@ int evolve_multiple_basin_determined(double *ic,
 									 anlsis analysis)
 {
 	// declare variables
-	bool is_close_to;
-	int orbit_counter, close_time_counter;
-	int internal_converged_po_id;
-	double y[system.dim], rot[2];
-	double t = 0.0;
+	bool 	is_close_to_po;
+	int 	orbit_counter, close_time_counter;
+	int 	internal_converged_po_id;
+	double 	y[system.dim], rot[2];
+	double 	t = 0.0;
+
+	bool	check_winding_number = true;
+	double 	y_ref[system.dim];
+	double 	winding_number_window[analysis.convergence_window_wn];
 
 	// takes into consideration initial condition
 	orbit_counter = 1;
 
-	// starts proximity counter
+	// starts proximity counters
 	close_time_counter = 0;
 	
 	*converged_po_id = -1;
@@ -2289,20 +2368,22 @@ int evolve_multiple_basin_determined(double *ic,
 	{
 		copy(rot, y, 2);
 
-		is_close_to = false;
+		// check if orbit is close to an indexed po
+		is_close_to_po = false;
 		for (int j = 0; j < number_of_po; j++)
 		{
 			for (int k = 0; k < po[j].period; k++)
 			{
 				if(dist_from_ref(rot, po[j].orbit[k]) < analysis.evolve_basin_eps)
 				{
-					is_close_to = true;
+					is_close_to_po = true;
 					internal_converged_po_id = j;
+					goto stop_checking_po;
 				}
 			}
 		}
-
-		if (is_close_to == true)
+		stop_checking_po:;
+		if (is_close_to_po == true)
 		{
 			close_time_counter++;
 		}
@@ -2310,15 +2391,68 @@ int evolve_multiple_basin_determined(double *ic,
 		{
 			close_time_counter = 0;
 		}
-
 		if (close_time_counter > analysis.evolve_basin_time_tol)
 		{
 			*converged_po_id = internal_converged_po_id;
 			goto out;
 		}
 
+		// check if orbit is close to a limit cycle by checking
+		// if its rotation number converged
+		if (check_winding_number == true)
+		{
+			int i_winding = i - (analysis.convergence_transient_wn + 1);
+			if (i == analysis.convergence_transient_wn) // i_winding = -1
+			{
+				copy(y_ref, y, system.dim);
+			}
+			else if (i > analysis.convergence_transient_wn)	// i_winding >= 0
+			{
+				double 	delta_theta = y[0] - y_ref[0];
+				double 	wn = delta_theta / (double) (i_winding + 1);
+
+				if(i_winding < analysis.convergence_window_wn)
+				{
+					winding_number_window[i_winding] = wn;
+				}
+				else if (i_winding >= analysis.convergence_window_wn)
+				{
+					double max_winding_number = wn;
+					double min_winding_number = wn;
+					for (int j = 0; j < analysis.convergence_window_wn - 1; j++)
+					{
+						winding_number_window[j] = winding_number_window[j+1];
+						if(winding_number_window[j] > max_winding_number)
+						{
+							max_winding_number = winding_number_window[j];
+						}
+						if(winding_number_window[j] < min_winding_number)
+						{
+							min_winding_number = winding_number_window[j];
+						}
+					}
+					winding_number_window[analysis.convergence_window_wn - 1] = wn;
+					if (fabs(max_winding_number-min_winding_number) < analysis.convergence_precision_wn)
+					{
+						double 	wn_mod = angle_mod_pos(wn);
+						if(fabs(wn_mod) < 5e-2) wn_mod = 2.0*M_PI;
+						double 	dist_from_int = fabs((2.0*M_PI/wn_mod) - round(2.0*M_PI/wn_mod));
+						if(dist_from_int > 5e-2)
+						{
+							*converged_po_id = -2;
+							goto out; // irrational winding number found
+						}
+						else
+						{
+							check_winding_number = false;
+						}
+					}
+				}
+			}
+		}
+
 		evolve_cycle(y, &t, system, analysis);
-	
+
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
 		{
@@ -2336,13 +2470,17 @@ int evolve_multiple_basin_determined(double *ic,
 
 	out:;
 
-	if (*converged_po_id != -1)
+	if (*converged_po_id == -1)
 	{
-		*convergence_time = orbit_counter - analysis.evolve_basin_time_tol;
+		*convergence_time = -1;
+	}
+	else if (*converged_po_id == -2)
+	{
+		*convergence_time = orbit_counter - analysis.convergence_window_wn;
 	}
 	else
 	{
-		*convergence_time = -1;
+		*convergence_time = orbit_counter - analysis.evolve_basin_time_tol;
 	}
 
 	return 0;
@@ -2376,11 +2514,11 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	FILE	*out_boa, *out_ref;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_boa = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_ref = fopen(filename, "w");
 
@@ -2388,8 +2526,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 	double y[system.dim];
 	double coordinate, velocity;
 	double rot_ini[2];
-	double orb[4], orb_ini[4];
-	init_orbital(orb_ini, system);
+	double orb[4];
 
 	int grid[2];
 	double basin[2];
@@ -2437,22 +2574,18 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		omp_set_dynamic(0);     	// Explicitly disable dynamic teams
-		omp_set_num_threads(100);	// Use 12 threads for all consecutive parallel regions
+		// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
+		// omp_set_num_threads(100);	// Use 12 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
-				control_matrix, time_matrix)
+				control_matrix, time_matrix) num_threads(14)
 		{
 
-		#pragma omp for
+		#pragma omp for schedule(dynamic)
 			// loop over velocity values
 			for (int j = 0; j < analysis.grid_resolution; j++)
 			{
-				// print progress on velocity
-				// printf("Calculating subset %d of %d\n", 
-				// 			j + 1, analysis.grid_resolution);
-
 				if (control_matrix[i][j] == 0)
 				{
 					grid[0] = i;
@@ -2462,30 +2595,31 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 					grid_to_double_v2(grid, rot_ini, analysis);
 
 					copy(y, rot_ini, 2);
-
-					if (system.dim == 6)
-					{
-						for (int k = 0; k < 4; k++)
-						{
-							y[k+2] = orb_ini[k];
-						}
-					}
+					complete_orbital_part(y, system);
 
 					// calculate forward integration
 					evolve_multiple_basin_determined(y, number_of_po, 
 						&converged_po_id, &convergence_time,
 						po, system, analysis);
 
-					if(converged_po_id != -1)
+					if (converged_po_id == -1)
+					{
+						control_matrix[i][j] = -1;
+						printf("Orbit did not converge\n");
+						// exit(42);
+					}
+					else if (converged_po_id == -2)
+					{
+						control_matrix[i][j] = -2;
+						basin_matrix[i][j] = 0.0;
+						time_matrix[i][j] = (double)(convergence_time);
+					}
+					else
 					{
 						basin_matrix[i][j] = 
 							(double) cantor_pairing_function(po[converged_po_id].winding_number_numerator,po[converged_po_id].winding_number_denominator);
 						control_matrix[i][j] = converged_po_id + 1;
 						time_matrix[i][j] = (double)(convergence_time);
-					}
-					else
-					{
-						control_matrix[i][j] = -1;
 					}
 
 				}
@@ -2565,16 +2699,16 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 	FILE	*out_control, *out_ref, *out_converged_time;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_control = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_ref = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_converged_time_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_converged_time_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_converged_time = fopen(filename, "w");
 
 	// declare variables
@@ -2584,14 +2718,14 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 	alloc_1d_int(&basin_size, number_of_po);
 	for (int i = 0; i < number_of_po; i++) basin_size[i] = 0;
 	double *entropy_progress;
-	alloc_1d_double(&entropy_progress, analysis.number_of_rand_orbits);
-	for (int i = 0; i < analysis.number_of_rand_orbits; i++) entropy_progress[i] = NAN;
+	alloc_1d_double(&entropy_progress, analysis.number_of_rand_orbits_mc);
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++) entropy_progress[i] = NAN;
 	int orbits_counter = 0;
 	time_t t;	srand((unsigned) time(&t));
-	bool test_convergence = true;
+	bool test_convergence = false;
 	int converged_orbit_number;
 	int *control;
-	alloc_1d_int(&control, analysis.number_of_rand_orbits);
+	alloc_1d_int(&control, analysis.number_of_rand_orbits_mc);
 
 	for (int i = 0; i < number_of_po; i++)
 	{
@@ -2607,13 +2741,13 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 	}
 	fclose(out_ref);
 
-	omp_set_dynamic(0);     	// Explicitly disable dynamic teams
-	omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
+	// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
+	// omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
 
 	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, test_convergence)
 	{
 	#pragma omp for
-		for (int i = 0; i < analysis.number_of_rand_orbits; i++)
+		for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
 		{
 			y[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
 			y[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
@@ -2626,7 +2760,7 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 			#pragma omp critical
 			{
 				// print progress
-				print_prog((double)++orbits_counter/(double)analysis.number_of_rand_orbits);
+				print_prog((double)++orbits_counter/(double)analysis.number_of_rand_orbits_mc);
 
 				if (converged_po_id != -1)
 				{
@@ -2644,11 +2778,11 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 				// test if method converged
 				if (test_convergence)
 				{
-					if (orbits_counter > analysis.convergence_window)
+					if (orbits_counter > analysis.convergence_window_mc)
 					{
 						double max_entropy_progress = entropy_progress[orbits_counter-1];
 						double min_entropy_progress = entropy_progress[orbits_counter-1];
-						for (int m = 2; m < analysis.convergence_window + 1; m++)
+						for (int m = 2; m < analysis.convergence_window_mc + 1; m++)
 						{
 							if(entropy_progress[orbits_counter-m] > max_entropy_progress)
 							{
@@ -2659,7 +2793,7 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 								min_entropy_progress = entropy_progress[orbits_counter-m];
 							}
 						}
-						if (fabs(max_entropy_progress-min_entropy_progress) < analysis.convergence_precision)
+						if (fabs(max_entropy_progress-min_entropy_progress) < analysis.convergence_precision_mc)
 						{
 							printf("Method converged\n");
 							test_convergence = false;
@@ -2672,14 +2806,14 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 	} // end pragma
 	printf("\n");
 
-	for (int i = 0; i < analysis.number_of_rand_orbits; i++)
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
 	{
 		fprintf(out_control, "%d %d\n", i, control[i]);
 	}
 	fclose(out_control);
 
 	fprintf(out_converged_time, "%1.3f %d %d\n", 
-		e, converged_orbit_number, converged_orbit_number-analysis.convergence_window);
+		e, converged_orbit_number, converged_orbit_number-analysis.convergence_window_mc);
 	fclose(out_converged_time);
 
 	// free memory
@@ -2712,20 +2846,20 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	FILE	*out_control, *out_ref, *out_converged_number, *out_times;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_control_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_control = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_ref_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_ref = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_method_converged_number_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_method_converged_number_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_converged_number = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_times_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_times_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_times = fopen(filename, "w");
 
 	// declare variables
@@ -2735,15 +2869,15 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	alloc_1d_int(&basin_size, number_of_po);
 	for (int i = 0; i < number_of_po; i++) basin_size[i] = 0;
 	double *entropy_progress;
-	alloc_1d_double(&entropy_progress, analysis.number_of_rand_orbits);
-	for (int i = 0; i < analysis.number_of_rand_orbits; i++) entropy_progress[i] = NAN;
+	alloc_1d_double(&entropy_progress, analysis.number_of_rand_orbits_mc);
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++) entropy_progress[i] = NAN;
 	int orbits_counter = 0;
 	time_t t;	srand((unsigned) time(&t));
 	int converged_orbit_number;
 	int *control;
 	double *times;
-	alloc_1d_int(&control, analysis.number_of_rand_orbits);
-	alloc_1d_double(&times, analysis.number_of_rand_orbits);
+	alloc_1d_int(&control, analysis.number_of_rand_orbits_mc);
+	alloc_1d_double(&times, analysis.number_of_rand_orbits_mc);
 
 	for (int i = 0; i < number_of_po; i++)
 	{
@@ -2762,7 +2896,7 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
 	// omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
 
-	const int N = analysis.number_of_rand_orbits;
+	const int N = analysis.number_of_rand_orbits_mc;
 	bool go = true;
 	unsigned int give = 0;
 
@@ -2793,7 +2927,7 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 			#pragma omp critical
 			{
 				// print progress
-				print_prog((double)++orbits_counter/(double)analysis.number_of_rand_orbits);
+				print_prog((double)++orbits_counter/(double)analysis.number_of_rand_orbits_mc);
 
 				if (converged_po_id != -1)
 				{
@@ -2811,11 +2945,11 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 					basin_entropy(orbits_counter, number_of_po, basin_size, po, analysis); 
 				
 				// test if method converged
-				if (orbits_counter > analysis.convergence_window)
+				if (orbits_counter > analysis.convergence_window_mc)
 				{
 					double max_entropy_progress = entropy_progress[orbits_counter-1];
 					double min_entropy_progress = entropy_progress[orbits_counter-1];
-					for (int m = 2; m < analysis.convergence_window + 1; m++)
+					for (int m = 2; m < analysis.convergence_window_mc + 1; m++)
 					{
 						if(entropy_progress[orbits_counter-m] > max_entropy_progress)
 						{
@@ -2826,7 +2960,7 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 							min_entropy_progress = entropy_progress[orbits_counter-m];
 						}
 					}
-					if (fabs(max_entropy_progress-min_entropy_progress) < analysis.convergence_precision)
+					if (fabs(max_entropy_progress-min_entropy_progress) < analysis.convergence_precision_mc)
 					{
 						printf("Method converged\n");
 						go = false;
@@ -2848,11 +2982,547 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	fclose(out_times);
 
 	fprintf(out_converged_number, "%1.3f %d %d\n", 
-		e, converged_orbit_number, converged_orbit_number-analysis.convergence_window);
+		e, converged_orbit_number, converged_orbit_number-analysis.convergence_window_mc);
 	fclose(out_converged_number);
 
 	// free memory
 	dealloc_1d_int(&basin_size);
+	dealloc_1d_int(&control);
+	dealloc_1d_double(&times);
+	dealloc_1d_double(&entropy_progress);
+
+	printf("Data written in output/basin_of_attraction/\n");
+
+	return 0;
+
+}
+
+int evolve_multiple_basin_undetermined_winding	(double *ic,
+									 			 bool *converged,
+									 			 int *convergence_time,
+									 			 atrtor *A,
+									 			 dynsys system,
+									 			 anlsis analysis)
+{
+	double *par = (double *)system.params;
+	double T = par[7];
+	
+	// declare variables
+	int 	orbit_counter;
+	double 	y[system.dim], y_ref[system.dim];
+	double	t = 0.0;
+
+	double 	winding_number_window[analysis.convergence_window_wn];
+
+	double *angle_progress;
+	alloc_1d_double(&angle_progress, 1);
+
+	// takes into consideration initial condition
+	orbit_counter = 1;
+
+	*converged = false;
+
+	copy(y, ic, system.dim);
+	for (int i = 0; i < analysis.number_of_cycles; i++)
+	{
+		// check if the rotation number converged
+		int i_winding = i - (analysis.convergence_transient_wn + 1);
+		if (i == analysis.convergence_transient_wn) // i_winding = -1
+		{
+			copy(y_ref, y, system.dim);
+			angle_progress[0] = y[0];
+		}
+		else if (i > analysis.convergence_transient_wn)	// i_winding >= 0
+		{
+			double 	delta_theta = y[0] - y_ref[0];
+			double 	wn = delta_theta / (double) (i_winding + 1);
+
+			angle_progress = (double*) realloc(angle_progress, (i_winding + 2) * sizeof(double));
+			angle_progress[i_winding + 1] = y[0];
+
+			if(i_winding < analysis.convergence_window_wn)
+			{
+				winding_number_window[i_winding] = wn;
+			}
+			else if (i_winding >= analysis.convergence_window_wn)
+			{
+				double max_winding_number = wn;
+				double min_winding_number = wn;
+				for (int j = 0; j < analysis.convergence_window_wn - 1; j++)
+				{
+					winding_number_window[j] = winding_number_window[j+1];
+					if(winding_number_window[j] > max_winding_number)
+					{
+						max_winding_number = winding_number_window[j];
+					}
+					if(winding_number_window[j] < min_winding_number)
+					{
+						min_winding_number = winding_number_window[j];
+					}
+				}
+				winding_number_window[analysis.convergence_window_wn - 1] = wn;
+				if (fabs(max_winding_number-min_winding_number) < analysis.convergence_precision_wn)
+				{
+					*converged = true;
+
+					double pwn_numerator = 0.0, pwn_denominator = 0.0;
+					for (int l = 1; l <= i_winding; l++)
+					{
+						double twp = (((double) l) / ((double) (i_winding + 1)));
+						double factor = 1.0 / exp(1.0 / (twp * (1.0 - twp)));
+						pwn_numerator += (angle_progress[l] - angle_progress[l-1]) * factor;
+						pwn_denominator += factor;
+					}
+					double precise_wn = pwn_numerator / pwn_denominator;
+					// printf("precise_wn = %1.10e\n", precise_wn);
+
+					wn = precise_wn;
+
+					A->winding_number = wn;
+					A->basin_size = 1;
+					A->theta = y[0];
+					A->theta_dot = y[1];
+
+					/* all this next part is wrong. I could not find a why to diferentiate 
+					 * between resonances with the same winding number */
+
+					double 	wn_mod = angle_mod_pos(wn);
+					if(fabs(wn_mod) < 5e-2) wn_mod = 2.0*M_PI;
+
+					double 	dist_from_int = fabs((2.0*M_PI/wn_mod) - round(2.0*M_PI/wn_mod));
+
+					if(dist_from_int < 1e-3)
+					{
+						int		wn_period = (int) round(2.0*M_PI/wn_mod);
+						double 	one_period_angular_diff = angle_progress[i_winding + 1] - angle_progress[i_winding + 1 - wn_period];
+						int 	number_of_spins = (int) round(one_period_angular_diff / T);
+
+						A->res_spin = number_of_spins;
+						A->res_orbit = wn_period;
+					}
+					else
+					{
+						A->res_spin = 0;
+						A->res_orbit = 0;
+					}
+					goto out;
+
+					// A->res_spin = 1;	// dummy value
+					// A->res_orbit = 1;	// dummy value
+
+					// bool resonance_found = false;
+					// double 	wn_mod = angle_mod_pos(wn);
+					// if(fabs(wn_mod) < 5e-2) wn_mod = 2.0*M_PI;
+					// double 	dist_from_int = fabs((2.0*M_PI/wn_mod) - round(2.0*M_PI/wn_mod));
+					// if(dist_from_int < 5e-2)
+					// {
+					// 	double	y_new[system.dim];
+					// 	double	t_new = 0.0;
+					// 	copy(y_new, y, system.dim);
+					// 	for (int number_of_orbits = analysis.orbit_period_min; number_of_orbits <= analysis.orbit_period_max; number_of_orbits++)
+					// 	{
+					// 		evolve_cycle(y_new, &t_new, system, analysis);
+					// 		double angular_dif = angular_dist(y_new[0], y[0]);
+					// 		// printf("%f %f %f %d\n", angular_dif, y[0], y_new[0], number_of_orbits);
+					// 		if (angular_dif < 1e-1)
+					// 		{
+					// 			double 	one_period_angular_diff = y_new[0] - y[0];
+					// 			int 	number_of_spins = (int) round(one_period_angular_diff / T);
+					// 			A->res_spin = number_of_spins;
+					// 			A->res_orbit = number_of_orbits;
+					// 			resonance_found = true;
+					// 			break;
+					// 		}
+					// 	}
+					// }
+					// else
+					// {
+					// 	A->res_spin = 0;
+					// 	A->res_orbit = 0;
+					// 	resonance_found = true;
+					// }
+
+					// if (resonance_found == true)
+					// {
+					// 	goto out;
+					// }
+					// else
+					// {
+					// 	printf("Ressonance not found inside given range\n");
+					// 	// printf("x = %1.10e y = %1.10e\n", ic[0], ic[1]);
+					// 	// exit(184);
+					// 	A->res_spin = -2;
+					// 	A->res_orbit = -2;
+					// 	goto out;
+					// }
+				}
+			}
+
+		}
+
+		evolve_cycle(y, &t, system, analysis);
+
+		// check if orbit diverges
+		for (int j = 0; j < system.dim; j++)
+		{
+			if (fabs(y[j]) > analysis.evolve_box_size)
+			{
+				printf("Warning: box limit reached\n");
+				printf("y[%d] = %1.10e\n", j, y[j]);
+				goto out;
+			}
+		}
+
+		orbit_counter++;
+
+	}
+
+	out:;
+
+	if (*converged == true)
+	{
+		*convergence_time = orbit_counter - analysis.convergence_window_wn;
+	}
+	else
+	{
+		printf("Orbit that did not converge found\n");
+		// printf("x = %1.10e y = %1.10e\n", ic[0], ic[1]);
+		// exit(183);
+		A->basin_size = 1;
+		A->winding_number = NAN;
+		A->res_spin = -1;
+		A->res_orbit = -1;
+		A->theta = NAN;
+		A->theta_dot = NAN;
+		*convergence_time = -1;
+	}
+
+	dealloc_1d_double(&angle_progress);
+
+	return 0;
+}
+
+int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys system,
+                         					 			 			 anlsis analysis)
+{
+	// create output folder if it does not exist
+	struct stat st = {0};
+	if (stat("output/basin_of_attraction", &st) == -1) {
+		mkdir("output/basin_of_attraction", 0700);
+	}
+
+	double *par = (double *)system.params;
+	double gamma = par[0];
+	double e = par[1];
+	double K = par[6];
+
+	// prepare and open exit files
+	FILE	*out_control, *out_ref, *out_converged_number, *out_times;
+	FILE	*out_size_full, *out_size, *out_entropy_prog, *out_entropy;
+	char	filename[300];
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_control_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_wn, analysis.convergence_precision_wn);
+	out_control = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_ref_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_wn, analysis.convergence_precision_wn);
+	out_ref = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_method_converged_number_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_wn, analysis.convergence_precision_wn);
+	out_converged_number = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_times_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_wn, analysis.convergence_precision_wn);
+	out_times = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_size_full_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_wn, analysis.convergence_precision_wn);
+	out_size_full = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_size_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_wn, analysis.convergence_precision_wn);
+	out_size = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_entropy_progress_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_wn, analysis.convergence_precision_wn);
+	out_entropy_prog = fopen(filename, "w");
+
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_entropy_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_wn, analysis.convergence_precision_wn);
+	out_entropy = fopen(filename, "w");
+
+
+	// declare variables
+	double y[system.dim];
+	int converged_po_id, convergence_time;
+	double *entropy_progress;
+	alloc_1d_double(&entropy_progress, analysis.number_of_rand_orbits_mc);
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++) entropy_progress[i] = NAN;
+	int orbits_counter = 0;
+	time_t t;
+	srand((unsigned) time(&t));
+	int converged_orbit_number = analysis.number_of_rand_orbits_mc;
+	int *control;
+	double *times;
+	alloc_1d_int(&control, analysis.number_of_rand_orbits_mc);
+	alloc_1d_double(&times, analysis.number_of_rand_orbits_mc);
+
+	atrtor 		A, *A_all;
+	int			number_of_attractors = 0;
+
+	bool		converged;
+
+	int			index_for_not_converged = -1;
+
+	volatile bool flag = false;
+
+	// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
+	// omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
+
+	#pragma omp parallel private(y,	convergence_time, converged, A) shared(flag, A_all, number_of_attractors, index_for_not_converged, orbits_counter)
+	{
+	#pragma omp for schedule(dynamic)
+		for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
+		{
+			if(flag) continue;
+
+			y[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
+			y[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
+			complete_orbital_part(y, system);
+
+			double y_keep[system.dim];
+			copy(y_keep, y, system.dim);
+
+			evolve_multiple_basin_undetermined_winding(y,
+				&converged, &convergence_time, &A, 
+				system, analysis);
+
+			#pragma omp critical
+			{
+				if (flag == false)
+				{
+					// print progress
+					print_prog((double)++orbits_counter/(double)analysis.number_of_rand_orbits_mc);
+					// print_prog_float((double)++orbits_counter/(double)analysis.number_of_rand_orbits_mc);
+
+					if (converged == true)
+					{
+						if (number_of_attractors == 0)
+						{
+							number_of_attractors++;
+							A_all = (atrtor*) malloc(number_of_attractors * sizeof(atrtor));
+							A_all[number_of_attractors-1] = A;
+							control[orbits_counter-1] = number_of_attractors;
+						}
+						else
+						{
+							bool attractor_already_logged = false;
+							for (int j = 0; j < number_of_attractors; j++)
+							{
+								if ((A.res_spin == A_all[j].res_spin) &&
+									(A.res_orbit == A_all[j].res_orbit))
+								{
+									A_all[j].basin_size++;
+									attractor_already_logged = true;
+									control[orbits_counter-1] = j + 1;
+									break;
+								}
+							}
+							if(attractor_already_logged == false)
+							{
+								number_of_attractors++;
+								A_all = (atrtor*) realloc(A_all, number_of_attractors * sizeof(atrtor));
+								A_all[number_of_attractors-1] = A;
+								control[orbits_counter-1] = number_of_attractors;
+							}
+						}
+						times[orbits_counter-1] = (double)(convergence_time);
+					}
+					else
+					{
+						if (index_for_not_converged != -1)
+						{
+							A_all[index_for_not_converged].basin_size++;
+						}
+						else
+						{
+							if (number_of_attractors == 0)
+							{
+								number_of_attractors++;
+								A_all = (atrtor*) malloc(number_of_attractors * sizeof(atrtor));
+							}
+							else
+							{
+								number_of_attractors++;
+								A_all = (atrtor*) realloc(A_all, number_of_attractors * sizeof(atrtor));
+							}
+							A_all[number_of_attractors-1] = A;
+							index_for_not_converged = number_of_attractors-1;
+						}
+						control[orbits_counter-1] = -1;
+						times[orbits_counter-1] = NAN;
+					}
+
+					double entropy = 0.0;
+					for (int j = 0; j < number_of_attractors; j++)
+					{
+						if(A_all[j].basin_size > 0)
+						{
+							double size_frac = 
+								(double)A_all[j].basin_size / (double)orbits_counter;
+							entropy += size_frac * log (1.0 / size_frac);
+						}
+					}
+					if(number_of_attractors > 1) entropy /= log(number_of_attractors);
+
+					entropy_progress[orbits_counter-1] = entropy; 
+					
+					// test if method converged
+					if (orbits_counter > analysis.convergence_window_mc)
+					{
+						double max_entropy_progress = entropy_progress[orbits_counter-1];
+						double min_entropy_progress = entropy_progress[orbits_counter-1];
+						for (int m = 2; m < analysis.convergence_window_mc + 1; m++)
+						{
+							if(entropy_progress[orbits_counter-m] > max_entropy_progress)
+							{
+								max_entropy_progress = entropy_progress[orbits_counter-m];
+							}
+							else if(entropy_progress[orbits_counter-m] < min_entropy_progress)
+							{
+								min_entropy_progress = entropy_progress[orbits_counter-m];
+							}
+						}
+						if (fabs(max_entropy_progress-min_entropy_progress) < analysis.convergence_precision_mc
+							&& flag == false)
+						{
+							flag = true;
+							printf(" Method converged");
+							converged_orbit_number = orbits_counter-1;
+						}
+					}
+				}
+			}
+		}
+	} // end pragma
+	printf("\n");
+
+	for (int i = 0; i < converged_orbit_number + 1; i++)
+	{
+		fprintf(out_control, "%d %d\n", i, control[i]);
+		fprintf(out_times, "%d %1.5e\n", i, times[i]);
+	}
+	fclose(out_control);
+	fclose(out_times);
+
+	fprintf(out_converged_number, "%1.3f %d %d\n", 
+		e, converged_orbit_number, converged_orbit_number-analysis.convergence_window_mc);
+	fclose(out_converged_number);
+
+	for (int i = 0; i < number_of_attractors; i++)
+	{
+		if (A_all[i].res_orbit == 0)
+		{
+			fprintf(out_ref, "%1.15e %1.15e %d %d %1.5e %1.5e\n",
+				angle_mod(A_all[i].theta), 
+				A_all[i].theta_dot,
+				A_all[i].res_spin,
+				A_all[i].res_orbit,
+				A_all[i].winding_number, 
+				angle_mod(A_all[i].winding_number));
+		}
+		else
+		{
+			double y_local[system.dim], t_local = 0.0;
+			y_local[0] = A_all[i].theta;
+			y_local[1] = A_all[i].theta_dot;
+			complete_orbital_part(y_local, system);
+
+			for (int j = 0; j < A_all[i].res_orbit; j++)
+			{
+				fprintf(out_ref, "%1.15e %1.15e %d %d %1.5e %1.5e\n",
+					angle_mod(y_local[0]), 
+					y_local[1],
+					A_all[i].res_spin,
+					A_all[i].res_orbit,
+					A_all[i].winding_number, 
+					angle_mod(A_all[i].winding_number));
+
+				evolve_cycle(y_local, &t_local, system, analysis);
+			}
+		}
+		fprintf(out_ref, "\n");
+	}
+	fclose(out_ref);
+
+	for (int i = 0; i < number_of_attractors; i++)
+	{
+		fprintf(out_size_full, "w = %f s = %d o = %d size = %f\n", 
+			A_all[i].winding_number,
+			A_all[i].res_spin,
+			A_all[i].res_orbit,
+			A_all[i].basin_size/((double)orbits_counter));
+	}
+	fclose(out_size_full);
+
+	bool empty_res;
+	for (int orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
+	{
+		for (int spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
+		{
+			empty_res = true;
+			for (int k = 0; k < number_of_attractors; k++)
+			{
+				if (A_all[k].res_spin == spin_period &&
+					A_all[k].res_orbit == orbit_period)
+				{
+					fprintf(out_size, "%1.3f %d %d %1.10f %d\n", 
+						e, spin_period, orbit_period, A_all[k].basin_size/((double)orbits_counter),
+						cantor_pairing_function(spin_period, orbit_period));
+					empty_res = false;
+				}
+			}
+			if (empty_res == true)
+			{
+				fprintf(out_size, "%1.3f %d %d %1.10f %d\n", 
+					e, spin_period, orbit_period, 0.0,
+					cantor_pairing_function(spin_period, orbit_period));
+			}
+		}
+	}
+	empty_res = true;
+	for (int k = 0; k < number_of_attractors; k++)
+	{
+		if (A_all[k].res_spin == 0 &&
+			A_all[k].res_orbit == 0)
+		{
+			fprintf(out_size, "%1.3f %d %d %1.10f %d\n", 
+				e, A_all[k].res_spin, A_all[k].res_orbit, A_all[k].basin_size/((double)orbits_counter),
+				cantor_pairing_function(A_all[k].res_spin, A_all[k].res_orbit));
+			empty_res = false;
+		}
+	}
+	if (empty_res == true)
+	{
+		fprintf(out_size, "%1.3f %d %d %1.10f %d\n", 
+			e, 0, 0, 0.0,
+			cantor_pairing_function(0, 0));
+	}
+	fclose(out_size);
+
+	for (int i = 0; i < converged_orbit_number; i++)
+	{
+		fprintf(out_entropy_prog, "%1.10e\n", entropy_progress[i]);
+	}
+	fclose(out_entropy_prog);
+
+	fprintf(out_entropy, "%1.3f %1.10e\n", e, entropy_progress[converged_orbit_number-1]);
+	fclose(out_entropy);	
+
+	// free memory
+	free(A_all);
 	dealloc_1d_int(&control);
 	dealloc_1d_double(&times);
 	dealloc_1d_double(&entropy_progress);
@@ -2887,16 +3557,16 @@ int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 	FILE	*out_grid, *out_mc, *in_entropy_grid, *in_entropy_mc;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/comparison_entropy_grid_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/comparison_entropy_grid_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_grid = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/comparison_entropy_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits);
+	sprintf(filename, "output/basin_of_attraction/comparison_entropy_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc);
 	out_mc = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	in_entropy_grid = fopen(filename, "r");
 	if (in_entropy_grid == NULL)
 	{
@@ -2905,8 +3575,8 @@ int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 	}
 	int counter_grid;
 	double *entropy_progress_grid, entropy_grid;
-	alloc_1d_double(&entropy_progress_grid, analysis.number_of_rand_orbits);
-	for (int i = 0; i < analysis.number_of_rand_orbits; i++)
+	alloc_1d_double(&entropy_progress_grid, analysis.number_of_rand_orbits_mc);
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
 	{
 		entropy_progress_grid[i] = NAN;
 	}
@@ -2916,8 +3586,8 @@ int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 	}
 	fclose(in_entropy_grid);
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-	gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+	gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	in_entropy_mc = fopen(filename, "r");
 	if (in_entropy_mc == NULL)
 	{
@@ -2926,7 +3596,7 @@ int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 	}
 	int counter_mc;
 	double *entropy_progress_mc, entropy_mc;
-	alloc_1d_double(&entropy_progress_mc, analysis.number_of_rand_orbits);
+	alloc_1d_double(&entropy_progress_mc, analysis.number_of_rand_orbits_mc);
 	while(fscanf(in_entropy_mc, "%d %lf", &counter_mc, &entropy_mc) != EOF)
 	{
 		entropy_progress_mc[counter_mc] = entropy_mc;
@@ -2934,7 +3604,7 @@ int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 	fclose(in_entropy_mc);
 
 	int last_value_grid;
-	for (int i = analysis.number_of_rand_orbits - 1; i > 0; i--)
+	for (int i = analysis.number_of_rand_orbits_mc - 1; i > 0; i--)
 	{
 		if (entropy_progress_grid[i] == entropy_progress_grid[i])
 		{
@@ -2943,7 +3613,7 @@ int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 		}
 	}
 
-	for (int i = 0; i < analysis.number_of_rand_orbits; i++)
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
 	{
 		if (entropy_progress_grid[i] == entropy_progress_grid[i])
 		{
@@ -2987,7 +3657,7 @@ int basin_entropy_vs_box_size	(int number_of_po,
 	FILE	*out_entropy;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_vs_box_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_vs_box_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_entropy = fopen(filename, "w");
 
@@ -3074,7 +3744,7 @@ int basin_size_from_data(int number_of_po,
 	FILE	*out_size;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_size = fopen(filename, "w");
 
@@ -3151,15 +3821,15 @@ int basin_size_from_data_monte_carlo(int number_of_po,
 	FILE	*out_size;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_size = fopen(filename, "w");
 
 	int 	basin_size[number_of_po];
 
 	for (int i = 0; i < number_of_po; i++) basin_size[i] = 0;
 
-	for (int i = 0; i < analysis.number_of_rand_orbits; i++)
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
 	{
 		if (control[i] > 0)
 		{
@@ -3225,8 +3895,8 @@ int basin_size_from_data_monte_carlo_with_break(int number_of_po,
 	FILE	*out_size;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_size = fopen(filename, "w");
 
 	int 	basin_size[number_of_po];
@@ -3294,11 +3964,11 @@ int basin_entropy_from_data (dynsys system,
 	FILE	*out_entropy, *in_basin_size_grid;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	out_entropy = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 			gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	in_basin_size_grid = fopen(filename, "r");
 	if (in_basin_size_grid == NULL)
@@ -3349,12 +4019,12 @@ int basin_entropy_from_data_monte_carlo (dynsys system,
 	FILE	*out_entropy, *in_basin_size_mc;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_entropy = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	in_basin_size_mc = fopen(filename, "r");
 	if (in_basin_size_mc == NULL)
 	{
@@ -3404,12 +4074,12 @@ int basin_entropy_from_data_monte_carlo_with_break	(dynsys system,
 	FILE	*out_entropy, *in_basin_size_mc;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_entropy = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	in_basin_size_mc = fopen(filename, "r");
 	if (in_basin_size_mc == NULL)
 	{
@@ -3466,8 +4136,8 @@ int basin_entropy_progress_from_data(int number_of_po,
 	FILE	*out_progress;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_progress = fopen(filename, "w");
 
 	for (int n = analysis.grid_resolution; n > 0; n--)
@@ -3518,7 +4188,7 @@ int basin_entropy_progress_from_data_monte_carlo(int number_of_po,
 	double	K = par[6];
 
 	double	*entropy_progress;
-	alloc_1d_double(&entropy_progress, analysis.number_of_rand_orbits);
+	alloc_1d_double(&entropy_progress, analysis.number_of_rand_orbits_mc);
 
 	int		*control;
 	fill_control_monte_carlo(&control, system, analysis);
@@ -3526,15 +4196,15 @@ int basin_entropy_progress_from_data_monte_carlo(int number_of_po,
 	FILE	*out_progress;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_progress = fopen(filename, "w");
 
 	int 	basin_size[number_of_po];
 
 	for (int i = 0; i < number_of_po; i++) basin_size[i] = 0;
 
-	for (int i = 0; i < analysis.number_of_rand_orbits; i++)
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
 	{
 		if (control[i] > 0)
 		{
@@ -3544,7 +4214,7 @@ int basin_entropy_progress_from_data_monte_carlo(int number_of_po,
 		entropy_progress[i] = basin_entropy(i+1, number_of_po, basin_size, po, analysis); 
 	}
 
-	for (int i = 0; i < analysis.number_of_rand_orbits; i++)
+	for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
 	{
 		fprintf(out_progress, "%d %1.10e\n", i, entropy_progress[i]);
 	}
@@ -3581,8 +4251,8 @@ int basin_entropy_progress_from_data_monte_carlo_with_break(int number_of_po,
 	FILE	*out_progress;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_determined_entropy_progress_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	out_progress = fopen(filename, "w");
 
 	int 	basin_size[number_of_po];
@@ -3757,15 +4427,15 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 	FILE	*out_boa, *out_ref, *out_size;
 	char	filename[300];
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
 	out_boa = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
 	out_ref = fopen(filename, "w");
 
-	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat", 
+	sprintf(filename, "output/basin_of_attraction/multiple_basin_undetermined_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
 	out_size = fopen(filename, "w");
 
@@ -3815,8 +4485,8 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
+		// omp_set_dynamic(0);     // Explicitly disable dynamic teams
+		// omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
 
 		#pragma omp parallel private(y, grid, converged, po_already_found, attractor_period, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
@@ -4340,7 +5010,7 @@ int draw_orbit_map(dynsys system)
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/orbit\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/orbit/fig_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
+		"set output \"output/orbit/fig_orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
 		gamma, e, system.name, K);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
@@ -4351,7 +5021,7 @@ int draw_orbit_map(dynsys system)
 	fprintf(gnuplotPipe, 
 		"set title \"gamma = %1.3f    e = %1.3f    K = %1.5f\"\n", 
 		gamma, e, K);
-	fprintf(gnuplotPipe, "plot 'orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
+	fprintf(gnuplotPipe, "plot 'orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit_ic_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
 		gamma, e, system.name, K, gamma, e, system.name, K);
 	fclose(gnuplotPipe);
 
@@ -4361,7 +5031,8 @@ int draw_orbit_map(dynsys system)
 	return 0;
 }
 
-int draw_phase_space(dynsys system)
+int draw_phase_space(dynsys system,
+					 anlsis analysis)
 {
 	FILE *gnuplotPipe;
 
@@ -4369,7 +5040,7 @@ int draw_phase_space(dynsys system)
 	double gamma = par[0];
 	double e = par[1];
 
-	printf("Drawing phase space with gamma = %1.3f and e = %1.3f\n", 
+	printf("Drawing phase space with gamma = %1.6f and e = %1.3f\n", 
 		gamma, e);
 
 	gnuplotPipe = popen("gnuplot -persistent", "w");
@@ -4377,17 +5048,17 @@ int draw_phase_space(dynsys system)
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/phase_space\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/phase_space/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
+		"set output \"output/phase_space/fig_phase_space_gamma_%1.6f_e_%1.3f.png\"\n", gamma, e);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set yrange [%f:%f]\n", analysis.velocity_min, analysis.velocity_max);
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
-		"set key title \"~{/Symbol g}{0.5-} = %1.3f e = %1.3f\" box opaque top right width 2\n", 
+		"set key title \"~{/Symbol g}{0.5-} = %1.6f e = %1.3f\" box opaque top right width 2\n", 
 		gamma, e);
-	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle",
+	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.6f_e_%1.3f.dat' w d notitle",
 		gamma, e);
 	fclose(gnuplotPipe);
 
@@ -4418,7 +5089,7 @@ int draw_phase_space_clean(dynsys system)
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/phase_space\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/clean_figures/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
+		"set output \"output/clean_figures/fig_phase_space_gamma_%1.6f_e_%1.3f.png\"\n", gamma, e);
 	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
 	fprintf(gnuplotPipe, "set size square \n");
 	fprintf(gnuplotPipe, "set lmargin at screen 0.05\n");
@@ -4432,8 +5103,8 @@ int draw_phase_space_clean(dynsys system)
 	fprintf(gnuplotPipe, "set ytics format \" \"\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, "unset title\n");
-	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle", gamma, e);
-	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle", gamma, e);
+	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.6f_e_%1.3f.dat' w d notitle", gamma, e);
+	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.6f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle", gamma, e);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");
@@ -4463,7 +5134,7 @@ int draw_phase_space_latex(dynsys system)
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/phase_space\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/tests/fig_phase_space_gamma_%1.3f_e_%1.3f.png\"\n", gamma, e);
+		"set output \"output/tests/fig_phase_space_gamma_%1.6f_e_%1.3f.png\"\n", gamma, e);
 	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
 	fprintf(gnuplotPipe, "set size square \n");
 	fprintf(gnuplotPipe, "set border lw 2 \n");
@@ -4475,11 +5146,11 @@ int draw_phase_space_latex(dynsys system)
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, "unset title\n");
-	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"black\" notitle",
+	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.6f_e_%1.3f.dat' w d lc rgb \"black\" notitle",
 	// 	gamma, e);
-	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle",
+	// fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.6f_e_%1.3f.dat' w d notitle",
 	// 	gamma, e);
-	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.3f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle", gamma, e);
+	fprintf(gnuplotPipe, "plot 'phase_space_gamma_%1.6f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle", gamma, e);
 	fclose(gnuplotPipe);
 
 	printf("Done!\n");
@@ -4504,7 +5175,7 @@ int draw_orbit_on_phase_space(dynsys system)
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/orbit/fig_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
+		"set output \"output/orbit/fig_orbit_on_phase_space_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.png\"\n", 
 		gamma, e, system.name, K);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
@@ -4515,7 +5186,7 @@ int draw_orbit_on_phase_space(dynsys system)
 	fprintf(gnuplotPipe, 
 		"set title \"gamma = %1.3f    e = %1.3f    K = %1.5f\"\n", 
 		gamma, e, K);
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'orbit/orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit/orbit_ic_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.6f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'orbit/orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 palette notitle, 'orbit/orbit_ic_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 1.5 notitle",
 		gamma, e, gamma, e, system.name, K, gamma, e, system.name, K);
 	fclose(gnuplotPipe);
 
@@ -4543,7 +5214,7 @@ int draw_orbit_on_phase_space_latex(dynsys system)
 		fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,35\" \n");
 	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/orbit/fig_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_latex.png\"\n", 
+		"set output \"output/orbit/fig_orbit_on_phase_space_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_latex.png\"\n", 
 		gamma, e, system.name, K);
 	fprintf(gnuplotPipe, "set size square \n");
 	fprintf(gnuplotPipe, "set border lw 2 \n");
@@ -4554,7 +5225,7 @@ int draw_orbit_on_phase_space_latex(dynsys system)
 	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, "unset title\n");
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle ,'orbit/orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 3 palette notitle", 
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.6f_e_%1.3f.dat' w d notitle ,'orbit/orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat' w p pt 7 ps 3 palette notitle", 
 		gamma, e, gamma, e, system.name, K);
 	fclose(gnuplotPipe);
 
@@ -5021,7 +5692,7 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/periodic_orbit/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
+		"set output \"output/periodic_orbit/fig_periodic_orbit_on_phase_space_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
 		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
@@ -5041,7 +5712,7 @@ int draw_periodic_orbit_on_phase_space  (perorb po,
 			"set title \"Periodic orbit for system %s and gamma = %1.3f e = %1.3f K = %1.5f. Resonance = %d / %d\"\n", 
 			system.name, gamma, e, K, po.winding_number_numerator, po.winding_number_denominator);
 	}
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.6f_e_%1.3f.dat' w d lc rgb \"gray40\" notitle ,'periodic_orbit/periodic_orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"black\" notitle",
 		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
 	fclose(gnuplotPipe);
 
@@ -5075,7 +5746,7 @@ int draw_periodic_orbit_on_phase_space_clean(perorb po,
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set loadpath \"output\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/clean_figures/fig_periodic_orbit_on_phase_space_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
+		"set output \"output/clean_figures/fig_periodic_orbit_on_phase_space_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.png\"\n", 
 		gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
 	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
 	fprintf(gnuplotPipe, "set size square \n");
@@ -5090,9 +5761,9 @@ int draw_periodic_orbit_on_phase_space_clean(perorb po,
 	fprintf(gnuplotPipe, "set ytics format \" \"\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, "unset title\n");
-	// fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w d notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 4 lc rgb \"black\" notitle",
+	// fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.6f_e_%1.3f.dat' w d notitle ,'periodic_orbit/periodic_orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 4 lc rgb \"black\" notitle",
 	// 	gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
-	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.3f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle ,'periodic_orbit/periodic_orbit_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 5 lc rgb \"black\" notitle",
+	fprintf(gnuplotPipe, "plot 'phase_space/phase_space_gamma_%1.6f_e_%1.3f.dat' w p pt 7 ps 0.2 notitle ,'periodic_orbit/periodic_orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_period_%d_ic_%1.3f_%1.3f.dat' w p pt 7 ps 5 lc rgb \"black\" notitle",
 		gamma, e, gamma, e, system.name, K, po.period, po.initial_condition[0], po.initial_condition[1]);
 	fclose(gnuplotPipe);
 
@@ -5121,7 +5792,7 @@ int draw_basin_of_attraction(perorb po,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_basin_of_attraction_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_basin_of_attraction_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
@@ -5133,12 +5804,12 @@ int draw_basin_of_attraction(perorb po,
 	// fprintf(gnuplotPipe, 
 	// 	"set title \"Basin of attraction  for  gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e\"\n", 
 	// 	gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, "FILE = \"basin_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat\"\n", 
+	fprintf(gnuplotPipe, "FILE = \"basin_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat\"\n", 
 		gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "stats FILE u (myTitle=strcol(1),0) nooutput\n");
 	fprintf(gnuplotPipe, "set title \"gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e  size = \".myTitle\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
 		gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
@@ -5153,7 +5824,7 @@ int draw_basin_of_attraction(perorb po,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_convergence_times_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_convergence_times_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
@@ -5164,7 +5835,7 @@ int draw_basin_of_attraction(perorb po,
 	fprintf(gnuplotPipe, 
 		"set title \"        Convergence times  for  gamma = %1.3f  e = %1.3f  K = %1.0e  res = %d  n = %1.0e  eps = %1.0e\"\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
 		gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, po.initial_condition[0], po.initial_condition[1], po.period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
@@ -5198,7 +5869,7 @@ int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/clean_figures/fig_basin_of_attraction_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/clean_figures/fig_basin_of_attraction_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
 	fprintf(gnuplotPipe, "set size square \n");
@@ -5214,7 +5885,7 @@ int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, "unset title\n");
 	fprintf(gnuplotPipe, "unset colorbox\n");
-	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle, 'basin_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
 		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
@@ -5228,7 +5899,7 @@ int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
 	fprintf(gnuplotPipe, "reset\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/clean_figures/fig_convergence_times_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/clean_figures/fig_convergence_times_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set terminal pngcairo size 2400,2000 font \"fonts/cmr10.ttf,50\"\n");
 	fprintf(gnuplotPipe, "set size square \n");
@@ -5242,7 +5913,7 @@ int draw_basin_of_attraction_clean	(int ref_period, double ref[][2],
 	fprintf(gnuplotPipe, "set ytics format \" \"\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, "unset title\n");
-	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
+	fprintf(gnuplotPipe, "plot 'basin_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle, 'basin_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_ref_%1.3f_%1.3f_period_%d_res_%d_n_%d_basin_eps_%1.3f.dat' w p pt 7 ps 1.5 lc rgb \"green\" notitle",
 		gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, gamma, e, system.name, K, ref[0][0], ref[0][1], ref_period, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
@@ -5265,7 +5936,7 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 	int cb_range_min = cantor_pairing_function(analysis.spin_period_min, analysis.orbit_period_min);
 	int cb_range_max = cantor_pairing_function(analysis.spin_period_max, analysis.orbit_period_max);
 
-	printf("Drawing multtiple basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+	printf("Drawing multtiple basin of attraction of system %s with gamma = %1.6f, e = %1.3f and K = %1.5f\n", 
 		system.name, gamma, e, K);
 
 	gnuplotPipe = popen("gnuplot -persistent", "w");
@@ -5273,22 +5944,22 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_multiple_basin_of_attraction_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_multiple_basin_of_attraction_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	fprintf(gnuplotPipe, "unset colorbox\n");
 	fprintf(gnuplotPipe, "set xrange[-3.15:3.15]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
-	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
+	fprintf(gnuplotPipe, "set yrange [%f:%f]\n", analysis.grid_velocity_min, analysis.grid_velocity_max);
+	// fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
-		"set title \"Multiple basin of attraction (D) for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+		"set title \"Multiple basin of attraction (D) for {/Symbol g} = %1.6f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle",
+	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
@@ -5303,7 +5974,7 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_multiple_convergence_time_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+	// 	"set output \"output/basin_of_attraction/fig_multiple_convergence_time_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	// fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	// fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
@@ -5315,9 +5986,9 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 	// fprintf(gnuplotPipe, 
 	// 	"set title \"Convergence times (D) for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
 	// 	gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle",
+	// fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:4 w image notitle",
 	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	// fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+	// fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
 	// 	gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	// fclose(gnuplotPipe);
 
@@ -5354,7 +6025,7 @@ int draw_multiple_basin_of_attraction_determined_clean	(dynsys system,
 		fprintf(gnuplotPipe, "set terminal pngcairo size 2000,2000 font \"fonts/cmr10.ttf,50\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/clean_figures/fig_multiple_basin_of_attraction_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/clean_figures/fig_multiple_basin_of_attraction_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set lmargin at screen 0.05\n");
 	fprintf(gnuplotPipe, "set bmargin at screen 0.05\n");
@@ -5369,9 +6040,9 @@ int draw_multiple_basin_of_attraction_determined_clean	(dynsys system,
 	fprintf(gnuplotPipe, "unset title\n");
 	fprintf(gnuplotPipe, "unset colorbox\n");
 	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
-	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle",
+	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
@@ -5414,7 +6085,7 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		strcat(filename, local_filename);
 		ec += e_step;
@@ -5435,7 +6106,7 @@ int plot_size_multiple_basin_of_attraction_determined_range_e	(int number_of_e,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"Basin size\"\n");
@@ -5504,7 +6175,7 @@ int plot_size_multiple_basin_of_attraction_determined_range_e_latex	(int number_
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		strcat(filename, local_filename);
 		ec += e_step;
@@ -5526,7 +6197,7 @@ int plot_size_multiple_basin_of_attraction_determined_range_e_latex	(int number_
 	fprintf(gnuplotPipe, "set key font \"fonts/cmr10.ttf,18\" \n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_latex.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_latex.png\"\n", 
 		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set size square \n");
 	fprintf(gnuplotPipe, "set border lw 2 \n");
@@ -5578,7 +6249,7 @@ int draw_multiple_basin_of_attraction_undetermined	(dynsys system,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_multiple_basin_of_attraction_undetermined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_multiple_basin_of_attraction_undetermined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.png\"\n", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
@@ -5590,9 +6261,9 @@ int draw_multiple_basin_of_attraction_undetermined	(dynsys system,
 	fprintf(gnuplotPipe, 
 		"set title \"Multiple basin of attraction (U) for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e\"\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles);
-	fprintf(gnuplotPipe, "plot 'multiple_basin_undetermined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat' u 1:2:3 w image notitle",
+	fprintf(gnuplotPipe, "plot 'multiple_basin_undetermined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat' u 1:2:3 w image notitle",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
-	fprintf(gnuplotPipe, ", 'multiple_basin_undetermined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+	fprintf(gnuplotPipe, ", 'multiple_basin_undetermined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
 	fclose(gnuplotPipe);
 
@@ -5607,7 +6278,7 @@ int draw_multiple_basin_of_attraction_undetermined	(dynsys system,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_multiple_convergence_time_undetermined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_multiple_convergence_time_undetermined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.png\"\n", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
 	fprintf(gnuplotPipe, "set xlabel \"{/Symbol q}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"~{/Symbol q}{1.1.}\"\n");
@@ -5619,9 +6290,9 @@ int draw_multiple_basin_of_attraction_undetermined	(dynsys system,
 	fprintf(gnuplotPipe, 
 		"set title \"Convergence times (U) for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e\"\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles);
-	fprintf(gnuplotPipe, "plot 'multiple_basin_undetermined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat' u 1:2:4 w image notitle",
+	fprintf(gnuplotPipe, "plot 'multiple_basin_undetermined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat' u 1:2:4 w image notitle",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
-	fprintf(gnuplotPipe, ", 'multiple_basin_undetermined_ref_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
+	fprintf(gnuplotPipe, ", 'multiple_basin_undetermined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles);
 	fclose(gnuplotPipe);
 
@@ -5652,7 +6323,7 @@ int plot_basin_entropy_vs_box_size	(dynsys system,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_basin_entropy_vs_box_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_basin_entropy_vs_box_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"log {/Symbol e}\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"log S/N\"\n");
@@ -5662,16 +6333,16 @@ int plot_basin_entropy_vs_box_size	(dynsys system,
 	fprintf(gnuplotPipe, "set fit quiet\n");
 	fprintf(gnuplotPipe, "set fit logfile '/dev/null'\n");
 	fprintf(gnuplotPipe, "f(x) = a * x + b\n");
-	fprintf(gnuplotPipe, "fit f(x) 'multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 via a,b\n",
+	fprintf(gnuplotPipe, "fit f(x) 'multiple_basin_determined_entropy_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 via a,b\n",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, "set print \"output/basin_of_attraction/basin_entropy_slope_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat\"\n",
+	fprintf(gnuplotPipe, "set print \"output/basin_of_attraction/basin_entropy_slope_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat\"\n",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "print sprintf(\"%1.3f %%1.3f\", a)\n", e);
 	fprintf(gnuplotPipe, "set print\n");
 	fprintf(gnuplotPipe, 
 		"set title \"Basin entropy for {/Symbol g} = %1.3f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
 		gamma, e, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 3 ps 2 notitle, f(x) lw 2 title sprintf(\"Slope = %%1.3f\", a)",
+	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_entropy_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 3 ps 2 notitle, f(x) lw 2 title sprintf(\"Slope = %%1.3f\", a)",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fclose(gnuplotPipe);
 
@@ -5714,7 +6385,7 @@ int plot_slope_basin_entropy_range_e(int number_of_e,
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/basin_entropy_slope_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		sprintf(local_filename, " output/basin_of_attraction/basin_entropy_slope_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		strcat(filename, local_filename);
 		ec += e_step;
@@ -5732,7 +6403,7 @@ int plot_slope_basin_entropy_range_e(int number_of_e,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_basin_entropy_slope_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_basin_entropy_slope_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"Basin entropy slope\"\n");
@@ -5785,7 +6456,7 @@ int plot_basin_entropy_range_e	(int number_of_e,
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		strcat(filename, local_filename);
 		ec += e_step;
@@ -5803,7 +6474,7 @@ int plot_basin_entropy_range_e	(int number_of_e,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_basin_entropy_size_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_basin_entropy_size_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"Basin entropy\"\n");
@@ -5857,9 +6528,15 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		sprintf(local_filename, "output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-		strcat(filename, local_filename);
+		FILE *file_verify = fopen(local_filename, "r");
+		if (file_verify != NULL)
+		{
+			strcat(filename, " ");
+			strcat(filename, local_filename);
+			fclose(file_verify);
+		}
 		ec += e_step;
 	}
 
@@ -5874,7 +6551,7 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		strcat(filename, local_filename);
 		ec += e_step;
@@ -5895,10 +6572,10 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_synchronous_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_synchronous_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -5913,20 +6590,42 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 
 	fprintf(gnuplotPipe, "plot ");
 
-	orbit_period = 1;
-	spin_period = 1;
-	// for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
-	// {
-	// 	for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
-	// 	{
-			fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 title \"%d/%d\", ", 
-				spin_period, orbit_period, orbit_period + 4, spin_period, orbit_period);
-	// 	}
-	// }
+	double M[analysis.spin_period_max + 1][analysis.orbit_period_max + 1];
+	for (int j = 0; j <= analysis.orbit_period_max; j++)
+	{
+		for (int i = 0; i <= analysis.spin_period_max; i++)
+		{
+			M[i][j] = 0.0;
+		}
+	}
+
+	FILE *in_combined = fopen("output/basin_of_attraction/basins_size_combined.dat", "r");
+	int sp, or, fool_cantor;
+	double fool_e, basin_size;
+	while(fscanf(in_combined, "%lf %d %d %lf %d\n", &fool_e, &sp, &or, &basin_size, &fool_cantor) != EOF)
+	{
+		M[sp][or] += basin_size;
+	}
+	fclose(in_combined);
+
+	// orbit_period = 1;
+	// spin_period = 1;
+	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
+	{
+		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
+		{
+			printf("%d %d %f\n", spin_period, orbit_period, M[spin_period][orbit_period]);
+			if (M[spin_period][orbit_period] > 0.0)
+			{
+				fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 title \"%d/%d\", ", 
+					spin_period, orbit_period, orbit_period + 4, spin_period, orbit_period);
+			}
+		}
+	}
 
 	// fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"sum\", ");
 
-	// fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"HO,QP\", ");
+	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"red\" title \"HO,QP\", ");
 
 	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 title \"BE\", ");
 	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:3 w l lw 2 title \"UBE\", ");
@@ -5972,8 +6671,8 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_c
 	sprintf(filename, "paste -d \"\n\"");
 	while(ec < e_final + e_step/2.0)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 		strcat(filename, local_filename);
 		ec += e_step;
 	}
@@ -5988,8 +6687,8 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_c
 	ec = e_initial;
 	while(ec < e_final + e_step/2.0)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 		strcat(filename, local_filename);
 		ec += e_step;
 	}
@@ -6009,10 +6708,10 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_c
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy__monte_carlo_with_break_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy__monte_carlo_with_break_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_monte_carlo_with_break_synchronous_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_monte_carlo_with_break_synchronous_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -6041,6 +6740,116 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_monte_c
 	fprintf(gnuplotPipe, "'basins_size_combined_monte_carlo_with_break.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"HO,QP\", ");
 
 	fprintf(gnuplotPipe, "'entropy_size_combined_monte_carlo_with_break.dat' u 1:2 w l lw 2 title \"NBE\", ");
+
+	fclose(gnuplotPipe);
+
+	printf("Done!\n");
+
+	return 0;
+}
+
+int plot_size_multiple_basin_of_attraction_undetermined_plus_basin_entropy_monte_carlo_with_break_range_e	(int number_of_e,
+																											 double e_step_ext,
+																 	 			 							 double e_initial,
+																 	 			 							 double e_final,
+																 	 			 							 dynsys system,
+																 	 			 							 anlsis analysis)
+{
+	FILE 	*combineFiles;
+	FILE 	*gnuplotPipe;
+	int		size_filename = 300;
+	char 	local_filename[size_filename];
+	char	filename[50000];
+	int		spin_period;
+	int		orbit_period;
+	int		cb_range_min;
+	int		cb_range_max;
+	double 	*par = (double *)system.params;
+	double 	gamma = par[0];
+	double 	K = par[6];
+	double 	ec, e_step;
+
+	if (number_of_e > 0)
+	{
+		e_step = (e_final - e_initial) / (double)(number_of_e);
+	}
+	else
+	{
+		e_step = e_step_ext;
+	}
+	ec = e_initial;
+	sprintf(filename, "paste -d \"\n\"");
+	while(ec < e_final + e_step/2.0)
+	{
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_undetermined_size_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_mc, analysis.convergence_precision_mc);
+		strcat(filename, local_filename);
+		ec += e_step;
+	}
+	strcat(filename, " > output/basin_of_attraction/basins_size_undetermined_combined_monte_carlo_with_break.dat");
+
+	combineFiles = popen(filename, "w");
+
+	fclose(combineFiles);
+
+	sprintf(filename, "paste -s");
+
+	ec = e_initial;
+	while(ec < e_final + e_step/2.0)
+	{
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_undetermined_entropy_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_mc, analysis.convergence_precision_mc);
+		strcat(filename, local_filename);
+		ec += e_step;
+	}
+
+	strcat(filename, " > output/basin_of_attraction/entropy_size_undetermined_combined_monte_carlo_with_break.dat");
+
+	combineFiles = popen(filename, "w");
+
+	fclose(combineFiles);
+
+	cb_range_min = cantor_pairing_function(analysis.spin_period_min, analysis.orbit_period_min);
+	cb_range_max = cantor_pairing_function(analysis.spin_period_max, analysis.orbit_period_max);
+
+	gnuplotPipe = popen("gnuplot -persistent", "w");
+
+	fprintf(gnuplotPipe, "reset\n");
+	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
+	fprintf(gnuplotPipe, 
+		"set output \"output/basin_of_attraction/fig_basin_size_with_basin_entropy_range_e_multiple_basin_undetermined_monte_carlo_with_break_gamma_%1.6f_system_%s_K_%1.5f_n_%d_rand_%d_window_mc_%d_precision_mc_%1.3f_transient_wn_%d_window_wn_%d_precision_wn_%1.3f.dat", 
+		gamma, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc, analysis.convergence_transient_wn, analysis.convergence_window_mc, analysis.convergence_precision_mc);
+	// fprintf(gnuplotPipe, 
+	// 	"set output \"output/basin_of_attraction/fig_basin_size_with_basin_entropy_range_e_multiple_basin_undetermined_monte_carlo_with_break_synchronous_gamma_%1.6f_system_%s_K_%1.5f_n_%d_rand_%d_window_%d_transient_%d_precision_%1.3f.dat", 
+	// 	gamma, system.name, K, analysis.number_of_cycles, analysis.number_of_rand_orbits_mc, analysis.convergence_window, analysis.convergence_transient, analysis.convergence_precision);
+	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	// fprintf(gnuplotPipe, 
+	// 	"set title \"       Size of multiple basin of attraction (D) for {/Symbol g} = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
+	// 	gamma, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
+
+	fprintf(gnuplotPipe, "set key opaque box outside top right width 1.1\n");
+
+	fprintf(gnuplotPipe, "unset colorbox\n");
+	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
+
+	fprintf(gnuplotPipe, "plot ");
+
+	// orbit_period = 1;
+	// spin_period = 1;
+	for (orbit_period = analysis.orbit_period_min; orbit_period <= analysis.orbit_period_max; orbit_period++)
+	{
+		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
+		{
+			fprintf(gnuplotPipe, "'basins_size_undetermined_combined_monte_carlo_with_break.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 title \"%d/%d\", ", 
+				spin_period, orbit_period, orbit_period + 4, spin_period, orbit_period);
+		}
+	}
+
+	fprintf(gnuplotPipe, "'basins_size_undetermined_combined_monte_carlo_with_break.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"QP\", ");
+
+	fprintf(gnuplotPipe, "'entropy_size_undetermined_combined_monte_carlo_with_break.dat' u 1:2 w l lw 2 title \"NBE\", ");
 
 	fclose(gnuplotPipe);
 
@@ -6082,7 +6891,7 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		strcat(filename, local_filename);
 		ec += e_step;
@@ -6099,8 +6908,8 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_converged_time_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_converged_time_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 		strcat(filename, local_filename);
 		ec += e_step;
 	}
@@ -6116,8 +6925,8 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	// ec = e_initial;
 	// for(int i = 0; i <= number_of_e; i++)
 	// {
-	// 	sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-	// 	gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	// 	sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+	// 	gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window, analysis.convergence_precision);
 	// 	strcat(filename, local_filename);
 	// 	ec += e_step;
 	// }
@@ -6133,8 +6942,8 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	// ec = e_initial;
 	// for(int i = 0; i <= number_of_e; i++)
 	// {
-	// 	sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_converged_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-	// 	gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	// 	sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_entropy_converged_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+	// 	gamma, ec, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window, analysis.convergence_precision);
 	// 	strcat(filename, local_filename);
 	// 	ec += e_step;
 	// }
@@ -6150,7 +6959,7 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	ec = e_initial;
 	for(int i = 0; i <= number_of_e; i++)
 	{
-		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+		sprintf(local_filename, " output/basin_of_attraction/multiple_basin_determined_size_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, ec, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 		strcat(filename, local_filename);
 		ec += e_step;
@@ -6168,8 +6977,8 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_entropy_comparison_monte_carlo_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
-	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	// 	"set output \"output/basin_of_attraction/fig_entropy_comparison_monte_carlo_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
+	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window, analysis.convergence_precision);
 	// fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	// // fprintf(gnuplotPipe, 
@@ -6191,8 +7000,8 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_entropy_comparison_converged_monte_carlo_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
-	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	// 	"set output \"output/basin_of_attraction/fig_entropy_comparison_converged_monte_carlo_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
+	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window, analysis.convergence_precision);
 	// fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	// // fprintf(gnuplotPipe, 
@@ -6214,8 +7023,8 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_entropy_convergence_converged_monte_carlo_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
-	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	// 	"set output \"output/basin_of_attraction/fig_entropy_convergence_converged_monte_carlo_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
+	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window, analysis.convergence_precision);
 	// fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	// fprintf(gnuplotPipe, "set ylabel \"Number of realizations\"\n");
 	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -6237,7 +7046,7 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_entropy_convergence_monte_carlo_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_entropy_convergence_monte_carlo_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	// fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -6275,8 +7084,8 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	// fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_entropy_comparison_converged_with_convergence_monte_carlo_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
-	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	// 	"set output \"output/basin_of_attraction/fig_entropy_comparison_converged_with_convergence_monte_carlo_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
+	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window, analysis.convergence_precision);
 	// fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	// fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	// // fprintf(gnuplotPipe, 
@@ -6298,8 +7107,8 @@ int plot_entropy_comparison_monte_carlo_range_e	(int number_of_e,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_entropy_comparison_converged_with_convergence_monte_carlo_range_e_gamma_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
-		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+		"set output \"output/basin_of_attraction/fig_entropy_comparison_converged_with_convergence_monte_carlo_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png\"\n", 
+		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
 	// fprintf(gnuplotPipe, 
@@ -6335,8 +7144,8 @@ int plot_comparison_entropy_grid_vs_monte_carlo	(dynsys system,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_comparison_entropy_grid_vs_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d.png\"\n", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits);
+		"set output \"output/basin_of_attraction/fig_comparison_entropy_grid_vs_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d.png\"\n", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc);
 	fprintf(gnuplotPipe, "set xlabel \"Number of orbits\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"Basin entropy\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -6347,10 +7156,10 @@ int plot_comparison_entropy_grid_vs_monte_carlo	(dynsys system,
 
 	fprintf(gnuplotPipe, "set key box opaque top right\n");
 
-	fprintf(gnuplotPipe, "plot 'comparison_entropy_grid_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w lp pt 7 ps 1.5 lw 1.5 title \"Grid\",", 
+	fprintf(gnuplotPipe, "plot 'comparison_entropy_grid_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w lp pt 7 ps 1.5 lw 1.5 title \"Grid\",", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, " 'comparison_entropy_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d.dat'u 1:2 w lp pt 7 ps 1.5 lw 1.5 title \"Monte Carlo\",", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits);
+	fprintf(gnuplotPipe, " 'comparison_entropy_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d.dat'u 1:2 w lp pt 7 ps 1.5 lw 1.5 title \"Monte Carlo\",", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc);
 
 	fclose(gnuplotPipe);
 
@@ -6360,8 +7169,8 @@ int plot_comparison_entropy_grid_vs_monte_carlo	(dynsys system,
 	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_comparison_entropy_error_grid_vs_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d.png\"\n", 
-		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits);
+		"set output \"output/basin_of_attraction/fig_comparison_entropy_error_grid_vs_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f_rand_%d.png\"\n", 
+		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc);
 	fprintf(gnuplotPipe, "set xlabel \"Number of orbits\"\n");
 	fprintf(gnuplotPipe, "set ylabel \"Basin entropy error\"\n");
 	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
@@ -6375,10 +7184,10 @@ int plot_comparison_entropy_grid_vs_monte_carlo	(dynsys system,
 	// fprintf(gnuplotPipe, "set log y\n");
 	fprintf(gnuplotPipe, "set yrange [0.0:0.01]\n");
 
-	fprintf(gnuplotPipe, "plot 'comparison_entropy_grid_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:3 w lp pt 7 ps 1.5 lw 1.5 title \"Grid\",", 
+	fprintf(gnuplotPipe, "plot 'comparison_entropy_grid_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:3 w lp pt 7 ps 1.5 lw 1.5 title \"Grid\",", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
-	fprintf(gnuplotPipe, " 'comparison_entropy_monte_carlo_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d.dat'u 1:3 w lp pt 7 ps 1.5 lw 1.5 title \"Monte Carlo\",", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits);
+	fprintf(gnuplotPipe, " 'comparison_entropy_monte_carlo_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d.dat'u 1:3 w lp pt 7 ps 1.5 lw 1.5 title \"Monte Carlo\",", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc);
 
 	fclose(gnuplotPipe);
 
@@ -6404,10 +7213,10 @@ int plot_histogram_python	(dynsys system,
 	printf("Plotting histogram for e = %1.3f and gamma = %1.3f\n", e, gamma);
 
 	sprintf(filename, "python3 python_tools/plot_histogram.py");
-	sprintf(filename_input, " --input output/basin_of_attraction/multiple_basin_determined_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
+	sprintf(filename_input, " --input output/basin_of_attraction/multiple_basin_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	strcat(filename, filename_input);
-	sprintf(filename_output, " --output output/basin_of_attraction/fig_histogram_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png", 
+	sprintf(filename_output, " --output output/basin_of_attraction/fig_histogram_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png", 
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	strcat(filename, filename_output);
 	sprintf(filename_parameter, " --parameter e=%1.3f", e);
@@ -6438,11 +7247,11 @@ int plot_histogram_python_monte_carlo_with_break(dynsys system,
 	printf("Plotting histogram for e = %1.3f and gamma = %1.3f\n", e, gamma);
 
 	sprintf(filename, "python3 python_tools/plot_histogram.py");
-	sprintf(filename_input, " --input output/basin_of_attraction/multiple_basin_determined_times_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename_input, " --input output/basin_of_attraction/multiple_basin_determined_times_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.dat", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	strcat(filename, filename_input);
-	sprintf(filename_output, " --output output/basin_of_attraction/fig_histogram_monte_carlo_with_break_gamma_%1.3f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png", 
-		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits, analysis.convergence_window, analysis.convergence_precision);
+	sprintf(filename_output, " --output output/basin_of_attraction/fig_histogram_monte_carlo_with_break_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_n_%d_basin_eps_%1.3f_rand_%d_window_%d_precision_%1.3f.png", 
+		gamma, e, system.name, K, analysis.number_of_cycles, analysis.evolve_basin_eps, analysis.number_of_rand_orbits_mc, analysis.convergence_window_mc, analysis.convergence_precision_mc);
 	strcat(filename, filename_output);
 	sprintf(filename_parameter, " --parameter e=%1.3f", e);
 	strcat(filename, filename_parameter);

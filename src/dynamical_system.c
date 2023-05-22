@@ -1,53 +1,5 @@
 #include "dynamical_system.h"
 
-dynsys copy_dynsys(dynsys system)
-{
-	dynsys cp_system;
-	cp_system.name = system.name;
-	cp_system.field = system.field;
-	cp_system.jac = system.jac;
-	cp_system.dim = system.dim;
-	cp_system.params = system.params;
-	return cp_system;
-}
-
-anlsis copy_anlsis(anlsis analysis)
-{
-	anlsis cp_anlsis;
-	
-	// orbit evolution
-	cp_anlsis.nc = analysis.nc;
-	cp_anlsis.nv = analysis.nv;
-	cp_anlsis.number_of_cycles = analysis.number_of_cycles;
-	cp_anlsis.cycle_period = analysis.cycle_period;
-	cp_anlsis.evolve_box_size = analysis.evolve_box_size;
-	cp_anlsis.coordinate_min = analysis.coordinate_min;
-	cp_anlsis.coordinate_max = analysis.coordinate_max;
-	cp_anlsis.velocity_min = analysis.velocity_min;
-	cp_anlsis.velocity_max = analysis.velocity_max;
-
-	// grid variables
-    cp_anlsis.grid_resolution = analysis.grid_resolution;
-    cp_anlsis.grid_coordinate_min = analysis.grid_coordinate_min;
-	cp_anlsis.grid_coordinate_max = analysis.grid_coordinate_max;
-	cp_anlsis.grid_velocity_min = analysis.grid_velocity_min;
-	cp_anlsis.grid_velocity_max = analysis.grid_velocity_max;
-
-	// basin of attraction  
-    cp_anlsis.evolve_basin_time_tol = analysis.evolve_basin_time_tol;
-    cp_anlsis.evolve_basin_eps = analysis.evolve_basin_eps;
-
-	// time series
-    cp_anlsis.number_of_time_series = analysis.number_of_time_series;
-    cp_anlsis.time_series_delta = analysis.time_series_delta;
-
-    // periodic orbits
-    cp_anlsis.po_max_step = analysis.po_max_step;
-    cp_anlsis.po_tol = analysis.po_tol;
-
-	return cp_anlsis;
-}
-
 int evolve_cycle(double *y, double *t,
 				 dynsys system, anlsis analysis)
 {
@@ -66,6 +18,14 @@ int evolve_cycle(double *y, double *t,
 	method = "rk8pd";
 	control = "adaptive";
 
+	// h = 2.*M_PI * 1e-2 * sign(analysis.cycle_period);
+	// error_abs = 1e-13;
+	// error_rel = 1e-13;
+	// h_max = 1e-1;
+	// h_min = 1e-11; //1e-11
+	// method = "rk8pd";
+	// control = "fixed";
+
 	// set system, integrator and driver
 	gsl_odeiv2_system sys;
 	set_system(&sys, system);
@@ -78,8 +38,15 @@ int evolve_cycle(double *y, double *t,
 			   error_abs, error_rel, control);
 
 	// cycle evolution
-	status = gsl_odeiv2_driver_apply (d, t, 
-		*t + analysis.cycle_period, y);
+	if (strcmp(control, "adaptive"))
+	{
+		status = gsl_odeiv2_driver_apply (d, t, 
+			*t + analysis.cycle_period, y);
+	}
+	else
+	{
+		status = gsl_odeiv2_driver_apply_fixed_step (d, t, h, 100, y);
+	}
 
 	// check if integration was successfull
 	if (status != GSL_SUCCESS)

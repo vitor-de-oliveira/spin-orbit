@@ -37,8 +37,6 @@ typedef struct DynSys{
     void *params;
 } dynsys;
 
-dynsys copy_dynsys(dynsys system);
-
 // System analysis
 typedef struct AnlSis{
 
@@ -79,13 +77,26 @@ typedef struct AnlSis{
     double po_tol;                  // maximum error allowed for the periodic orbit calculation
 
     // monte carlo simulation
-    int number_of_rand_orbits;
-    int convergence_window;
-    double convergence_precision;
+    int number_of_rand_orbits_mc;
+    int convergence_window_mc;
+    double convergence_precision_mc;
 
+    // winding number calculation
+    int convergence_transient_wn;
+    int convergence_window_wn;
+    double convergence_precision_wn;
 } anlsis;
 
-anlsis copy_anlsis(anlsis analysis);
+typedef struct AtrTor{
+    double	basin_size;
+    double	winding_number;
+
+    int		res_spin;
+    int 	res_orbit;
+
+    double  theta;
+    double  theta_dot;
+} atrtor;
 
 int evolve_cycle(double *y, double *t,
                 dynsys system, anlsis analysis);
