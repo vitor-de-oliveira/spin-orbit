@@ -18,6 +18,14 @@ int evolve_cycle(double *y, double *t,
 	method = "rk8pd";
 	control = "adaptive";
 
+	// h = 2.*M_PI * 1e-2 * sign(analysis.cycle_period);
+	// error_abs = 1e-13;
+	// error_rel = 1e-13;
+	// h_max = 1e-1;
+	// h_min = 1e-11; //1e-11
+	// method = "rk8pd";
+	// control = "fixed";
+
 	// set system, integrator and driver
 	gsl_odeiv2_system sys;
 	set_system(&sys, system);
@@ -30,8 +38,15 @@ int evolve_cycle(double *y, double *t,
 			   error_abs, error_rel, control);
 
 	// cycle evolution
-	status = gsl_odeiv2_driver_apply (d, t, 
-		*t + analysis.cycle_period, y);
+	if (strcmp(control, "adaptive"))
+	{
+		status = gsl_odeiv2_driver_apply (d, t, 
+			*t + analysis.cycle_period, y);
+	}
+	else
+	{
+		status = gsl_odeiv2_driver_apply_fixed_step (d, t, h, 100, y);
+	}
 
 	// check if integration was successfull
 	if (status != GSL_SUCCESS)

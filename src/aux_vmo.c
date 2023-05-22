@@ -59,14 +59,6 @@ void print_prog(double percentage)
 	fflush(stdout);
 }
 
-void print_prog_float(double percentage)
-{
-	int lpad = (int)(percentage * PBWIDTH);
-	int rpad = PBWIDTH - lpad;
-	printf("\r%f%% [%.*s%*s]", percentage, lpad, PBSTR, rpad, "");
-	fflush(stdout);
-}
-
 double sign(double x)
 {
 	if (x >= 0)

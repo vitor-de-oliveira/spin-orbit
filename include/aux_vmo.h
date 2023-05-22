@@ -9,6 +9,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #define PBSTR "===================="
 #define PBWIDTH 20
@@ -36,9 +37,6 @@ int print_array(double *x, int dim);
 
 // prints the progress of a calculation as a filling bar
 void print_prog(double percentage);
-
-// prints the progress of a calculation as a filling bar
-void print_prog_float(double percentage);
 
 // returns one if n is positive and minus one if n is negative
 double sign(double x);
