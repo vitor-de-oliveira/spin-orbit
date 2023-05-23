@@ -580,7 +580,8 @@ double kepler_period(double m1,
 
 int orbit_two_body	(double *ic,
 					 dynsys system,
-					 anlsis analysis)
+					 anlsis analysis,
+					 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -625,7 +626,7 @@ int orbit_two_body	(double *ic,
 	}
 
 	// evolve system
-	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+	evolve_orbit(ic, &orbit, &orbit_size, system, analysis, rk);
 
 	// write orbit and constant error to file
 	fprintf(out_orb_ic, "%1.15e %1.15e\n", 
@@ -659,7 +660,7 @@ int orbit_two_body	(double *ic,
 }
 
 int orbit_map(double *ic, dynsys system,
-					anlsis analysis)
+					anlsis analysis, rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -705,7 +706,7 @@ int orbit_map(double *ic, dynsys system,
 	}
 
 	// evolve system
-	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+	evolve_orbit(ic, &orbit, &orbit_size, system, analysis, rk);
 
 	// write orbit and constant error to file
 	fprintf(out_orb_ic, "%1.15e %1.15e\n", 
@@ -797,7 +798,7 @@ int orbit_map(double *ic, dynsys system,
 	return 0;
 }
 
-int phase_space(dynsys system, anlsis analysis)
+int phase_space(dynsys system, anlsis analysis, rngkta rk)
 {
 	// little warning
 	if (strcmp(system.name, "two_body") == 0)
@@ -862,11 +863,8 @@ int phase_space(dynsys system, anlsis analysis)
 		// print progress on coordinate
 		printf("Calculating set %d of %d\n", i + 1, analysis.nc);
 
-		// omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		// omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
-
 		#pragma omp parallel private(y, coordinate, velocity, \
-				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb)
+				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb) num_threads(THREADS_NUM)
 		{
 
 		if (analysis.nc == 1)
@@ -881,7 +879,7 @@ int phase_space(dynsys system, anlsis analysis)
 					(double)(analysis.nc - 1);
 		}
 
-		#pragma omp for
+		#pragma omp for schedule(dynamic)
 			// loop over velocity values
 			for (int j = 0; j < analysis.nv; j++)
 			{
@@ -914,11 +912,11 @@ int phase_space(dynsys system, anlsis analysis)
 
 				// calculate forward integration
 				evolve_orbit(y, &orbit_fw, 
-					&orbit_fw_size, system, analysis_fw);
+					&orbit_fw_size, system, analysis_fw, rk);
 
 				// calculate backward integration
 				evolve_orbit(y, &orbit_bw, 
-					&orbit_bw_size, system, analysis_bw);
+					&orbit_bw_size, system, analysis_bw, rk);
 
 				#pragma omp critical
 				{
@@ -1001,7 +999,8 @@ int phase_space(dynsys system, anlsis analysis)
 }
 
 int time_series(dynsys system,
-				anlsis analysis)
+				anlsis analysis,
+				rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -1039,7 +1038,7 @@ int time_series(dynsys system,
 	}
 
 	// evolve system
-	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+	evolve_orbit(ic, &orbit, &orbit_size, system, analysis, rk);
 
 	for (int j = 0; j < orbit_size; j++)
 	{
@@ -1060,7 +1059,8 @@ int time_series(dynsys system,
 }
 
 int multiple_time_series(dynsys system,
-						anlsis analysis)
+						 anlsis analysis,
+						 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -1086,10 +1086,10 @@ int multiple_time_series(dynsys system,
 	double **orbit;
 	double ic[system.dim], orb[4];
 
-	#pragma omp parallel private(orbit_size, orbit, ic, orb)
+	#pragma omp parallel private(orbit_size, orbit, ic, orb) num_threads(THREADS_NUM)
 	{
 
-	#pragma omp for
+	#pragma omp for schedule(dynamic)
 		for (int i = 0; i < 20; i++)
 		{
 			printf("Calculating set %d of %d\n", i, 20);
@@ -1110,7 +1110,7 @@ int multiple_time_series(dynsys system,
 			}
 
 			// evolve system
-			evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+			evolve_orbit(ic, &orbit, &orbit_size, system, analysis, rk);
 
 			#pragma omp critical
 			{
@@ -1138,7 +1138,8 @@ int multiple_time_series(dynsys system,
 }
 
 int multiple_time_series_delta_theta_dot(dynsys system,
-										anlsis analysis)
+										 anlsis analysis,
+										 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -1165,10 +1166,10 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 	double **orbit;
 	double ic[system.dim], orb[4];
 
-	#pragma omp parallel private(orbit_size, orbit, ic, orb)
+	#pragma omp parallel private(orbit_size, orbit, ic, orb) num_threads(THREADS_NUM)
 	{
 
-	#pragma omp for
+	#pragma omp for schedule(dynamic)
 		for (int i = -analysis.number_of_time_series/2; i <= analysis.number_of_time_series/2; i++) 
 		{
 			printf("Calculating time series number %d\n", i + 1 + analysis.number_of_time_series/2);
@@ -1183,7 +1184,7 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 			}
 
 			// evolve system
-			evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+			evolve_orbit(ic, &orbit, &orbit_size, system, analysis, rk);
 
 			#pragma omp critical
 			{
@@ -1210,7 +1211,8 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 }
 
 int multiple_time_series_delta_theta(dynsys system,
-									anlsis analysis)
+									 anlsis analysis,
+									 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -1237,10 +1239,10 @@ int multiple_time_series_delta_theta(dynsys system,
 	double **orbit;
 	double ic[system.dim], orb[4];
 
-	#pragma omp parallel private(orbit_size, orbit, ic, orb)
+	#pragma omp parallel private(orbit_size, orbit, ic, orb) num_threads(THREADS_NUM)
 	{
 
-	#pragma omp for
+	#pragma omp for schedule(dynamic)
 		// for (int i = 0; i < 20; i++)
 		// {
 		// 	ic[0] = 0.0 + 0.01 * (double)(i); ic[1] = 1000.0;
@@ -1258,7 +1260,7 @@ int multiple_time_series_delta_theta(dynsys system,
 			}
 
 			// evolve system
-			evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
+			evolve_orbit(ic, &orbit, &orbit_size, system, analysis, rk);
 
 			#pragma omp critical
 			{
@@ -1288,7 +1290,8 @@ int multiple_time_series_delta_theta(dynsys system,
 int evolve_n_cycles_po  (double y0[2],
 						 int n,
                          dynsys system,
-                         anlsis analysis)
+                         anlsis analysis,
+						 rngkta rk)
 {
     double t = 0;
 	double y[system.dim], orbital[4];
@@ -1309,7 +1312,7 @@ int evolve_n_cycles_po  (double y0[2],
     // loop over cycles
 	for (int i = 0; i < n; i++)
 	{
-		evolve_cycle(y, &t, system, analysis);
+		evolve_cycle(y, &t, system, analysis, rk);
 	
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
@@ -1331,7 +1334,8 @@ int evolve_n_cycles_po  (double y0[2],
 
 int periodic_orbit	(perorb *po,
                      dynsys system,
-                     anlsis analysis)
+                     anlsis analysis,
+					 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -1355,7 +1359,7 @@ int periodic_orbit	(perorb *po,
 	(*po).dist_on_phase_space = &dist_from_ref;
 	(*po).evolve_n_cycles = &evolve_n_cycles_po;
 
-	if (calculate_periodic_orbit_ic(po, system, analysis) == -1)
+	if (calculate_periodic_orbit_ic(po, system, analysis, rk) == -1)
 	{
 		return -1;
 	}
@@ -1373,7 +1377,7 @@ int periodic_orbit	(perorb *po,
     for (int i = 0; i < (*po).period; i++)
     {
         copy((*po).orbit[i], y, 2);
-		evolve_cycle(y, &t, system, analysis);
+		evolve_cycle(y, &t, system, analysis, rk);
     }
 
     // finds the index for the smallest theta value
@@ -1413,7 +1417,7 @@ int periodic_orbit	(perorb *po,
 		// fprintf(out_orb, "%1.10e %1.10e\n", 
         //     angle_mod((*po).orbit[i][0]), (*po).orbit[i][1]);
 
-		evolve_cycle(y, &t, system, analysis);
+		evolve_cycle(y, &t, system, analysis, rk);
     }
 
 	copy(po_ic_after_one_period, y, system.dim);
@@ -1465,7 +1469,8 @@ int look_for_resonance	(int number_of_candidates,
 						 int spin_period,
                          int orbit_period,
                          dynsys system, 
-						 anlsis analysis)
+						 anlsis analysis,
+						 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -1524,13 +1529,10 @@ int look_for_resonance	(int number_of_candidates,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		// omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		// omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
-
-		#pragma omp parallel private(y, y0, grid, rot_ini, t) shared(orbit_distance, spin_distance)
+		#pragma omp parallel private(y, y0, grid, rot_ini, t) shared(orbit_distance, spin_distance) num_threads(THREADS_NUM)
 		{
 
-		#pragma omp for
+		#pragma omp for schedule(dynamic)
 			// loop over velocity values
 			for (int j = 0; j < analysis.grid_resolution; j++)
 			{
@@ -1556,7 +1558,7 @@ int look_for_resonance	(int number_of_candidates,
 				copy(y0, y, system.dim);
 				for (int i = 0; i < safety_factor * orbit_period; i++)
 				{
-					evolve_cycle(y, &t, system, analysis);
+					evolve_cycle(y, &t, system, analysis, rk);
 				}
 
 				orbit_distance[i][j] = dist_from_ref(y,y0);
@@ -1661,7 +1663,8 @@ int look_for_resonance	(int number_of_candidates,
 int find_all_periodic_attractors(int *number_of_pos,
 							 	 perorb **multiple_pos,
 							 	 dynsys system,
-                         	 	 anlsis analysis)
+                         	 	 anlsis analysis,
+								 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -1703,7 +1706,7 @@ int find_all_periodic_attractors(int *number_of_pos,
 			
 			double candidates[number_of_candidates][2];
 			look_for_resonance (number_of_candidates, candidates, 
-				spin_period, orbit_period, system, analysis);
+				spin_period, orbit_period, system, analysis, rk);
 
 			perorb multiple_candidates[number_of_candidates];
 			int successful_candidates_indices[number_of_candidates];
@@ -1717,7 +1720,7 @@ int find_all_periodic_attractors(int *number_of_pos,
 				multiple_candidates[i].period = orbit_period;
 				copy (multiple_candidates[i].seed, candidates[i], 2);
 				alloc_2d_double(&multiple_candidates[i].orbit, multiple_candidates[i].period, system.dim);
-				if (periodic_orbit(&multiple_candidates[i], system, analysis) == 0)
+				if (periodic_orbit(&multiple_candidates[i], system, analysis, rk) == 0)
 				{
 					// check if spin exceeds maximum defined spin
 					if (multiple_candidates[i].winding_number_numerator > analysis.spin_period_max)
@@ -1740,7 +1743,7 @@ int find_all_periodic_attractors(int *number_of_pos,
 						}
 					}
 					// check if p.o is stable
-					jacobian_eigenvalues_magnitude(&multiple_candidates[i], system, analysis);
+					jacobian_eigenvalues_magnitude(&multiple_candidates[i], system, analysis, rk);
 					if ((multiple_candidates[i].eigenvalues_absolute_value[0] > 1.0) ||
 						(multiple_candidates[i].eigenvalues_absolute_value[1] > 1.0))
 					{
@@ -1824,7 +1827,8 @@ int find_all_periodic_attractors(int *number_of_pos,
 int fill_attractor_array(int *number_of_pos,
 						 perorb **multiple_pos,
                          dynsys system,
-                         anlsis analysis)
+                         anlsis analysis,
+						 rngkta rk)
 {
 	double *par = (double *)system.params;
 	double gamma = par[0];
@@ -1843,7 +1847,7 @@ int fill_attractor_array(int *number_of_pos,
 	in = fopen(filename, "r");
 	if (in == NULL)
 	{
-		find_all_periodic_attractors(number_of_pos, multiple_pos, system, analysis);
+		find_all_periodic_attractors(number_of_pos, multiple_pos, system, analysis, rk);
 	}
 	else
 	{
@@ -2077,7 +2081,8 @@ int evolve_basin(double *ic,
                  int *convergence_time,
                  perorb po,
                  dynsys system,
-				 anlsis analysis)
+				 anlsis analysis,
+				 rngkta rk)
 {
 	// declare variables
 	bool is_close_to;
@@ -2122,7 +2127,7 @@ int evolve_basin(double *ic,
 			goto out;
 		}
 
-		evolve_cycle(y, &t, system, analysis);
+		evolve_cycle(y, &t, system, analysis, rk);
 	
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
@@ -2155,7 +2160,8 @@ int evolve_basin(double *ic,
 
 int basin_of_attraction (perorb po,
                          dynsys system,
-                         anlsis analysis)
+                         anlsis analysis,
+						 rngkta rk)
 {
 	// little warning
 	if (strcmp(system.name, "two_body") == 0)
@@ -2236,15 +2242,12 @@ int basin_of_attraction (perorb po,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		// omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		// omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
-
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged, convergence_time, orb, rot_ini) shared(basin_matrix, \
-				control_matrix, time_matrix)
+				control_matrix, time_matrix) num_threads(THREADS_NUM)
 		{
 
-		#pragma omp for
+		#pragma omp for schedule(dynamic)
 			// loop over velocity values
 			for (int j = 0; j < analysis.grid_resolution; j++)
 			{
@@ -2271,7 +2274,7 @@ int basin_of_attraction (perorb po,
 
 					// calculate forward integration
 					evolve_basin(y, &converged, &convergence_time,
-						po, system, analysis);
+						po, system, analysis, rk);
 
 					if(converged == true)
 					{
@@ -2342,7 +2345,8 @@ int evolve_multiple_basin_determined(double *ic,
 									 int *convergence_time,
 									 perorb po[],
 									 dynsys system,
-									 anlsis analysis)
+									 anlsis analysis,
+									 rngkta rk)
 {
 	// declare variables
 	bool 	is_close_to_po;
@@ -2451,7 +2455,7 @@ int evolve_multiple_basin_determined(double *ic,
 			}
 		}
 
-		evolve_cycle(y, &t, system, analysis);
+		evolve_cycle(y, &t, system, analysis, rk);
 
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
@@ -2489,7 +2493,8 @@ int evolve_multiple_basin_determined(double *ic,
 int multiple_basin_of_attraction_determined (int number_of_po,
 											 perorb po[],
                          					 dynsys system,
-                         					 anlsis analysis)
+                         					 anlsis analysis,
+											 rngkta rk)
 {
 	// little warning
 	if (strcmp(system.name, "two_body") == 0)
@@ -2574,12 +2579,9 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
-		// omp_set_num_threads(100);	// Use 12 threads for all consecutive parallel regions
-
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
-				control_matrix, time_matrix) num_threads(14)
+				control_matrix, time_matrix) num_threads(THREADS_NUM)
 		{
 
 		#pragma omp for schedule(dynamic)
@@ -2600,7 +2602,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 					// calculate forward integration
 					evolve_multiple_basin_determined(y, number_of_po, 
 						&converged_po_id, &convergence_time,
-						po, system, analysis);
+						po, system, analysis, rk);
 
 					if (converged_po_id == -1)
 					{
@@ -2682,7 +2684,8 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 											 			 perorb po[],
                          					 			 dynsys system,
-                         					 			 anlsis analysis)
+                         					 			 anlsis analysis,
+														 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -2741,12 +2744,9 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 	}
 	fclose(out_ref);
 
-	// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
-	// omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
-
-	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, test_convergence)
+	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, test_convergence) num_threads(THREADS_NUM)
 	{
-	#pragma omp for
+	#pragma omp for schedule(dynamic)
 		for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
 		{
 			y[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
@@ -2755,7 +2755,7 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 
 			evolve_multiple_basin_determined(y, number_of_po, 
 				&converged_po_id, &convergence_time,
-				po, system, analysis);
+				po, system, analysis, rk);
 
 			#pragma omp critical
 			{
@@ -2829,7 +2829,8 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_of_po,
 											 			 			 perorb po[],
                          					 			 			 dynsys system,
-                         					 			 			 anlsis analysis)
+                         					 			 			 anlsis analysis,
+																	 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -2893,14 +2894,11 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	}
 	fclose(out_ref);
 
-	// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
-	// omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
-
 	const int N = analysis.number_of_rand_orbits_mc;
 	bool go = true;
 	unsigned int give = 0;
 
-	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, go)
+	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, go) num_threads(THREADS_NUM)
 	{
 		unsigned int loop_variable, stop;
 
@@ -2922,7 +2920,7 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 
 			evolve_multiple_basin_determined(y, number_of_po, 
 				&converged_po_id, &convergence_time,
-				po, system, analysis);
+				po, system, analysis, rk);
 
 			#pragma omp critical
 			{
@@ -3002,7 +3000,8 @@ int evolve_multiple_basin_undetermined_winding	(double *ic,
 									 			 int *convergence_time,
 									 			 atrtor *A,
 									 			 dynsys system,
-									 			 anlsis analysis)
+									 			 anlsis analysis,
+												 rngkta rk)
 {
 	double *par = (double *)system.params;
 	double T = par[7];
@@ -3160,7 +3159,7 @@ int evolve_multiple_basin_undetermined_winding	(double *ic,
 
 		}
 
-		evolve_cycle(y, &t, system, analysis);
+		evolve_cycle(y, &t, system, analysis, rk);
 
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
@@ -3203,7 +3202,8 @@ int evolve_multiple_basin_undetermined_winding	(double *ic,
 }
 
 int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys system,
-                         					 			 			 anlsis analysis)
+                         					 			 			 anlsis analysis,
+																	 rngkta rk)
 {
 	// create output folder if it does not exist
 	struct stat st = {0};
@@ -3278,10 +3278,7 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 
 	volatile bool flag = false;
 
-	// omp_set_dynamic(0);     	// Explicitly disable dynamic teams
-	// omp_set_num_threads(100); 	// Use 12 threads for all consecutive parallel regions
-
-	#pragma omp parallel private(y,	convergence_time, converged, A) shared(flag, A_all, number_of_attractors, index_for_not_converged, orbits_counter)
+	#pragma omp parallel private(y,	convergence_time, converged, A) shared(flag, A_all, number_of_attractors, index_for_not_converged, orbits_counter) num_threads(THREADS_NUM)
 	{
 	#pragma omp for schedule(dynamic)
 		for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
@@ -3297,7 +3294,7 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 
 			evolve_multiple_basin_undetermined_winding(y,
 				&converged, &convergence_time, &A, 
-				system, analysis);
+				system, analysis, rk);
 
 			#pragma omp critical
 			{
@@ -3450,7 +3447,7 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 					A_all[i].winding_number, 
 					angle_mod(A_all[i].winding_number));
 
-				evolve_cycle(y_local, &t_local, system, analysis);
+				evolve_cycle(y_local, &t_local, system, analysis, rk);
 			}
 		}
 		fprintf(out_ref, "\n");
@@ -4286,7 +4283,8 @@ int evolve_multiple_basin_undetermined  (double *ic,
                                          int *attractor_period,
 									     int *convergence_time,
 									     dynsys system,
-									     anlsis analysis)
+									     anlsis analysis,
+										 rngkta rk)
 {
 	// declare variables
 	bool close_encounter;
@@ -4367,7 +4365,7 @@ int evolve_multiple_basin_undetermined  (double *ic,
 			copy(window[max_po_period - 1], y, system.dim);
 		}
 
-		evolve_cycle(y, &t, system, analysis);
+		evolve_cycle(y, &t, system, analysis, rk);
 	
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)
@@ -4398,7 +4396,8 @@ int evolve_multiple_basin_undetermined  (double *ic,
 }
 
 int multiple_basin_of_attraction_undetermined	(dynsys system,
-                         					 	 anlsis analysis)
+                         					 	 anlsis analysis,
+												 rngkta rk)
 {
 	printf("Warning: multiple_basin_of_attraction_undetermined is very outdated\n");
 	printf("Compare it to multiple_basin_of_attraction_determined before usage\n");
@@ -4485,15 +4484,12 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		// omp_set_dynamic(0);     // Explicitly disable dynamic teams
-		// omp_set_num_threads(100); // Use 4 threads for all consecutive parallel regions
-
 		#pragma omp parallel private(y, grid, converged, po_already_found, attractor_period, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
-				control_matrix, time_matrix, number_of_po, basin_size, multiple_po)
+				control_matrix, time_matrix, number_of_po, basin_size, multiple_po) num_threads(THREADS_NUM)
 		{
 
-		#pragma omp for
+		#pragma omp for schedule(dynamic)
 			// loop over velocity values
 			for (int j = 0; j < analysis.grid_resolution; j++)
 			{
@@ -4520,7 +4516,7 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 
 					evolve_multiple_basin_undetermined(y, &converged,
 						&attractor_period, &convergence_time,
-						system, analysis);
+						system, analysis, rk);
 
 					// #pragma omp critical
 					// {
@@ -4547,7 +4543,7 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 								copy(po_try.seed, y, 2);
 								po_try.period = attractor_period;
 								alloc_2d_double(&po_try.orbit, po_try.period, system.dim);
-								if (periodic_orbit(&po_try, system, analysis) == 0)
+								if (periodic_orbit(&po_try, system, analysis, rk) == 0)
 								{
 									for (int k = 0; k < number_of_po; k++)
 									{
@@ -4784,175 +4780,6 @@ double basin_entropy(int number_of_orbits,
 		entropy /= log(number_of_attractors);
 	}
 	return entropy;
-}
-
-int linear_average_benchmark()
-{
-	// create output folder if it does not exist
-	struct stat st = {0};
-	if (stat("output/test", &st) == -1) {
-		mkdir("output/test", 0700);
-	}
-
-    double gamma;			// equatorial flattening
-    double e;				// eccentricity
-	double m_primary;		// mass of primary
-	double m_secondary;		// mass of secondary
-	double G;				// gravitational constant
-	double a;				// semimajor axis
-	double K;				// dissipation parameter
-
-	double *params[7] = {&gamma,
-						 &e,
-						 &m_primary,
-						 &m_secondary,
-						 &G,
-						 &a,
-						 &K};
-
-	anlsis analysis;
-
-	dynsys system = init_two_body(*params);
-
-	// gamma = ((.89 * .89) / 3.); //~0.264
-	m_secondary = 0.;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
-	K = 1e-2;
-
-	analysis.number_of_cycles = 1e3;
-	analysis.cycle_period = 2.0 * M_PI * 1e-3;
-	analysis.evolve_box_size = 1e8;
-	analysis.evolve_basin_eps = 1e-1;
-
-	printf("Calculating orbit\n");
-
-	// prepare and open exit files 
-	FILE	*out, *out_avg, *out_num_avg, *out_avg_dist;
-	char	filename[150];
-
-	e = 0.2;
-
-	sprintf(filename, 
-		"output/test/benchmark_linear_e_%1.3f.dat", e);
-	out = fopen(filename, "w");
-	sprintf(filename, 
-		"output/test/benchmark_linear_average_e_%1.3f.dat", e);
-	out_avg = fopen(filename, "w");
-	sprintf(filename, 
-		"output/test/benchmark_linear_numerical_average_e_%1.3f.dat", e);
-	out_num_avg = fopen(filename, "w");
-	sprintf(filename, 
-		"output/test/benchmark_linear_average_distance.dat");
-	out_avg_dist = fopen(filename, "w");
-	
-	// declare variables
-	int orbit_size;
-	double **orbit;
-	double ic[4];
-	double e_2, e_4, e_6, L_avg, N_avg;
-	double L_num_avg, N_num_avg;
-	double r, a_over_r, aux_2, n, f_dot, L, N;
-	double distance_L, distance_N;
-
-	e_2 = e * e;
-	e_4 = e * e * e * e;
-	e_6 = e * e * e * e * e * e;
-	L_avg = (1.+3.*e_2+(3./8.)*e_4) / 
-			pow(1.-e_2,(9./2.));
-	N_avg = (1.+(15./2.)*e_2+(45./8.)*e_4+
-			(5./16.)*e_6) / pow(1.-e_2,6.);
-
-	init_orbital(ic, system);
-
-	// evolve system
-	evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
-
-	L_num_avg = 0.0;
-	N_num_avg = 0.0;
-	for (int i = 0; i < orbit_size; i++)
-	{
-		r = sqrt((orbit[i][2] * orbit[i][2]) + (orbit[i][3] * orbit[i][3]));
-		a_over_r = a / r;
-		aux_2 = pow(a_over_r, 6.0);
-		n = 1.0;
-		f_dot = a_over_r * a_over_r * n * sqrt(1.0 - (e * e));
-		L = aux_2;
-		N = aux_2 * f_dot;
-		L_num_avg += L;
-		N_num_avg += N;
-	}
-	L_num_avg /= (double) orbit_size;
-	N_num_avg /= (double) orbit_size;
-
-	for (int i = 0; i < orbit_size; i++)
-	{
-		r = sqrt((orbit[i][2] * orbit[i][2]) + (orbit[i][3] * orbit[i][3]));
-		a_over_r = a / r;
-		aux_2 = pow(a_over_r, 6.0);
-		n = 1.0;
-		f_dot = a_over_r * a_over_r * n * sqrt(1.0 - (e * e));
-		L = aux_2;
-		N = aux_2 * f_dot;
-		fprintf(out, "%1.10e %1.10e\n", L, N);
-		fprintf(out_avg, "%1.10e %1.10e\n", L_avg, N_avg);
-		fprintf(out_num_avg, "%1.10e %1.10e\n", L_num_avg, N_num_avg);
-	}
-
-	// free memory
-	dealloc_2d_double(&orbit, analysis.number_of_cycles);
-
-	for (e = 0.0; e < 0.201; e += 0.001)
-	{
-		printf("Calculating distance for e = %1.3e\n", e);
-	
-		init_orbital(ic, system);
-		evolve_orbit(ic, &orbit, &orbit_size, system, analysis);
-
-		L_num_avg = 0.0;
-		N_num_avg = 0.0;
-		for (int i = 0; i < orbit_size; i++)
-		{
-			r = sqrt((orbit[i][2] * orbit[i][2]) + (orbit[i][3] * orbit[i][3]));
-			a_over_r = a / r;
-			aux_2 = pow(a_over_r, 6.0);
-			n = 1.0;
-			f_dot = a_over_r * a_over_r * n * sqrt(1.0 - (e * e));
-			L = aux_2;
-			N = aux_2 * f_dot;
-			L_num_avg += L;
-			N_num_avg += N;
-		}
-		L_num_avg /= (double) orbit_size;
-		N_num_avg /= (double) orbit_size;
-		e_2 = e * e;
-		e_4 = e * e * e * e;
-		e_6 = e * e * e * e * e * e;
-		L_avg = (1.+3.*e_2+(3./8.)*e_4) / 
-				pow(1.-e_2,(9./2.));
-		N_avg = (1.+(15./2.)*e_2+(45./8.)*e_4+
-				(5./16.)*e_6) / pow(1.-e_2,6.);
-		distance_L = fabs(L_num_avg - L_avg);
-		distance_N = fabs(N_num_avg - N_avg);
-		fprintf(out_avg_dist, "%1.3e %1.10e %1.10e\n", 
-				e, distance_L, distance_N);
-
-		dealloc_2d_double(&orbit, analysis.number_of_cycles);
-		fprintf(out_avg_dist, "\n");
-	}
-
-	// close files
-	fclose(out);
-	fclose(out_avg);
-	fclose(out_num_avg);
-	fclose(out_avg_dist);
-
-	printf("Data written in output/test/\n");
-
-	return 0;
-
-	return 0;
 }
 
 int trace_ellipse()

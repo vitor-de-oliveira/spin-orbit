@@ -15,6 +15,8 @@
 #include "dynamical_system.h"
 #include "periodic_orbit.h"
 
+#define THREADS_NUM 14
+
 /**
  * vector fields and jacobians related 
  * to the spin-orbit dynamics
@@ -132,7 +134,8 @@ double kepler_period(double m1,
 
 int orbit_two_body	(double *ic,
 					 dynsys system,
-					 anlsis analysis);
+					 anlsis analysis,
+					 rngkta rk);
 
 /**
  * poincare map
@@ -140,26 +143,32 @@ int orbit_two_body	(double *ic,
 
 int orbit_map (double *ic,
                dynsys system,
-               anlsis analysis);
+               anlsis analysis,
+			   rngkta rk);
 
 int phase_space	(dynsys system,
-                 anlsis analysis);
+                 anlsis analysis,
+				 rngkta rk);
 
 /**
  * time series
 **/
 
 int time_series(dynsys system,
-                anlsis analysis);
+                anlsis analysis,
+				rngkta rk);
 
 int multiple_time_series(dynsys system,
-                        anlsis analysis);
+                         anlsis analysis,
+						 rngkta rk);
 
 int multiple_time_series_delta_theta_dot(dynsys system,
-										anlsis analysis);
+										 anlsis analysis,
+										 rngkta rk);
 
 int multiple_time_series_delta_theta(dynsys system,
-									anlsis analysis);
+									 anlsis analysis,
+									 rngkta rk);
 
 /**
  * periodic orbit
@@ -169,13 +178,15 @@ int multiple_time_series_delta_theta(dynsys system,
 int evolve_n_cycles_po  (double y0[2],
                          int n,
                          dynsys system,
-                         anlsis analysis);
+                         anlsis analysis,
+						 rngkta rk);
 
 // calculates periodic orbit 
 // and prints it on an exit file
 int periodic_orbit	(perorb *po,
                      dynsys system,
-                     anlsis analysis);
+                     anlsis analysis,
+					 rngkta rk);
 
 // search the phase space for number_of_candidates 
 // resonances of type spin_period / orbit_period
@@ -184,7 +195,8 @@ int look_for_resonance	(int number_of_candidates,
 						 int spin_period,
                          int orbit_period,
                          dynsys system, 
-						 anlsis analysis);
+						 anlsis analysis,
+						 rngkta rk);
 
 // uses look_for_resonance to find all the stable spin-orbit 
 // resonances on the phase space that have spin and orbit 
@@ -193,14 +205,16 @@ int look_for_resonance	(int number_of_candidates,
 int find_all_periodic_attractors(int *number_of_pos,
 							 	 perorb **multiple_pos,
 							 	 dynsys system,
-                         	 	 anlsis analysis);
+                         	 	 anlsis analysis,
+								 rngkta rk);
 
 // fills in the array of attractors multiple_pos[] looking for 
 // written files or using find_all_periodic_attractors()
 int fill_attractor_array(int *number_of_pos,
 						 perorb **multiple_pos,
                          dynsys system,
-                         anlsis analysis);
+                         anlsis analysis,
+						 rngkta rk);
 
 // retrieves the information of the basin of attraction
 // data file and produces a matrix of cantor values
@@ -240,11 +254,13 @@ int evolve_basin(double *ic,
                  int *convergence_time,
                  perorb po,
                  dynsys system,
-				 anlsis analysis);
+				 anlsis analysis,
+				 rngkta rk);
 
 int basin_of_attraction (perorb po,
                          dynsys system,
-                         anlsis analysis);
+                         anlsis analysis,
+						 rngkta rk);
 
 int evolve_multiple_basin_determined(double *ic,
 									 int number_of_po,
@@ -252,32 +268,38 @@ int evolve_multiple_basin_determined(double *ic,
 									 int *convergence_time,
 									 perorb po[],
 									 dynsys system,
-									 anlsis analysis);
+									 anlsis analysis,
+									 rngkta rk);
 
 int multiple_basin_of_attraction_determined (int number_of_po,
 											 perorb po[],
                          					 dynsys system,
-                         					 anlsis analysis);
+                         					 anlsis analysis,
+											 rngkta rk);
 
 int multiple_basin_of_attraction_determined_monte_carlo (int number_of_po,
 											 			 perorb po[],
                          					 			 dynsys system,
-                         					 			 anlsis analysis);
+                         					 			 anlsis analysis,
+														 rngkta rk);
 
 int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_of_po,
 											 			 			 perorb po[],
                          					 			 			 dynsys system,
-                         					 			 			 anlsis analysis);
+                         					 			 			 anlsis analysis,
+																	 rngkta rk);
 
 int evolve_multiple_basin_undetermined_winding	(double *ic,
 									 			 bool *converged,
 									 			 int *convergence_time,
 									 			 atrtor *A,
 									 			 dynsys system,
-									 			 anlsis analysis);
+									 			 anlsis analysis,
+												 rngkta rk);
 
 int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys system,
-                         					 			 			 anlsis analysis);
+                         					 			 			 anlsis analysis,
+																	 rngkta rk);
 
 int comparison_entropy_grid_vs_monte_carlo	(int number_of_po,
 											 perorb po[],
@@ -333,10 +355,12 @@ int evolve_multiple_basin_undetermined  (double *ic,
                                          int *attractor_period,
 									     int *convergence_time,
 									     dynsys system,
-									     anlsis analysis);
+									     anlsis analysis,
+										 rngkta rk);
 
 int multiple_basin_of_attraction_undetermined   (dynsys system,
-                         					     anlsis analysis);
+                         					     anlsis analysis,
+												 rngkta rk);
 
 double basin_entropy(int number_of_orbits,
 					 int number_of_po,
@@ -347,9 +371,6 @@ double basin_entropy(int number_of_orbits,
 /**
  * benchmark tests
 **/
-
-// comparison between field_linear and field_linar_average
-int linear_average_benchmark();
 
 // for comparison with the solution for the two body problem
 int trace_ellipse();

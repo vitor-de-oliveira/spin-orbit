@@ -1,51 +1,31 @@
 #include "dynamical_system.h"
 
 int evolve_cycle(double *y, double *t,
-				 dynsys system, anlsis analysis)
+				 dynsys system, anlsis analysis, rngkta rk)
 {
 	// declare variables
 	int status;
-	double h, h_max, h_min;
-	double error_abs, error_rel;
-	char *method, *control;
-
-	// initialize control variables
-	h = 1e-3 * sign(analysis.cycle_period);
-	error_abs = 1e-14;
-	error_rel = 0.0;
-	h_max = 1e-1;
-	h_min = 1e-11;
-	method = "rk8pd";
-	control = "adaptive";
-
-	// h = 2.*M_PI * 1e-2 * sign(analysis.cycle_period);
-	// error_abs = 1e-13;
-	// error_rel = 1e-13;
-	// h_max = 1e-1;
-	// h_min = 1e-11; //1e-11
-	// method = "rk8pd";
-	// control = "fixed";
 
 	// set system, integrator and driver
 	gsl_odeiv2_system sys;
 	set_system(&sys, system);
 
 	const gsl_odeiv2_step_type *T;
-	set_integrator(&T, method);
+	set_integrator(&T, rk.method);
 
 	gsl_odeiv2_driver *d;
-	set_driver(&d, &sys, T, h, h_max, h_min,
-			   error_abs, error_rel, control);
+	set_driver(&d, &sys, T, rk.h, rk.h_max, rk.h_min,
+			   rk.error_abs, rk.error_rel, rk.control);
 
 	// cycle evolution
-	if (strcmp(control, "adaptive"))
+	if (strcmp(rk.control, "adaptive") == 0)
 	{
 		status = gsl_odeiv2_driver_apply (d, t, 
 			*t + analysis.cycle_period, y);
 	}
 	else
 	{
-		status = gsl_odeiv2_driver_apply_fixed_step (d, t, h, 100, y);
+		status = gsl_odeiv2_driver_apply_fixed_step (d, t, rk.h, 100, y);
 	}
 
 	// check if integration was successfull
@@ -62,7 +42,7 @@ int evolve_cycle(double *y, double *t,
 }
 
 int evolve_orbit(double *ic, double ***orbit, int *orbit_size,
-				dynsys system, anlsis analysis)
+				dynsys system, anlsis analysis, rngkta rk)
 {
 	// declare variables
 	double y[system.dim];
@@ -89,7 +69,7 @@ int evolve_orbit(double *ic, double ***orbit, int *orbit_size,
 	copy(y, ic, system.dim);
 	for (int i = 0; i < analysis.number_of_cycles; i++)
 	{
-		evolve_cycle(y, &t, system, analysis);
+		evolve_cycle(y, &t, system, analysis, rk);
 	
 		// check if orbit diverges
 		for (int j = 0; j < system.dim; j++)

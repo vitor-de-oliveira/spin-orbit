@@ -87,6 +87,16 @@ typedef struct AnlSis{
     double convergence_precision_wn;
 } anlsis;
 
+typedef struct RngKta{
+    double  h;
+    double  error_abs;
+    double  error_rel;
+    double  h_max;
+    double  h_min;
+    char    *method;
+    char    *control;
+} rngkta;
+
 typedef struct AtrTor{
     double	basin_size;
     double	winding_number;
@@ -99,11 +109,11 @@ typedef struct AtrTor{
 } atrtor;
 
 int evolve_cycle(double *y, double *t,
-                dynsys system, anlsis analysis);
+                dynsys system, anlsis analysis, rngkta rk);
 
 int evolve_orbit(double *ic, double ***orbit, 
                  int *orbit_size, dynsys system,
-                 anlsis analysis);
+                 anlsis analysis, rngkta rk);
 
 // returns the position of a double on a grid
 int double_to_grid  (int grid[2], 

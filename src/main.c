@@ -50,23 +50,23 @@ int main(int argc, char **argv)
 	double K;				// dissipation parameter
 	double T;				// system period
 
-	gamma = (2.0/3.0) * 1e-3;
-	e = 0.0;
-	m_secondary = 0.0;
-	m_primary = 1.0 - m_secondary;
-	G = 1.0;
-	a = 1.0;
- 	K = 1e-4;		//1e-4
-	T = kepler_period(m_primary, m_secondary, G, a);
-
-	// gamma = gamma_hyperion;
-	// e = 0.180;
+	// gamma = (2.0/3.0) * 1e-3;
+	// e = 0.0;
 	// m_secondary = 0.0;
 	// m_primary = 1.0 - m_secondary;
 	// G = 1.0;
 	// a = 1.0;
- 	// K = 1e-2;
+ 	// K = 1e-4;		//1e-4
 	// T = kepler_period(m_primary, m_secondary, G, a);
+
+	gamma = gamma_hyperion;
+	e = e_hyperion;
+	m_secondary = 0.0;
+	m_primary = 1.0 - m_secondary;
+	G = 1.0;
+	a = 1.0;
+ 	K = 1e-2;
+	T = kepler_period(m_primary, m_secondary, G, a);
 
 	/*************** System initialization ****************/
 
@@ -82,15 +82,15 @@ int main(int argc, char **argv)
 	dynsys	system_linear_average = init_linear_average(params);
 
 	// system = system_rigid;
-	// system = system_linear;
-	system = system_linear_average;
+	system = system_linear;
+	// system = system_linear_average;
 
 	/**************** Simulation parameters ******************/
 
 	anlsis	analysis;
 
-	analysis.number_of_cycles = (int) (1.0e7 / T);	// (int) (1.0e7 / T)
-	// analysis.number_of_cycles = 6e3;	// 1e3 5e3 1e4 6e3 (hyp - strong)
+	// analysis.number_of_cycles = (int) (1.0e7 / T);	// (int) (1.0e7 / T)
+	analysis.number_of_cycles = 6e3;	// 1e3 5e3 1e4 6e3 (hyp - strong)
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
@@ -99,15 +99,15 @@ int main(int argc, char **argv)
 	analysis.coordinate_min = 0.0; 		// 0.0
 	analysis.coordinate_max = M_PI; 	// M_PI
 	analysis.velocity_min = 0.0;		// 0.0
-	analysis.velocity_max = 5.0;		// 3.0
-	// analysis.velocity_max = 3.0;		// 3.0
+	// analysis.velocity_max = 5.0;		// 3.0
+	analysis.velocity_max = 3.0;		// 3.0
 
 	analysis.grid_resolution = 100;			// 600
 	analysis.grid_coordinate_min = -M_PI;	// -M_PI
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
-	analysis.grid_velocity_max = 5.0;		// 3.0
-	// analysis.grid_velocity_max = 3.0;		// 3.0
+	// analysis.grid_velocity_max = 5.0;		// 3.0
+	analysis.grid_velocity_max = 3.0;		// 3.0
 
 	analysis.sqrt_orbits_on_box = 10;
 	
@@ -129,6 +129,26 @@ int main(int argc, char **argv)
 	analysis.convergence_window_wn = 1e3;	 	// 1e3 (moon) 5e2 (hyp - weak) 1e3 (hyp - strong)
 	analysis.convergence_precision_wn = 1e-2; 	// 1e-2
 
+	/*********** Numerical integrator parameters *************/
+
+	rngkta	rk;
+
+	// rk.h = 2.*M_PI * 1e-2 * sign(analysis.cycle_period);
+	// rk.error_abs = 1e-13;
+	// rk.error_rel = 1e-13;
+	// rk.h_max = 1e-1;
+	// rk.h_min = 1e-11; //1e-11
+	// rk.method = "rk8pd";
+	// rk.control = "fixed";
+
+	rk.h = 1e-3 * sign(analysis.cycle_period);
+	rk.error_abs = 1e-14;
+	rk.error_rel = 0.0;
+	rk.h_max = 1e-1;
+	rk.h_min = 1e-11;
+	rk.method = "rk8pd";
+	rk.control = "adaptive";
+
 	/***************** Declared variables *******************/
 
 	perorb	po;
@@ -146,12 +166,12 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	// time_t t;
-	// srand((unsigned) time(&t));
-	// ic[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
-	// ic[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
-	// complete_orbital_part(ic, system);
-	// orbit_map(ic, system, analysis);
+	time_t t;
+	srand((unsigned) time(&t));
+	ic[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
+	ic[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
+	complete_orbital_part(ic, system);
+	orbit_map(ic, system, analysis, rk);
 
 	// init_orbital(ic, system);
 	// orbit_two_body(ic, system, analysis);

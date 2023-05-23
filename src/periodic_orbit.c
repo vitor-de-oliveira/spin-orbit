@@ -3,7 +3,8 @@
 void jacobian_periodic_orbit(double **J,
                              perorb po,
                              dynsys system, 
-                             anlsis analysis)
+                             anlsis analysis,
+                             rngkta rk)
 {
     double  *x, *x_plus, *x_minus;
     double  dx = 1e-7;
@@ -16,11 +17,11 @@ void jacobian_periodic_orbit(double **J,
     // approximate 1st col. of jacobian matrix
     x_plus[0] = po.initial_condition[0] + 0.5 * dx;
     x_plus[1] = po.initial_condition[1];
-    po.evolve_n_cycles(x_plus, po.period, system, analysis);
+    po.evolve_n_cycles(x_plus, po.period, system, analysis, rk);
 
     x_minus[0] = po.initial_condition[0] - 0.5 * dx;
     x_minus[1] = po.initial_condition[1];
-    po.evolve_n_cycles(x_minus, po.period, system, analysis);
+    po.evolve_n_cycles(x_minus, po.period, system, analysis, rk);
 
     J[0][0] = (x_plus[0] - x_minus[0]) / dx;
     J[1][0] = (x_plus[1] - x_minus[1]) / dx;
@@ -28,11 +29,11 @@ void jacobian_periodic_orbit(double **J,
     // approximate 2nd col. of jacobian matrix
     x_plus[0] = po.initial_condition[0];
     x_plus[1] = po.initial_condition[1] + 0.5 * dx;
-    po.evolve_n_cycles(x_plus, po.period, system, analysis);
+    po.evolve_n_cycles(x_plus, po.period, system, analysis, rk);
 
     x_minus[0] = po.initial_condition[0];
     x_minus[1] = po.initial_condition[1] - 0.5 * dx;
-    po.evolve_n_cycles(x_minus, po.period, system, analysis);
+    po.evolve_n_cycles(x_minus, po.period, system, analysis, rk);
 
     J[0][1] = (x_plus[0] - x_minus[0]) / dx;
     J[1][1] = (x_plus[1] - x_minus[1]) / dx;
@@ -48,7 +49,8 @@ void minimization_step  (double *x,
                          double lamb,
                          perorb po,
                          dynsys system, 
-                         anlsis analysis)
+                         anlsis analysis,
+                         rngkta rk)
 {
     double *y, *rhs, *dx, *ic;
     double **M, **M_inv, **Jt, **J;
@@ -62,7 +64,7 @@ void minimization_step  (double *x,
     alloc_2d_double(&J, 2, 2);
     alloc_2d_double(&Jt, 2, 2);
 
-    jacobian_periodic_orbit(J, po, system, analysis);
+    jacobian_periodic_orbit(J, po, system, analysis, rk);
 
     // functional jacobian
     J[0][0] -= 1.0; J[1][1] -= 1.0;
@@ -72,7 +74,7 @@ void minimization_step  (double *x,
 
     // right hand side vector
     copy(ic, po.initial_condition, 2);
-    po.evolve_n_cycles(ic, po.period, system, analysis);
+    po.evolve_n_cycles(ic, po.period, system, analysis, rk);
     linear_combination(y, 1.0, po.initial_condition, -1.0, ic, 2);
     y[0] = angle_mod(y[0]);
     square_matrix_product_vector(rhs, Jt, y, 2);
@@ -86,7 +88,7 @@ void minimization_step  (double *x,
 
     // new error
     copy(ic, x, 2);
-    po.evolve_n_cycles(ic, po.period, system, analysis);
+    po.evolve_n_cycles(ic, po.period, system, analysis, rk);
     *err = po.dist_on_phase_space(ic, x);
 
     dealloc_1d_double(&y);
@@ -101,7 +103,8 @@ void minimization_step  (double *x,
 
 int calculate_periodic_orbit_ic(perorb *po,
                                 dynsys system, 
-                                anlsis analysis)
+                                anlsis analysis,
+                                rngkta rk)
 {
     int count, max_steps;
     double r, lamb, err, err1, err2, tol;
@@ -124,7 +127,7 @@ int calculate_periodic_orbit_ic(perorb *po,
     //         (*po).seed[0], (*po).seed[1]);
     copy ((*po).initial_condition, (*po).seed, 2);
     (*po).evolve_n_cycles((*po).initial_condition, (*po).period, 
-                    system, analysis);
+                    system, analysis, rk);
     err = (*po).dist_on_phase_space((*po).initial_condition, (*po).seed);
     // printf("seed error = |M^%d(seed)-seed| = %1.5e\n", 
     //         (*po).period, err);
@@ -139,9 +142,9 @@ int calculate_periodic_orbit_ic(perorb *po,
         // printf ("step = %d err = %1.5e lamb = %f r = %f\n",
         //         count, err, lamb, r);
 
-        minimization_step(x1, &err1, lamb, *po, system, analysis);
+        minimization_step(x1, &err1, lamb, *po, system, analysis, rk);
 
-        minimization_step(x2, &err2, r * lamb, *po, system, analysis);
+        minimization_step(x2, &err2, r * lamb, *po, system, analysis, rk);
 
         if ((x1 != x1) || (x2 != x2) ||
             (err1 != err1) || (err2 != err2) ||
@@ -205,7 +208,8 @@ int calculate_periodic_orbit_ic(perorb *po,
 
 void jacobian_eigenvalues_magnitude  (perorb *po,
                                       dynsys system, 
-                                      anlsis analysis)
+                                      anlsis analysis,
+                                      rngkta rk)
 {
     double mag_1, mag_2;
     double T, det, delta;
@@ -213,7 +217,7 @@ void jacobian_eigenvalues_magnitude  (perorb *po,
 
     alloc_2d_double(&J, 2, 2);
 
-    jacobian_periodic_orbit(J, *po, system, analysis);
+    jacobian_periodic_orbit(J, *po, system, analysis, rk);
 
     T = J[0][0] + J[1][1];
     det = J[0][0] * J[1][1] - J[1][0] * J[0][1];

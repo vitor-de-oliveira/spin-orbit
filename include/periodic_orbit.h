@@ -32,7 +32,8 @@ typedef struct PerOrb{
     int     (*evolve_n_cycles)  (double y0[2],
                                  int n,
                                  dynsys system,
-                                 anlsis analysis);
+                                 anlsis analysis,
+                                 rngkta rk);
 
     // distance between points on 2d phase space
     double  (*dist_on_phase_space)  (double x[2], 
@@ -44,7 +45,8 @@ typedef struct PerOrb{
 void jacobian_periodic_orbit(double **J,
                              perorb po,
                              dynsys system, 
-                             anlsis analysis);
+                             anlsis analysis,
+                             rngkta rk);
 
 // minimization step for Levenberg-Marquardt method
 void minimization_step  (double *x,
@@ -52,17 +54,20 @@ void minimization_step  (double *x,
                          double lamb,
                          perorb po,
                          dynsys system, 
-                         anlsis analysis);
+                         anlsis analysis,
+                         rngkta rk);
 
 // calculates the periodic orbit's IC
 int calculate_periodic_orbit_ic(perorb *po,
                                 dynsys system, 
-                                anlsis analysis);
+                                anlsis analysis,
+                                rngkta rk);
 
 // magnitude of eigenvalues for the jacobian
 void jacobian_eigenvalues_magnitude  (perorb *po,
                                       dynsys system, 
-                                      anlsis analysis);                                
+                                      anlsis analysis,
+                                      rngkta rk);                                
 
 /**
  * mathematical functions
