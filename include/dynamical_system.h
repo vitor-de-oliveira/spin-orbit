@@ -88,13 +88,14 @@ typedef struct AnlSis{
 } anlsis;
 
 typedef struct RngKta{
+    char    *method;
+    char    *control;
+    int     n;
     double  h;
     double  error_abs;
     double  error_rel;
     double  h_max;
     double  h_min;
-    char    *method;
-    char    *control;
 } rngkta;
 
 typedef struct AtrTor{

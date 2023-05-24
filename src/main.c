@@ -81,8 +81,8 @@ int main(int argc, char **argv)
 	dynsys	system_linear = init_linear(params);
 	dynsys	system_linear_average = init_linear_average(params);
 
-	// system = system_rigid;
-	system = system_linear;
+	system = system_rigid;
+	// system = system_linear;
 	// system = system_linear_average;
 
 	/**************** Simulation parameters ******************/
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
 
-	analysis.nc = 7;					// 3
+	analysis.nc = 3;					// 3
 	analysis.nv = 50;					// 50;
 	analysis.coordinate_min = 0.0; 		// 0.0
 	analysis.coordinate_max = M_PI; 	// M_PI
@@ -133,21 +133,20 @@ int main(int argc, char **argv)
 
 	rngkta	rk;
 
-	// rk.h = 2.*M_PI * 1e-2 * sign(analysis.cycle_period);
-	// rk.error_abs = 1e-13;
-	// rk.error_rel = 1e-13;
-	// rk.h_max = 1e-1;
-	// rk.h_min = 1e-11; //1e-11
-	// rk.method = "rk8pd";
-	// rk.control = "fixed";
-
-	rk.h = 1e-3 * sign(analysis.cycle_period);
-	rk.error_abs = 1e-14;
-	rk.error_rel = 0.0;
-	rk.h_max = 1e-1;
-	rk.h_min = 1e-11;
 	rk.method = "rk8pd";
-	rk.control = "adaptive";
+	rk.control = "fixed";
+	rk.n = 100;
+	rk.h = T * (1.0 / (double) rk.n) * sign(analysis.cycle_period);
+	rk.error_abs = 1e-8;
+	rk.error_rel = 1e-8;
+
+	// rk.method = "rk8pd";
+	// rk.control = "adaptive";
+	// rk.h = 1e-3 * sign(analysis.cycle_period);
+	// rk.error_abs = 1e-14;
+	// rk.error_rel = 0.0;
+	// rk.h_max = 1e-1;
+	// rk.h_min = 1e-11;
 
 	/***************** Declared variables *******************/
 
@@ -166,12 +165,12 @@ int main(int argc, char **argv)
 	/*				   		   Orbit		   	           */
 	/////////////////////////////////////////////////////////
 
-	time_t t;
-	srand((unsigned) time(&t));
-	ic[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
-	ic[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
-	complete_orbital_part(ic, system);
-	orbit_map(ic, system, analysis, rk);
+	// time_t t;
+	// srand((unsigned) time(&t));
+	// ic[0] = rand_number_in_interval(analysis.grid_coordinate_min, analysis.grid_coordinate_max);
+	// ic[1] = rand_number_in_interval(analysis.grid_velocity_min, analysis.grid_velocity_max);
+	// complete_orbital_part(ic, system);
+	// orbit_map(ic, system, analysis, rk);
 
 	// init_orbital(ic, system);
 	// orbit_two_body(ic, system, analysis);
@@ -252,8 +251,8 @@ int main(int argc, char **argv)
 	/*				   		Phase space		   	           */
 	/////////////////////////////////////////////////////////
 
-	// phase_space(system, analysis);
-	// draw_phase_space(system, analysis);
+	phase_space(system, analysis, rk);
+	draw_phase_space(system, analysis);
 	// draw_phase_space_latex(system);
 	// draw_phase_space_clean(system);
 

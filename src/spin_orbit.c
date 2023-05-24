@@ -864,7 +864,7 @@ int phase_space(dynsys system, anlsis analysis, rngkta rk)
 		printf("Calculating set %d of %d\n", i + 1, analysis.nc);
 
 		#pragma omp parallel private(y, coordinate, velocity, \
-				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb) num_threads(THREADS_NUM)
+				orbit_fw_size, orbit_bw_size, orbit_fw, orbit_bw, orb) //num_threads(THREADS_NUM)
 		{
 
 		if (analysis.nc == 1)
@@ -1086,7 +1086,7 @@ int multiple_time_series(dynsys system,
 	double **orbit;
 	double ic[system.dim], orb[4];
 
-	#pragma omp parallel private(orbit_size, orbit, ic, orb) num_threads(THREADS_NUM)
+	#pragma omp parallel private(orbit_size, orbit, ic, orb) //num_threads(THREADS_NUM)
 	{
 
 	#pragma omp for schedule(dynamic)
@@ -1166,7 +1166,7 @@ int multiple_time_series_delta_theta_dot(dynsys system,
 	double **orbit;
 	double ic[system.dim], orb[4];
 
-	#pragma omp parallel private(orbit_size, orbit, ic, orb) num_threads(THREADS_NUM)
+	#pragma omp parallel private(orbit_size, orbit, ic, orb) //num_threads(THREADS_NUM)
 	{
 
 	#pragma omp for schedule(dynamic)
@@ -1239,7 +1239,7 @@ int multiple_time_series_delta_theta(dynsys system,
 	double **orbit;
 	double ic[system.dim], orb[4];
 
-	#pragma omp parallel private(orbit_size, orbit, ic, orb) num_threads(THREADS_NUM)
+	#pragma omp parallel private(orbit_size, orbit, ic, orb) //num_threads(THREADS_NUM)
 	{
 
 	#pragma omp for schedule(dynamic)
@@ -1529,7 +1529,7 @@ int look_for_resonance	(int number_of_candidates,
 		printf("Calculating set %d of %d\n", 
 					i + 1, analysis.grid_resolution);
 
-		#pragma omp parallel private(y, y0, grid, rot_ini, t) shared(orbit_distance, spin_distance) num_threads(THREADS_NUM)
+		#pragma omp parallel private(y, y0, grid, rot_ini, t) shared(orbit_distance, spin_distance) //num_threads(THREADS_NUM)
 		{
 
 		#pragma omp for schedule(dynamic)
@@ -2244,7 +2244,7 @@ int basin_of_attraction (perorb po,
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged, convergence_time, orb, rot_ini) shared(basin_matrix, \
-				control_matrix, time_matrix) num_threads(THREADS_NUM)
+				control_matrix, time_matrix) //num_threads(THREADS_NUM)
 		{
 
 		#pragma omp for schedule(dynamic)
@@ -2581,7 +2581,7 @@ int multiple_basin_of_attraction_determined (int number_of_po,
 
 		#pragma omp parallel private(y, coordinate, velocity, basin, grid, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
-				control_matrix, time_matrix) num_threads(THREADS_NUM)
+				control_matrix, time_matrix) //num_threads(THREADS_NUM)
 		{
 
 		#pragma omp for schedule(dynamic)
@@ -2744,7 +2744,7 @@ int multiple_basin_of_attraction_determined_monte_carlo	(int number_of_po,
 	}
 	fclose(out_ref);
 
-	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, test_convergence) num_threads(THREADS_NUM)
+	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, test_convergence) //num_threads(THREADS_NUM)
 	{
 	#pragma omp for schedule(dynamic)
 		for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
@@ -2898,7 +2898,7 @@ int multiple_basin_of_attraction_determined_monte_carlo_with_break	(int number_o
 	bool go = true;
 	unsigned int give = 0;
 
-	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, go) num_threads(THREADS_NUM)
+	#pragma omp parallel private(y,	converged_po_id, convergence_time) shared(basin_size, go) //num_threads(THREADS_NUM)
 	{
 		unsigned int loop_variable, stop;
 
@@ -3278,7 +3278,7 @@ int multiple_basin_of_attraction_undetermined_monte_carlo_with_break(dynsys syst
 
 	volatile bool flag = false;
 
-	#pragma omp parallel private(y,	convergence_time, converged, A) shared(flag, A_all, number_of_attractors, index_for_not_converged, orbits_counter) num_threads(THREADS_NUM)
+	#pragma omp parallel private(y,	convergence_time, converged, A) shared(flag, A_all, number_of_attractors, index_for_not_converged, orbits_counter) //num_threads(THREADS_NUM)
 	{
 	#pragma omp for schedule(dynamic)
 		for (int i = 0; i < analysis.number_of_rand_orbits_mc; i++)
@@ -4486,7 +4486,7 @@ int multiple_basin_of_attraction_undetermined	(dynsys system,
 
 		#pragma omp parallel private(y, grid, converged, po_already_found, attractor_period, \
 				converged_po_id, convergence_time, orb, rot_ini) shared(basin_matrix, \
-				control_matrix, time_matrix, number_of_po, basin_size, multiple_po) num_threads(THREADS_NUM)
+				control_matrix, time_matrix, number_of_po, basin_size, multiple_po) //num_threads(THREADS_NUM)
 		{
 
 		#pragma omp for schedule(dynamic)
