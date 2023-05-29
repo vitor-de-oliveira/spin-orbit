@@ -732,58 +732,58 @@ int orbit_map(double *ic, dynsys system,
 		}
 	}
 
-	if (analysis.convergence_transient_wn + analysis.convergence_window_wn < orbit_size)
-	{
-		FILE 	*out_wn = fopen("output/tests/orbit_progress_wn.dat", "w");
-		double 	winding_number_window[analysis.convergence_window_wn];
-		for (int i = analysis.convergence_transient_wn + 1; i < orbit_size; i++)
-		{
-			int 	i_local = i - (analysis.convergence_transient_wn + 1);
-			double 	delta_theta = orbit[i][0] - orbit[analysis.convergence_transient_wn][0];
-			double 	wn = (delta_theta / (double) (i_local + 1));
-			fprintf(out_wn, "%d %f\n", i, wn);
+	// if (analysis.convergence_transient_wn + analysis.convergence_window_wn < orbit_size)
+	// {
+	// 	FILE 	*out_wn = fopen("output/tests/orbit_progress_wn.dat", "w");
+	// 	double 	winding_number_window[analysis.convergence_window_wn];
+	// 	for (int i = analysis.convergence_transient_wn + 1; i < orbit_size; i++)
+	// 	{
+	// 		int 	i_local = i - (analysis.convergence_transient_wn + 1);
+	// 		double 	delta_theta = orbit[i][0] - orbit[analysis.convergence_transient_wn][0];
+	// 		double 	wn = (delta_theta / (double) (i_local + 1));
+	// 		fprintf(out_wn, "%d %f\n", i, wn);
 
-			if(i_local < analysis.convergence_window_wn)
-			{
-				winding_number_window[i_local] = wn;
-			}
-			else
-			{
-				double max_winding_number = wn;
-				double min_winding_number = wn;
-				for (int j = 0; j < analysis.convergence_window_wn - 1; j++)
-				{
-					winding_number_window[j] = winding_number_window[j+1];
-					if(winding_number_window[j] > max_winding_number)
-					{
-						max_winding_number = winding_number_window[j];
-					}
-					if(winding_number_window[j] < min_winding_number)
-					{
-						min_winding_number = winding_number_window[j];
-					}
-				}
-				winding_number_window[analysis.convergence_window_wn - 1] = wn;
-				if (fabs(max_winding_number-min_winding_number) < analysis.convergence_precision_wn)
-				{
-					printf("Winding number converged at iterate number %d\n", i);
-					printf("wn = %1.10e\n", wn);
-					double precise_wn, pwn_numerator = 0.0, pwn_denominator = 0.0;
-					for (int l = analysis.convergence_transient_wn + 2; l < i; l++)
-					{
-						double twp = ((double) (l - analysis.convergence_transient_wn - 1)) / ((double) (i - analysis.convergence_transient_wn - 1));
-						double factor = 1.0/exp(1.0/(twp*(1.0-twp)));
-						pwn_numerator += (orbit[l][0] - orbit[l-1][0]) * factor;
-						pwn_denominator += factor;
-					}
-					precise_wn = pwn_numerator / pwn_denominator;
-					printf("precise_wn = %1.10e\n", precise_wn);
-					break;
-				}
-			}
-		}
-		fclose(out_wn);
-	}
+	// 		if(i_local < analysis.convergence_window_wn)
+	// 		{
+	// 			winding_number_window[i_local] = wn;
+	// 		}
+	// 		else
+	// 		{
+	// 			double max_winding_number = wn;
+	// 			double min_winding_number = wn;
+	// 			for (int j = 0; j < analysis.convergence_window_wn - 1; j++)
+	// 			{
+	// 				winding_number_window[j] = winding_number_window[j+1];
+	// 				if(winding_number_window[j] > max_winding_number)
+	// 				{
+	// 					max_winding_number = winding_number_window[j];
+	// 				}
+	// 				if(winding_number_window[j] < min_winding_number)
+	// 				{
+	// 					min_winding_number = winding_number_window[j];
+	// 				}
+	// 			}
+	// 			winding_number_window[analysis.convergence_window_wn - 1] = wn;
+	// 			if (fabs(max_winding_number-min_winding_number) < analysis.convergence_precision_wn)
+	// 			{
+	// 				printf("Winding number converged at iterate number %d\n", i);
+	// 				printf("wn = %1.10e\n", wn);
+	// 				double precise_wn, pwn_numerator = 0.0, pwn_denominator = 0.0;
+	// 				for (int l = analysis.convergence_transient_wn + 2; l < i; l++)
+	// 				{
+	// 					double twp = ((double) (l - analysis.convergence_transient_wn - 1)) / ((double) (i - analysis.convergence_transient_wn - 1));
+	// 					double factor = 1.0/exp(1.0/(twp*(1.0-twp)));
+	// 					pwn_numerator += (orbit[l][0] - orbit[l-1][0]) * factor;
+	// 					pwn_denominator += factor;
+	// 				}
+	// 				precise_wn = pwn_numerator / pwn_denominator;
+	// 				printf("precise_wn = %1.10e\n", precise_wn);
+	// 				break;
+	// 			}
+	// 		}
+	// 	}
+	// 	fclose(out_wn);
+	// }
 
 	// free memory
 	dealloc_2d_double(&orbit, analysis.number_of_cycles);
@@ -1655,7 +1655,7 @@ int look_for_resonance	(int number_of_candidates,
 	// fclose(out_dist);
 	// fclose(out_cand);
 
-	printf("Data written in output/periodic_orbit/\n");
+	// printf("Data written in output/periodic_orbit/\n");
 
 	return 0;
 }
@@ -2359,6 +2359,9 @@ int evolve_multiple_basin_determined(double *ic,
 	double 	y_ref[system.dim];
 	double 	winding_number_window[analysis.convergence_window_wn];
 
+	double *angle_progress;
+	alloc_1d_double(&angle_progress, 1);
+
 	// takes into consideration initial condition
 	orbit_counter = 1;
 
@@ -2409,11 +2412,15 @@ int evolve_multiple_basin_determined(double *ic,
 			if (i == analysis.convergence_transient_wn) // i_winding = -1
 			{
 				copy(y_ref, y, system.dim);
+				angle_progress[0] = y[0];
 			}
 			else if (i > analysis.convergence_transient_wn)	// i_winding >= 0
 			{
 				double 	delta_theta = y[0] - y_ref[0];
 				double 	wn = delta_theta / (double) (i_winding + 1);
+
+				angle_progress = (double*) realloc(angle_progress, (i_winding + 2) * sizeof(double));
+				angle_progress[i_winding + 1] = y[0];
 
 				if(i_winding < analysis.convergence_window_wn)
 				{
@@ -2438,6 +2445,18 @@ int evolve_multiple_basin_determined(double *ic,
 					winding_number_window[analysis.convergence_window_wn - 1] = wn;
 					if (fabs(max_winding_number-min_winding_number) < analysis.convergence_precision_wn)
 					{
+						double pwn_numerator = 0.0, pwn_denominator = 0.0;
+						for (int l = 1; l <= i_winding; l++)
+						{
+							double twp = (((double) l) / ((double) (i_winding + 1)));
+							double factor = 1.0 / exp(1.0 / (twp * (1.0 - twp)));
+							pwn_numerator += (angle_progress[l] - angle_progress[l-1]) * factor;
+							pwn_denominator += factor;
+						}
+						double precise_wn = pwn_numerator / pwn_denominator;
+
+						wn = precise_wn;
+
 						double 	wn_mod = angle_mod_pos(wn);
 						if(fabs(wn_mod) < 5e-2) wn_mod = 2.0*M_PI;
 						double 	dist_from_int = fabs((2.0*M_PI/wn_mod) - round(2.0*M_PI/wn_mod));
@@ -2445,10 +2464,6 @@ int evolve_multiple_basin_determined(double *ic,
 						{
 							*converged_po_id = -2;
 							goto out; // irrational winding number found
-						}
-						else
-						{
-							check_winding_number = false;
 						}
 					}
 				}
@@ -2486,6 +2501,8 @@ int evolve_multiple_basin_determined(double *ic,
 	{
 		*convergence_time = orbit_counter - analysis.evolve_basin_time_tol;
 	}
+
+	dealloc_1d_double(&angle_progress);
 
 	return 0;
 }
@@ -6441,7 +6458,7 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 	{
 		for (spin_period = analysis.spin_period_min; spin_period <= analysis.spin_period_max; spin_period++)
 		{
-			printf("%d %d %f\n", spin_period, orbit_period, M[spin_period][orbit_period]);
+			// printf("%d %d %f\n", spin_period, orbit_period, M[spin_period][orbit_period]);
 			if (M[spin_period][orbit_period] > 0.0)
 			{
 				fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==%d&&$3==%d?$4:1/0) w lp pt %d ps 2 title \"%d/%d\", ", 
@@ -6450,13 +6467,9 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 		}
 	}
 
-	// fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:(strcol(2) eq \"s\"?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"sum\", ");
-
 	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"red\" title \"HO,QP\", ");
 
-	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 title \"BE\", ");
-	// fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:3 w l lw 2 title \"UBE\", ");
-	fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 title \"NBE\", ");
+	fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 lc rgb \"black\" title \"NBE\", ");
 
 	fclose(gnuplotPipe);
 

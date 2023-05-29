@@ -21,7 +21,7 @@ quando procura po de periodo 2. Diferenciar. Não sei como.
 - write a basin which keeps the temporal series theta, theta_dot and n 
 of the last ~100 cycles of every initial condition
 
-- Use terminal eps in scripts and pipes (or both versions on pipe and script)
+- Put option to use eps terminal in pipes
 
 - fazer uma coluna de tempos multiplicado pelo passo no orbit
 
