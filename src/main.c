@@ -296,8 +296,8 @@ int main(int argc, char **argv)
 	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis_res_300, rk);
 
 	multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis, rk);
-	basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
-	draw_multiple_basin_of_attraction_determined (system, analysis);
+	// basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
+	// draw_multiple_basin_of_attraction_determined (system, analysis);
 
 	// if (number_of_pos > 0)
 	// {
