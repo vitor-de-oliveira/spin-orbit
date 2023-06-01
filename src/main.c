@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 	a = 1.0;
- 	K = 1e-6;		//1e-4
+ 	K = 1e-4;		//1e-4
 	T = kepler_period(m_primary, m_secondary, G, a);
 
 	// gamma = gamma_hyperion;
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	analysis.velocity_max = 1.2;		// 3.0
 	// analysis.velocity_max = 3.0;		// 3.0
 
-	analysis.grid_resolution = 300;			// 600
+	analysis.grid_resolution = 600;			// 600
 	analysis.grid_coordinate_min = -M_PI;	// -M_PI
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
