@@ -678,7 +678,7 @@ int orbit_map(double *ic, dynsys system,
 
 	// prepare and open exit files 
 	FILE	*out_orb, *out_orb_ic, 
-			*out_orb_err;
+			*out_orb_err, *out_wn;
 	char	filename[150];
 
 	sprintf(filename, "output/orbit/orbit_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat", 
@@ -692,6 +692,10 @@ int orbit_map(double *ic, dynsys system,
 	sprintf(filename, "output/orbit/orbit_orbital_error_angular_momentum_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat", 
 		gamma, e, system.name, K);
 	out_orb_err = fopen(filename, "w");
+
+	sprintf(filename, "output/orbit/orbit_winding_number_progress_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f.dat", 
+		gamma, e, system.name, K);
+	out_wn = fopen(filename, "w");
 	
 	// declare variables
 	int orbit_size;
@@ -752,6 +756,8 @@ int orbit_map(double *ic, dynsys system,
 			double 	delta_theta = y[0] - y_ref[0];
 			double 	wn = delta_theta / (double) (i_winding + 1);
 
+			fprintf(out_wn, "%f\n", wn / (2.0*M_PI));
+
 			angle_progress = (double*) realloc(angle_progress, (i_winding + 2) * sizeof(double));
 			angle_progress[i_winding + 1] = y[0];
 
@@ -788,17 +794,7 @@ int orbit_map(double *ic, dynsys system,
 					}
 					double precise_wn = pwn_numerator / pwn_denominator;
 
-					wn = precise_wn;
-
-					wn_final = wn;
-
-					double 	wn_mod = angle_mod_pos(wn);
-					if(fabs(wn_mod) < 5e-2) wn_mod = 2.0*M_PI;
-					double 	dist_from_int = fabs((2.0*M_PI/wn_mod) - round(2.0*M_PI/wn_mod));
-					if(dist_from_int > 5e-2)
-					{
-
-					}
+					wn_final = precise_wn;
 				}
 			}
 		}
@@ -890,6 +886,7 @@ int orbit_map(double *ic, dynsys system,
 	fclose(out_orb);
 	fclose(out_orb_ic);
 	fclose(out_orb_err);
+	fclose(out_wn);
 
 	printf("Data written in output/orbit/\n");
 
@@ -5033,7 +5030,8 @@ int draw_phase_space(dynsys system,
 	return 0;
 }
 
-int draw_phase_space_clean(dynsys system)
+int draw_phase_space_clean	(dynsys system,
+                             anlsis analysis)
 {
 
 	// create output folder if it does not exist
@@ -5048,7 +5046,7 @@ int draw_phase_space_clean(dynsys system)
 	double gamma = par[0];
 	double e = par[1];
 
-	printf("Drawing phase space with gamma = %1.3f and e = %1.3f\n", 
+	printf("Drawing phase space with gamma = %1.6f and e = %1.3f\n", 
 		gamma, e);
 
 	gnuplotPipe = popen("gnuplot -persistent", "w");
@@ -5064,7 +5062,7 @@ int draw_phase_space_clean(dynsys system)
 	fprintf(gnuplotPipe, "set tmargin at screen 0.95\n");
 	fprintf(gnuplotPipe, "set border lw 2 \n");
 	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set yrange [%f:%f]\n", analysis.velocity_min, analysis.velocity_max);
 	fprintf(gnuplotPipe, "set xtics format \" \"\n");
 	fprintf(gnuplotPipe, "set ytics format \" \"\n");
 	fprintf(gnuplotPipe, "unset key\n");
@@ -5919,6 +5917,8 @@ int draw_multiple_basin_of_attraction_determined(dynsys system,
 	fprintf(gnuplotPipe, "set xrange[-3.15:3.15]\n");
 	fprintf(gnuplotPipe, "set yrange [%f:%f]\n", analysis.grid_velocity_min, analysis.grid_velocity_max);
 	// fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
+	// fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", 0, cb_range_max);
+	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", 0, cantor_pairing_function(3, 2));
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, 
 		"set title \"Multiple basin of attraction (D) for {/Symbol g} = %1.6f e = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
@@ -5983,7 +5983,7 @@ int draw_multiple_basin_of_attraction_determined_clean	(dynsys system,
 	int cb_range_min = cantor_pairing_function(analysis.spin_period_min, analysis.orbit_period_min);
 	int cb_range_max = cantor_pairing_function(analysis.spin_period_max, analysis.orbit_period_max);
 
-	printf("Drawing multtiple basin of attraction of system %s with gamma = %1.3f, e = %1.3f and K = %1.5f\n", 
+	printf("Drawing multtiple basin of attraction of system %s with gamma = %1.6f, e = %1.3f and K = %1.5f\n", 
 		system.name, gamma, e, K);
 
 	gnuplotPipe = popen("gnuplot -persistent", "w");
@@ -5999,13 +5999,14 @@ int draw_multiple_basin_of_attraction_determined_clean	(dynsys system,
 	fprintf(gnuplotPipe, "set tmargin at screen 0.95\n");
 	fprintf(gnuplotPipe, "set border lw 2 \n");
 	fprintf(gnuplotPipe, "set xrange[-3.1415:3.1415]\n");
-	fprintf(gnuplotPipe, "set yrange [0.0:3.0]\n");
+	fprintf(gnuplotPipe, "set yrange [%f:%f]\n", analysis.grid_velocity_min, analysis.grid_velocity_max);
 	fprintf(gnuplotPipe, "set xtics format \" \"\n");
 	fprintf(gnuplotPipe, "set ytics format \" \"\n");
 	fprintf(gnuplotPipe, "unset key\n");
 	fprintf(gnuplotPipe, "unset title\n");
 	fprintf(gnuplotPipe, "unset colorbox\n");
-	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
+	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", 0, cantor_pairing_function(3, 2));
+	// fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
 	fprintf(gnuplotPipe, "plot 'multiple_basin_determined_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2:3 w image notitle",
 		gamma, e, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, ", 'multiple_basin_determined_ref_gamma_%1.6f_e_%1.3f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.dat' u 1:2 w p pt 7 ps 2 lc rgb \"green\" title \"spin-orbit resonances\"",
@@ -6535,21 +6536,23 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 	gnuplotPipe = popen("gnuplot -persistent", "w");
 
 	fprintf(gnuplotPipe, "reset\n");
-	fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+	// fprintf(gnuplotPipe, "set terminal pngcairo size 920,800 font \"Helvetica,15\"\n");
+		fprintf(gnuplotPipe, "set terminal pngcairo size 1100,800 font \"fonts/cmr10.ttf,25\"\n");
 	fprintf(gnuplotPipe, "set loadpath \"output/basin_of_attraction\"\n");
-	// fprintf(gnuplotPipe, 
-	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
-	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, 
-		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_synchronous_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+		"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
 		gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
+	// fprintf(gnuplotPipe, 
+	// 	"set output \"output/basin_of_attraction/fig_size_multiple_basin_of_attraction_determined_with_basin_entropy_synchronous_range_e_gamma_%1.6f_system_%s_K_%1.5f_res_%d_n_%d_basin_eps_%1.3f.png\"\n", 
+	// 	gamma, system.name, K, analysis.grid_resolution, analysis.number_of_cycles, analysis.evolve_basin_eps);
 	fprintf(gnuplotPipe, "set xlabel \"Orbital eccentricity e\"\n");
-	fprintf(gnuplotPipe, "set ylabel offset 0.8 \n");
+	fprintf(gnuplotPipe, "set ylabel offset 0.8 \"Basin size\" \n");
 	// fprintf(gnuplotPipe, 
 	// 	"set title \"       Size of multiple basin of attraction (D) for {/Symbol g} = %1.3f K = %1.0e res = %d n = %1.0e {/Symbol e} = %1.0e\"\n", 
 	// 	gamma, K, analysis.grid_resolution, (double)analysis.number_of_cycles, analysis.evolve_basin_eps);
 
-	fprintf(gnuplotPipe, "set key opaque box outside top right width 1.1\n");
+	// fprintf(gnuplotPipe, "set key opaque box outside top right width 1.1\n");
+	fprintf(gnuplotPipe, "set key opaque box outside top right width 0.5\n");
 
 	fprintf(gnuplotPipe, "unset colorbox\n");
 	fprintf(gnuplotPipe, "set cbrange [%d:%d]\n", cb_range_min, cb_range_max);
@@ -6589,9 +6592,9 @@ int plot_size_multiple_basin_of_attraction_determined_plus_basin_entropy_range_e
 		}
 	}
 
-	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"red\" title \"HO,QP\", ");
+	fprintf(gnuplotPipe, "'basins_size_combined.dat' u 1:($2==0&&$3==0?$4:1/0) w lp pt 7 ps 2 lc rgb \"black\" title \"QP\", ");
 
-	fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 lc rgb \"black\" title \"NBE\", ");
+	fprintf(gnuplotPipe, "'entropy_size_combined.dat' u 1:2 w l lw 2 lc rgb \"red\" notitle");
 
 	fclose(gnuplotPipe);
 

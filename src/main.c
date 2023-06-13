@@ -31,6 +31,12 @@ int main(int argc, char **argv)
 
 	double e_moon = 0.0549;
 
+	/** Mercury
+	 * e = 0.2056
+	**/
+
+	double e_mercury = 0.2056;
+
 	/** Hyperion (Wisdom 1987)
 	 * e = 0.1 
 	 * gamma = (.89 * .89) / 3.
@@ -51,7 +57,7 @@ int main(int argc, char **argv)
 	double T;				// system period
 
 	gamma = (2.0/3.0) * 1e-4;
-	e = 0.0549;
+	e = e_mercury;
 	m_secondary = 0.0;
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
@@ -254,7 +260,7 @@ int main(int argc, char **argv)
 	// phase_space(system, analysis, rk);
 	// draw_phase_space(system, analysis);
 	// draw_phase_space_latex(system);
-	// draw_phase_space_clean(system);
+	// draw_phase_space_clean(system, analysis);
 
 	// e_initial = 0.0;
 	// e_final = 0.2;
@@ -296,25 +302,26 @@ int main(int argc, char **argv)
 	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis_res_300, rk);
 
 	multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis, rk);
-	// basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
-	// draw_multiple_basin_of_attraction_determined (system, analysis);
+	basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
+	draw_multiple_basin_of_attraction_determined (system, analysis);
+	draw_multiple_basin_of_attraction_determined_clean (system, analysis);
 
-	// if (number_of_pos > 0)
-	// {
-	// 	for (int j = 0; j < number_of_pos; j++)
-	// 	{
-	// 		dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
-	// 	}
-	// 	free(multiple_pos);
-	// }
+	if (number_of_pos > 0)
+	{
+		for (int j = 0; j < number_of_pos; j++)
+		{
+			dealloc_2d_double(&multiple_pos[j].orbit, multiple_pos[j].period);
+		}
+		free(multiple_pos);
+	}
 
 	// multiple_basin_of_attraction_undetermined_monte_carlo_with_break(system, analysis);
 
 	/* Multiple periodic orbits - loop over e */
 
-	// number_of_e = 10;	// 50 (moon) 20 (hyp)
+	// number_of_e = 20;	// 50 (moon) 20 (hyp)
 	// e_initial = 0.0;	// 0.0 (moon) 0.0 (hyp)
-	// e_final = 0.1;		// 0.5 (moon) 0.2 (hyp)
+	// e_final = 0.3;		// 0.5 (moon) 0.2 (hyp)
 
 	// e_step = (e_final - e_initial) / (double)(number_of_e);
 

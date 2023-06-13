@@ -384,7 +384,8 @@ int draw_orbit_map  (dynsys system);
 int draw_phase_space(dynsys system,
 					 anlsis analysis);
 
-int draw_phase_space_clean(dynsys system);
+int draw_phase_space_clean	(dynsys system,
+                             anlsis analysis);
 
 int draw_phase_space_latex(dynsys system);
 
