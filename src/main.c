@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	m_primary = 1.0 - m_secondary;
 	G = 1.0;
 	a = 1.0;
- 	K = 1e-4;		//1e-4
+ 	K = 1e-6;		//1e-4
 	T = kepler_period(m_primary, m_secondary, G, a);
 
 	// gamma = gamma_hyperion;
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 
 	anlsis	analysis;
 
-	analysis.number_of_cycles = (int) (1.0e7 / T);	// (int) (1.0e7 / T)
+	analysis.number_of_cycles = (int) (1.0e8 / T);	// (int) (1.0e7 / T)
 	// analysis.number_of_cycles = 6e3;	// 1e3 5e3 1e4 6e3 (hyp - strong)
 	analysis.cycle_period = T;
 	analysis.evolve_box_size = 1e8;
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 	analysis.velocity_max = 1.2;		// 3.0
 	// analysis.velocity_max = 3.0;		// 3.0
 
-	analysis.grid_resolution = 600;			// 600
+	analysis.grid_resolution = 300;			// 600
 	analysis.grid_coordinate_min = -M_PI;	// -M_PI
 	analysis.grid_coordinate_max = M_PI;	// M_PI
 	analysis.grid_velocity_min = 0.0;
@@ -302,9 +302,9 @@ int main(int argc, char **argv)
 	fill_attractor_array(&number_of_pos, &multiple_pos, system, analysis_res_300, rk);
 
 	multiple_basin_of_attraction_determined (number_of_pos, multiple_pos, system, analysis, rk);
-	basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
-	draw_multiple_basin_of_attraction_determined (system, analysis);
-	draw_multiple_basin_of_attraction_determined_clean (system, analysis);
+	// basin_size_from_data (number_of_pos, multiple_pos, system, analysis);
+	// draw_multiple_basin_of_attraction_determined (system, analysis);
+	// draw_multiple_basin_of_attraction_determined_clean (system, analysis);
 
 	if (number_of_pos > 0)
 	{
