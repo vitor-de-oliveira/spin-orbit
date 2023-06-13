@@ -15,7 +15,7 @@
 #include "dynamical_system.h"
 #include "periodic_orbit.h"
 
-#define THREADS_NUM 14
+#define THREADS_NUM 50
 
 /**
  * vector fields and jacobians related 
