@@ -25,7 +25,7 @@ int evolve_cycle(double *y, double *t,
 	}
 	else
 	{
-		status = gsl_odeiv2_driver_apply_fixed_step (d, t, rk.h, 100, y);
+		status = gsl_odeiv2_driver_apply_fixed_step (d, t, rk.h, rk.n, y);
 	}
 
 	// check if integration was successfull
